@@ -45,6 +45,17 @@ const page_url = 'file://' + path.join(root, 'index.html');
   await page.waitForTimeout(400);
   await page.screenshot({ path: path.join(root, 'docs/closeup.png'), clip: { x: 450, y: 225, width: 500, height: 400 } });
 
+  // graphs drawer and a species page
+  await page.evaluate(() => { for (const id of ['collapse', 'bTrails']) document.getElementById(id).click(); });
+  await page.click('#bGraphs');
+  await page.waitForTimeout(1500);
+  await page.screenshot({ path: path.join(root, 'docs/graphs.png') });
+  await page.click('[data-tab=species]');
+  await page.waitForTimeout(1200);
+  await page.click('.sprow');
+  await page.waitForTimeout(1500);
+  await page.screenshot({ path: path.join(root, 'docs/species.png') });
+
   // phone layout
   await page.setViewportSize({ width: 390, height: 800 });
   await page.reload();
@@ -53,5 +64,5 @@ const page_url = 'file://' + path.join(root, 'index.html');
 
   await browser.close();
   if (errors.length) { console.error('Page errors:', errors); process.exit(1); }
-  console.log('Wrote docs/screenshot.png, docs/closeup.png, docs/phone.png');
+  console.log('Wrote docs/screenshot.png, closeup.png, graphs.png, species.png, phone.png');
 })();

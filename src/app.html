@@ -4,7 +4,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=JetBrains+Mono:wght@400;600&display=swap">
 <style>
-/* Layout: full-bleed dark "petri dish" canvas, one floating instrument panel at top-left, inspector card follows the cursor. Single dark look by choice. */
+/* Layout: full-bleed dark "petri dish" canvas, controls card at top-left, species card at top-right, inspector follows the cursor. Single dark look by choice. */
 :root {
   color-scheme: dark;
   --dish: #04070c;
@@ -17,6 +17,11 @@
   --red: #f87171;
   --blue: #60a5fa;
   --yellow: #facc15;
+  --cyan: #22d3ee;
+  --food: #c7f9ff;
+  --eye: #e8f1ff;
+  --fat: #fb923c;
+  --brood: #f472b6;
   --font-display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
   --font-data: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
 }
@@ -31,12 +36,9 @@ body {
   -webkit-user-select: none;
 }
 #world { position: fixed; inset: 0; width: 100%; height: 100%; display: block; cursor: crosshair; touch-action: none; }
-#panel {
+.card {
   position: fixed;
   top: calc(12px + env(safe-area-inset-top, 0px));
-  left: max(16px, env(safe-area-inset-left, 0px));
-  width: 268px;
-  max-width: calc(100vw - 32px);
   max-height: calc(100% - 24px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
   overflow-y: auto;
   background: var(--panel);
@@ -46,10 +48,13 @@ body {
   backdrop-filter: blur(6px);
   display: flex; flex-direction: column; gap: 10px;
 }
-#panel header { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+#panel { left: max(16px, env(safe-area-inset-left, 0px)); width: 280px; max-width: calc(100vw - 32px); }
+#species { right: max(16px, env(safe-area-inset-right, 0px)); width: 236px; max-width: calc(100vw - 32px); gap: 6px; }
+.card header { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
 h1 { margin: 0; font-family: var(--font-display); font-weight: 800; font-size: 22px; letter-spacing: -0.02em; color: var(--ink); }
-#collapse { background: none; border: 1px solid var(--panel-line); color: var(--ink-dim); border-radius: 6px; font: inherit; padding: 2px 8px; cursor: pointer; }
-#panel.min > :not(header) { display: none; }
+h2 { margin: 0; font-family: var(--font-display); font-weight: 800; font-size: 15px; color: var(--ink); }
+.toggle { background: none; border: 1px solid var(--panel-line); color: var(--ink-dim); border-radius: 6px; font: inherit; padding: 2px 8px; cursor: pointer; }
+.card.min > :not(header) { display: none; }
 .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 12px; font-variant-numeric: tabular-nums; }
 .stats div { display: flex; justify-content: space-between; gap: 6px; }
 .stats span { color: var(--ink-dim); }
@@ -61,22 +66,33 @@ button.ctl {
 button.ctl:hover { border-color: var(--accent); }
 button.ctl[aria-pressed="true"] { background: rgba(143, 227, 208, 0.18); border-color: var(--accent); color: var(--accent); }
 button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.tools { display: grid; grid-template-columns: auto 1fr 1fr; gap: 6px; align-items: center; }
+.tools span { color: var(--ink-dim); }
 label.slider { display: grid; grid-template-columns: 78px 1fr 34px; align-items: center; gap: 8px; color: var(--ink-dim); }
 label.slider output { color: var(--ink); text-align: right; font-variant-numeric: tabular-nums; }
 input[type=range] { width: 100%; accent-color: var(--accent); }
 .legend { display: grid; gap: 4px; }
 .legend div { display: grid; grid-template-columns: 22px 1fr; gap: 8px; align-items: center; }
 .legend i { display: block; height: 3px; border-radius: 2px; }
+.legend svg { display: block; width: 12px; height: 12px; margin-inline: 5px; }
 .legend b { font-weight: 600; color: var(--ink); }
 .legend span { color: var(--ink-dim); }
+.legend .label { grid-column: 1 / -1; display: block; }
 .label { text-transform: uppercase; letter-spacing: 0.1em; font-size: 10px; color: var(--ink-dim); }
 #graph { width: 100%; height: 70px; display: block; border-radius: 6px; background: rgba(255,255,255,0.02); }
 .hint { color: var(--ink-dim); line-height: 1.5; margin: 0; }
 .hint b { color: var(--ink); font-weight: 600; }
+#speciesList { display: grid; gap: 4px; }
+.sp { display: grid; grid-template-columns: 40px 1fr auto; gap: 8px; align-items: center; font-variant-numeric: tabular-nums; }
+.sp canvas { width: 40px; height: 40px; border-radius: 6px; background: rgba(255,255,255,0.03); }
+.sp > div { min-width: 0; }
+.sp .n { font-family: var(--font-display); font-weight: 800; font-size: 13px; color: var(--ink); line-height: 1.15; overflow-wrap: anywhere; }
+.sp .m { color: var(--ink-dim); font-size: 11px; }
+.sp .c { color: var(--ink); }
 #inspect {
   position: fixed; pointer-events: none; z-index: 5;
   background: var(--panel); border: 1px solid var(--panel-line); border-radius: 8px;
-  padding: 8px 10px; min-width: 170px; font-variant-numeric: tabular-nums; line-height: 1.55;
+  padding: 8px 10px; min-width: 190px; font-variant-numeric: tabular-nums; line-height: 1.55;
 }
 #inspect .t { font-family: var(--font-display); font-weight: 800; font-size: 14px; display: flex; align-items: center; gap: 6px; }
 #inspect .dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
@@ -86,25 +102,34 @@ input[type=range] { width: 100%; accent-color: var(--accent); }
   bottom: calc(18px + env(safe-area-inset-bottom, 0px));
   background: var(--panel); border: 1px solid var(--panel-line); border-radius: 8px; padding: 7px 12px; color: var(--ink);
 }
+@media (max-width: 760px) {
+  #species { top: auto; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); }
+}
 </style>
 
 <canvas id="world"></canvas>
 
-<section id="panel" aria-label="Simulation controls">
+<section id="panel" class="card" aria-label="Simulation controls">
   <header>
     <h1>Bioevolution</h1>
-    <button id="collapse" aria-expanded="true">hide</button>
+    <button class="toggle" id="collapse" aria-expanded="true">hide</button>
   </header>
 
-  <div class="stats" aria-live="off">
+  <div class="stats">
     <div><span>alive</span><b id="sPop">0</b></div>
-    <div><span>lineages</span><b id="sSpecies">0</b></div>
+    <div><span>species</span><b id="sSpecies">0</b></div>
     <div><span>top gen</span><b id="sGen">0</b></div>
     <div><span>time</span><b id="sTime">0s</b></div>
     <div><span>births</span><b id="sBirths">0</b></div>
     <div><span>eaten</span><b id="sEaten">0</b></div>
-    <div><span>died off</span><b id="sStarved">0</b></div>
-    <div><span>you killed</span><b id="sSmited">0</b></div>
+    <div><span>avg parts</span><b id="sCx">0</b></div>
+    <div><span>food bits</span><b id="sFood">0</b></div>
+  </div>
+
+  <div class="tools">
+    <span>Click to</span>
+    <button class="ctl" id="tKill" aria-pressed="true">Kill</button>
+    <button class="ctl" id="tFeed" aria-pressed="false">Feed</button>
   </div>
 
   <div class="row">
@@ -116,21 +141,37 @@ input[type=range] { width: 100%; accent-color: var(--accent); }
   </div>
 
   <label class="slider">Sunlight <input type="range" id="rLight" min="0" max="2" step="0.05" value="1"><output id="oLight">1.00</output></label>
+  <label class="slider">Food bits <input type="range" id="rFood" min="0" max="3" step="0.05" value="1"><output id="oFood">1.00</output></label>
   <label class="slider">Mutation <input type="range" id="rMut" min="0" max="3" step="0.05" value="1"><output id="oMut">1.00</output></label>
 
   <div>
-    <div class="label">Gene pool (segment length by colour)</div>
+    <div class="label">Gene pool over time</div>
     <canvas id="graph"></canvas>
   </div>
 
   <div class="legend">
+    <span class="label">Lines: colour is the job</span>
     <div><i style="background:var(--green)"></i><span><b>Green</b> soaks up sunlight</span></div>
-    <div><i style="background:var(--red)"></i><span><b>Red</b> bites and eats others</span></div>
+    <div><i style="background:var(--cyan)"></i><span><b>Cyan</b> gathers food bits it touches</span></div>
+    <div><i style="background:var(--red)"></i><span><b>Red</b> bites live prey and corpses</span></div>
     <div><i style="background:var(--blue)"></i><span><b>Blue</b> armour, blocks bites</span></div>
     <div><i style="background:var(--yellow)"></i><span><b>Yellow</b> swims, costs energy</span></div>
+    <span class="label" style="margin-top: 4px">Organs: shape is the job</span>
+    <div><svg viewBox="0 0 12 12" aria-hidden="true"><circle cx="6" cy="6" r="4.5" fill="none" stroke="var(--eye)" stroke-width="1.4"/><circle cx="6" cy="6" r="1.6" fill="var(--eye)"/></svg><span><b>Eye</b> sees food, prey, danger and mates</span></div>
+    <div><svg viewBox="0 0 12 12" aria-hidden="true"><rect x="2" y="2" width="8" height="8" fill="var(--fat)"/></svg><span><b>Fat store</b> holds more energy, slows you</span></div>
+    <div><svg viewBox="0 0 12 12" aria-hidden="true"><polygon points="6,1.5 10.5,10 1.5,10" fill="var(--brood)"/></svg><span><b>Brood sac</b> breeds sooner, twins</span></div>
+    <div><svg viewBox="0 0 12 12" aria-hidden="true"><circle cx="6" cy="6" r="1.8" fill="var(--food)"/></svg><span><b>Food bit</b> drifts in; dead bodies break down into more</span></div>
   </div>
 
-  <p class="hint"><b>Click</b> a creature to kill it. <b>Shift-click</b> to feed it. Hover to inspect. Same-colour relatives breed when they meet; eating can pass the prey's genes into the eater's children.</p>
+  <p class="hint">Every part costs upkeep, and each extra part costs a bit more than the last. Complex creatures live longer and can do more, but only if they feed themselves. Relatives breed when they meet. Eating can pass the prey's genes to the eater's children. <b>Shift-click</b> uses the other tool. Hover to inspect.</p>
+</section>
+
+<section id="species" class="card" aria-label="Most common species">
+  <header>
+    <h2>Top species</h2>
+    <button class="toggle" id="collapse2" aria-expanded="true">hide</button>
+  </header>
+  <div id="speciesList"></div>
 </section>
 
 <div id="inspect" hidden></div>
@@ -141,13 +182,22 @@ input[type=range] { width: 100%; accent-color: var(--accent); }
 'use strict';
 
 // ---------- constants ----------
-const TYPE = { GREEN: 0, RED: 1, BLUE: 2, YELLOW: 3 };
-const TYPE_COLOR = ['#4ade80', '#f87171', '#60a5fa', '#facc15'];
-const TYPE_NAME = ['green', 'red', 'blue', 'yellow'];
+const TYPE = { GREEN: 0, RED: 1, BLUE: 2, YELLOW: 3, CYAN: 4 };
+const NT = 5;
+const TYPE_COLOR = ['#4ade80', '#f87171', '#60a5fa', '#facc15', '#22d3ee'];
+const TYPE_NAME = ['green', 'red', 'blue', 'yellow', 'cyan'];
+const ORGAN = { NONE: 0, EYE: 1, FAT: 2, BROOD: 3 };
+const ORGAN_COLOR = [null, '#e8f1ff', '#fb923c', '#f472b6'];
+const ORGAN_NAME = [null, 'eye', 'fat', 'brood'];
+const ORGAN_UPKEEP = [0, 0.14, 0.05, 0.1]; // energy per second
+const FOOD_COLOR = '#c7f9ff';
+const FOOD_ENERGY = 7;
+const CORPSE_COLOR = '#5b6573';
 const DT = 1 / 60;
 const MAX_POP = 420;
 const MATURE_AGE = 6;
 const BREED_COOLDOWN = 7;
+const CELL = 40;
 
 // ---------- state ----------
 const canvas = document.getElementById('world');
@@ -156,16 +206,21 @@ const graph = document.getElementById('graph');
 const gctx = graph.getContext('2d');
 let W = 0, H = 0, dpr = 1;
 let creatures = [];
+let corpses = [];
+let food = [];
 let particles = [];
 let nextId = 1;
 let simTime = 0;
 let paused = false, speed = 1, trails = true;
-let light = 1, mutRate = 1;
-let stats = { births: 0, eaten: 0, starved: 0, smited: 0 };
+let light = 1, foodRate = 1, mutRate = 1;
+let tool = 'kill';
+let stats = { births: 0, eaten: 0, died: 0, smited: 0 };
 let history = [];
 let histTimer = 0;
 let mouse = { x: -1, y: -1, inside: false };
 let reseedTimer = 0;
+let foodAcc = 0;
+let grid = null, gcols = 0, grows = 0;
 
 // ---------- helpers ----------
 const rand = (a = 1, b) => b === undefined ? Math.random() * a : a + Math.random() * (b - a);
@@ -174,6 +229,7 @@ const gauss = () => { let u = 0, v = 0; while (!u) u = Math.random(); while (!v)
 const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
 const wrapD = (d, size) => d > size / 2 ? d - size : d < -size / 2 ? d + size : d;
 const hueDist = (a, b) => { const d = Math.abs(a - b) % 360; return d > 180 ? 360 - d : d; };
+const angDiff = (a, b) => { let d = (b - a) % (Math.PI * 2); if (d > Math.PI) d -= Math.PI * 2; if (d < -Math.PI) d += Math.PI * 2; return d; };
 
 function segsIntersect(ax, ay, bx, by, cx, cy, dx, dy) {
   const d1x = bx - ax, d1y = by - ay, d2x = dx - cx, d2y = dy - cy;
@@ -192,15 +248,22 @@ function distToSeg(px, py, ax, ay, bx, by) {
 }
 
 // ---------- genome ----------
-// A genome is one "arm" pattern (a chain of coloured segments) repeated around the nucleus.
+// A genome is one "arm" pattern repeated around the nucleus. Each segment is a coloured line
+// and may carry an organ (eye, fat store or brood sac) at its far end.
+function randomOrgan() {
+  const r = Math.random();
+  return r < 0.78 ? ORGAN.NONE : r < 0.86 ? ORGAN.EYE : r < 0.93 ? ORGAN.FAT : ORGAN.BROOD;
+}
+function randomType() {
+  const r = Math.random();
+  return r < 0.36 ? TYPE.GREEN : r < 0.52 ? TYPE.CYAN : r < 0.68 ? TYPE.RED : r < 0.84 ? TYPE.BLUE : TYPE.YELLOW;
+}
+function randomSeg() {
+  return { len: rand(5, 12), ang: rand(-0.9, 0.9), type: randomType(), organ: randomOrgan() };
+}
 function randomGenome() {
-  const n = randi(1, 3);
   const segs = [];
-  for (let i = 0; i < n; i++) {
-    const r = Math.random();
-    const type = r < 0.45 ? TYPE.GREEN : r < 0.65 ? TYPE.RED : r < 0.82 ? TYPE.BLUE : TYPE.YELLOW;
-    segs.push({ len: rand(5, 12), ang: rand(-0.9, 0.9), type });
-  }
+  for (let i = 0, n = randi(1, 3); i < n; i++) segs.push(randomSeg());
   return { arms: randi(2, 5), mirror: Math.random() < 0.5, segs, hue: rand(360), spin: rand(-0.6, 0.6), absorbed: [] };
 }
 
@@ -210,7 +273,6 @@ function cloneGenome(g) {
 
 function crossover(a, b) {
   const g = cloneGenome(Math.random() < 0.5 ? a : b);
-  const other = g === a ? b : a;
   const n = Math.random() < 0.5 ? a.segs.length : b.segs.length;
   g.segs = [];
   for (let i = 0; i < n; i++) {
@@ -230,11 +292,10 @@ function mutate(g, parentAbsorbed) {
   for (const s of g.segs) {
     if (Math.random() < 0.12 * m) s.len = clamp(s.len + gauss() * 2, 3, 16);
     if (Math.random() < 0.12 * m) s.ang = clamp(s.ang + gauss() * 0.3, -1.6, 1.6);
-    if (Math.random() < 0.035 * m) s.type = randi(0, 3);
+    if (Math.random() < 0.035 * m) s.type = randi(0, NT - 1);
+    if (Math.random() < 0.03 * m) s.organ = Math.random() < 0.4 ? ORGAN.NONE : randi(1, 3);
   }
-  if (Math.random() < 0.04 * m && g.segs.length < 5) {
-    g.segs.push({ len: rand(4, 10), ang: rand(-1, 1), type: randi(0, 3) });
-  }
+  if (Math.random() < 0.04 * m && g.segs.length < 6) g.segs.push(randomSeg());
   if (Math.random() < 0.04 * m && g.segs.length > 1) g.segs.splice(randi(0, g.segs.length - 1), 1);
   if (Math.random() < 0.03 * m) g.arms = clamp(g.arms + (Math.random() < 0.5 ? -1 : 1), 1, 6);
   if (Math.random() < 0.02 * m) g.mirror = !g.mirror;
@@ -249,11 +310,28 @@ function mutate(g, parentAbsorbed) {
 }
 
 function geneticDistance(a, b) {
-  let d = Math.abs(a.arms - b.arms) * 0.25 + hueDist(a.hue, b.hue) / 180 * 0.6;
+  const d = Math.abs(a.arms - b.arms) * 0.25 + hueDist(a.hue, b.hue) / 180 * 0.6;
   const n = Math.max(a.segs.length, b.segs.length);
   let mism = 0;
-  for (let i = 0; i < n; i++) if (!a.segs[i] || !b.segs[i] || a.segs[i].type !== b.segs[i].type) mism++;
+  for (let i = 0; i < n; i++) {
+    const x = a.segs[i], y = b.segs[i];
+    if (!x || !y) { mism++; continue; }
+    if (x.type !== y.type) mism += 0.7;
+    if (x.organ !== y.organ) mism += 0.3;
+  }
   return d + (mism / n) * 0.5;
+}
+
+// Species name from the body plan: dominant colour + arm count + main organ. Creatures sharing a name count as one species.
+const COLOR_ROOT = ['Chloro', 'Rhodo', 'Lazuro', 'Xantho', 'Cyano'];
+const ARM_ROOT = ['', 'monad', 'dipod', 'tripod', 'tetrapod', 'pentapod', 'hexapod'];
+const ORGAN_EPITHET = ['', 'oculata', 'crassa', 'fecunda'];
+function speciesName(c) {
+  let dom = 0;
+  for (let t = 1; t < NT; t++) if (c.len[t] > c.len[dom]) dom = t;
+  let org = 0;
+  for (let o = 1; o < 4; o++) if (c.organs[o] > (org ? c.organs[org] : 0)) org = o;
+  return COLOR_ROOT[dom] + ARM_ROOT[c.g.arms] + (org ? ' ' + ORGAN_EPITHET[org] : '');
 }
 
 // ---------- creature ----------
@@ -266,22 +344,26 @@ class Creature {
     this.heading = rand(Math.PI * 2);
     this.vx = 0; this.vy = 0;
     this.age = 0;
-    this.lifespan = rand(70, 130);
     this.gen = gen;
     this.scale = 0.55;
     this.cooldown = BREED_COOLDOWN * 0.5;
     this.kids = 0; this.kills = 0;
-    this.ateSun = 0; this.ateMeat = 0;
+    this.ateSun = 0; this.ateMeat = 0; this.ateFood = 0;
     this.flash = 0;
     this.dead = false;
+    this.mood = 'drifting';
+    this.goal = null; // {dx, dy, flee}
+    this.thinkT = rand(0.3);
     this.build();
+    this.lifespan = rand(60, 100) + this.parts * 2.5;
     this.energy = Math.min(energy, this.maxEnergy);
   }
 
   build() {
     const g = this.g;
     this.local = [];
-    this.len = [0, 0, 0, 0];
+    this.len = new Array(NT).fill(0);
+    this.organs = [0, 0, 0, 0];
     let reach = 0;
     for (let a = 0; a < g.arms; a++) {
       const flip = g.mirror && a % 2 ? -1 : 1;
@@ -290,26 +372,83 @@ class Creature {
       for (const s of g.segs) {
         ang += s.ang * flip;
         const nx = x + Math.cos(ang) * s.len, ny = y + Math.sin(ang) * s.len;
-        this.local.push({ x1: x, y1: y, x2: nx, y2: ny, type: s.type });
+        this.local.push({ x1: x, y1: y, x2: nx, y2: ny, type: s.type, organ: s.organ });
         this.len[s.type] += s.len;
+        this.organs[s.organ]++;
         x = nx; y = ny;
         reach = Math.max(reach, Math.hypot(x, y));
       }
     }
-    this.reach = reach + 2;
-    this.total = this.len[0] + this.len[1] + this.len[2] + this.len[3];
-    this.maxEnergy = 25 + this.total * 2.2;
-    this.ws = this.local.map(() => ({ x1: 0, y1: 0, x2: 0, y2: 0, type: 0 }));
+    this.reach = reach + 4;
+    this.total = this.len.reduce((s, v) => s + v, 0);
+    // complexity: every segment is a part, every organ counts double
+    this.parts = this.local.length + 2 * (this.organs[1] + this.organs[2] + this.organs[3]);
+    this.maxEnergy = 25 + this.total * 2.2 + this.organs[ORGAN.FAT] * 45;
+    this.sight = this.organs[ORGAN.EYE] ? Math.min(230, 60 + this.organs[ORGAN.EYE] * 35) : 0;
+    this.mass = this.total + 10 + this.organs[ORGAN.FAT] * 10;
+    // Upkeep grows faster than the part count, so complexity has to pay for itself.
+    this.baseUpkeep = 0.4 + this.total * 0.032 + Math.pow(this.parts, 1.25) * 0.03
+      + this.len[TYPE.YELLOW] * 0.05 + this.len[TYPE.RED] * 0.01
+      + this.organs.reduce((s, n, o) => s + n * ORGAN_UPKEEP[o], 0);
+    this.ws = this.local.map(() => ({ x1: 0, y1: 0, x2: 0, y2: 0, type: 0, organ: 0 }));
   }
 
   get radius() { return this.reach * this.scale; }
+  get fullness() { return this.energy / (this.maxEnergy * this.scale); }
+
+  // Eyes let a creature pick a goal: run from danger, chase food or prey, or find a partner.
+  think() {
+    this.goal = null;
+    if (!this.sight) { this.mood = 'drifting'; return; }
+    const range = this.sight * this.scale;
+    let best = null, bestScore = 0, mood = 'drifting';
+    const hungry = this.fullness < 0.75;
+    const consider = (dx, dy, score, flee, m) => { if (score > bestScore) { bestScore = score; best = { dx, dy, flee }; mood = m; } };
+    for (const o of creatures) {
+      if (o === this || o.dead) continue;
+      const dx = wrapD(o.x - this.x, W), dy = wrapD(o.y - this.y, H);
+      const d2 = dx * dx + dy * dy;
+      if (d2 > range * range) continue;
+      const d = Math.sqrt(d2) + 1;
+      if (geneticDistance(this.g, o.g) < 0.3) {
+        if (canBreed(this) && canBreed(o)) consider(dx, dy, 1.2 / d, false, 'courting');
+        continue;
+      }
+      const theirBite = o.len[TYPE.RED] * o.scale, myArmor = this.len[TYPE.BLUE] * this.scale;
+      if (theirBite > 4 && myArmor < theirBite * 0.6) {
+        consider(dx, dy, 0.3 * theirBite / d, true, 'fleeing');
+      } else if (hungry && this.len[TYPE.RED] > 0) {
+        const myBite = this.len[TYPE.RED] * this.scale, theirArmor = o.len[TYPE.BLUE] * o.scale;
+        if (theirArmor < myBite) consider(dx, dy, (myBite - theirArmor) / (d * 12), false, 'hunting');
+      }
+    }
+    if (!hungry) { this.goal = best; this.mood = mood; return; }
+    if (this.len[TYPE.RED] > 0) {
+      for (const k of corpses) {
+        const dx = wrapD(k.x - this.x, W), dy = wrapD(k.y - this.y, H);
+        const d2 = dx * dx + dy * dy;
+        if (d2 < range * range) consider(dx, dy, 0.8 / (Math.sqrt(d2) + 1), false, 'scavenging');
+      }
+    }
+    if (this.len[TYPE.CYAN] > 0) {
+      // head for the densest nearby food: sample food bits in sight
+      for (const f of food) {
+        const dx = wrapD(f.x - this.x, W), dy = wrapD(f.y - this.y, H);
+        const d2 = dx * dx + dy * dy;
+        if (d2 < range * range) consider(dx, dy, 0.6 / (Math.sqrt(d2) + 1), false, 'grazing');
+      }
+    }
+    this.goal = best;
+    this.mood = mood;
+  }
 
   update(dt, sunShare) {
     this.age += dt;
     this.cooldown -= dt;
     this.flash = Math.max(0, this.flash - dt * 3);
+    this.thinkT -= dt;
+    if (this.thinkT <= 0) { this.thinkT = 0.3; this.think(); }
 
-    // grow toward full size while well fed
     if (this.scale < 1 && this.energy > this.maxEnergy * 0.4) this.scale = Math.min(1, this.scale + dt * 0.05);
 
     // energy in: sunlight on green segments (shared out when the dish is crowded)
@@ -317,15 +456,23 @@ class Creature {
     this.energy += sun;
     this.ateSun += sun;
 
-    // energy out: body upkeep, extra for swimming
     const s = this.scale;
-    const upkeep = (0.4 + this.total * s * 0.035 + this.len[TYPE.YELLOW] * s * 0.05 + this.len[TYPE.RED] * s * 0.01) * dt;
-    this.energy -= upkeep;
+    let upkeep = this.baseUpkeep * s;
+
+    // movement: yellow segments push along the heading; eyes steer that heading
+    if (this.goal) {
+      let want = Math.atan2(this.goal.dy, this.goal.dx);
+      if (this.goal.flee) want += Math.PI;
+      this.heading += clamp(angDiff(this.heading, want), -4 * dt, 4 * dt);
+    } else {
+      this.heading += gauss() * 1.6 * dt;
+    }
+    const urgent = this.mood === 'fleeing' || this.mood === 'hunting';
+    let thrust = (this.len[TYPE.YELLOW] * 9 + 3) / this.mass;
+    if (urgent) { thrust *= 1.6; upkeep += this.len[TYPE.YELLOW] * 0.03 * s; }
+    this.energy -= upkeep * dt;
     if (this.energy > this.maxEnergy * s) this.energy = this.maxEnergy * s;
 
-    // movement: yellow segments push along a wandering heading
-    this.heading += gauss() * 1.6 * dt;
-    const thrust = (this.len[TYPE.YELLOW] * 9 + 3) / (this.total + 10);
     this.vx += Math.cos(this.heading) * thrust * 60 * dt;
     this.vy += Math.sin(this.heading) * thrust * 60 * dt;
     const drag = Math.pow(0.12, dt);
@@ -344,41 +491,111 @@ class Creature {
       const l = this.local[i], w = this.ws[i];
       w.x1 = this.x + l.x1 * c - l.y1 * s; w.y1 = this.y + l.x1 * s + l.y1 * c;
       w.x2 = this.x + l.x2 * c - l.y2 * s; w.y2 = this.y + l.x2 * s + l.y2 * c;
-      w.type = l.type;
+      w.type = l.type; w.organ = l.organ;
     }
   }
 
   die(cause) {
     if (this.dead) return;
     this.dead = true;
-    if (cause === 'starved' || cause === 'old') stats.starved++;
     if (cause === 'eaten') stats.eaten++;
-    if (cause === 'smited') stats.smited++;
-    burst(this, cause === 'smited' ? 26 : 10);
+    else if (cause === 'smited') stats.smited++;
+    else stats.died++;
+    burst(this, cause === 'smited' ? 26 : 8);
+    if (cause !== 'eaten') {
+      // the body stays behind as food for scavengers, then breaks down into food bits
+      corpses.push({
+        x: this.x, y: this.y, life: 25, max: 25,
+        energy: Math.max(0, this.energy) + this.total * this.scale * 0.6,
+        ws: this.ws.map(w => ({ ...w })),
+        radius: this.radius,
+      });
+    }
   }
 
   draw(ox, oy) {
-    const alpha = clamp(0.35 + this.energy / (this.maxEnergy * this.scale) * 0.65, 0.35, 1);
-    ctx.globalAlpha = alpha;
+    ctx.globalAlpha = clamp(0.35 + this.fullness * 0.65, 0.35, 1);
     ctx.lineWidth = 1.6 + this.scale * 0.8;
     ctx.lineCap = 'round';
-    for (let t = 0; t < 4; t++) {
+    for (let t = 0; t < NT; t++) {
+      if (!this.len[t]) continue;
       ctx.strokeStyle = TYPE_COLOR[t];
       ctx.beginPath();
-      let any = false;
       for (const w of this.ws) {
         if (w.type !== t) continue;
-        ctx.moveTo(w.x1 + ox, w.y1 + oy); ctx.lineTo(w.x2 + ox, w.y2 + oy); any = true;
+        ctx.moveTo(w.x1 + ox, w.y1 + oy); ctx.lineTo(w.x2 + ox, w.y2 + oy);
       }
-      if (any) ctx.stroke();
+      ctx.stroke();
     }
-    // joints
-    ctx.fillStyle = 'rgba(230,240,255,0.7)';
-    for (const w of this.ws) { ctx.fillRect(w.x2 + ox - 0.8, w.y2 + oy - 0.8, 1.6, 1.6); }
-    // nucleus in lineage colour
+    drawOrgans(ctx, this.ws, ox, oy, this.scale, this.rot);
     ctx.globalAlpha = 1;
     ctx.fillStyle = `hsl(${this.g.hue} 85% ${60 + this.flash * 30}%)`;
     ctx.beginPath(); ctx.arc(this.x + ox, this.y + oy, 2.2 + this.scale * 1.6 + this.flash * 2, 0, Math.PI * 2); ctx.fill();
+  }
+}
+
+function drawOrgans(g, ws, ox, oy, scale, rot) {
+  const r = 2 + scale * 1.6;
+  for (const w of ws) {
+    const x = w.x2 + ox, y = w.y2 + oy;
+    if (w.organ === ORGAN.NONE) { g.fillStyle = 'rgba(230,240,255,0.65)'; g.fillRect(x - 0.8, y - 0.8, 1.6, 1.6); continue; }
+    g.fillStyle = g.strokeStyle = ORGAN_COLOR[w.organ];
+    if (w.organ === ORGAN.EYE) {
+      g.lineWidth = 1.2;
+      g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.stroke();
+      g.beginPath(); g.arc(x, y, r * 0.4, 0, Math.PI * 2); g.fill();
+    } else if (w.organ === ORGAN.FAT) {
+      g.save(); g.translate(x, y); g.rotate(rot); g.fillRect(-r, -r, r * 2, r * 2); g.restore();
+    } else {
+      const a = Math.atan2(w.y2 - w.y1, w.x2 - w.x1);
+      g.beginPath();
+      for (let k = 0; k < 3; k++) {
+        const t = a + k * Math.PI * 2 / 3;
+        g[k ? 'lineTo' : 'moveTo'](x + Math.cos(t) * r * 1.2, y + Math.sin(t) * r * 1.2);
+      }
+      g.closePath(); g.fill();
+    }
+  }
+}
+
+// ---------- food ----------
+function addFood(x, y, e = FOOD_ENERGY) {
+  const a = rand(Math.PI * 2), sp = rand(2, 6);
+  food.push({ x: (x + W) % W, y: (y + H) % H, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, e, eaten: false });
+}
+function buildFoodGrid() {
+  gcols = Math.max(1, Math.ceil(W / CELL)); grows = Math.max(1, Math.ceil(H / CELL));
+  grid = new Array(gcols * grows);
+  for (let i = 0; i < grid.length; i++) grid[i] = null;
+  for (const f of food) {
+    const k = Math.min(gcols - 1, (f.x / CELL) | 0) + Math.min(grows - 1, (f.y / CELL) | 0) * gcols;
+    (grid[k] || (grid[k] = [])).push(f);
+  }
+}
+// Cyan segments sweep up any food bit within reach; the nucleus can swallow bits it passes over.
+function graze(c) {
+  const r = c.radius + 4;
+  const cx0 = Math.floor((c.x - r) / CELL), cx1 = Math.floor((c.x + r) / CELL);
+  const cy0 = Math.floor((c.y - r) / CELL), cy1 = Math.floor((c.y + r) / CELL);
+  const hasCyan = c.len[TYPE.CYAN] > 0;
+  for (let gy = cy0; gy <= cy1; gy++) {
+    for (let gx = cx0; gx <= cx1; gx++) {
+      const cell = grid[((gx % gcols) + gcols) % gcols + (((gy % grows) + grows) % grows) * gcols];
+      if (!cell) continue;
+      for (const f of cell) {
+        if (f.eaten) continue;
+        const px = c.x + wrapD(f.x - c.x, W), py = c.y + wrapD(f.y - c.y, H);
+        let got = Math.hypot(px - c.x, py - c.y) < 3 + c.scale * 2;
+        if (!got && hasCyan) {
+          for (const s of c.ws) if (s.type === TYPE.CYAN && distToSeg(px, py, s.x1, s.y1, s.x2, s.y2) < 3.5) { got = true; break; }
+        }
+        if (got) {
+          f.eaten = true;
+          const gain = f.e * (hasCyan ? 1 : 0.5);
+          c.energy += gain; c.ateFood += gain;
+        }
+      }
+    }
   }
 }
 
@@ -395,16 +612,18 @@ function burst(c, n) {
 function spawnRandom(n) {
   for (let i = 0; i < n; i++) {
     const c = new Creature(randomGenome(), rand(W), rand(H), 0, 0);
-    c.energy = c.maxEnergy * 0.5;
     c.scale = rand(0.6, 1);
+    c.energy = c.maxEnergy * c.scale * 0.6;
     creatures.push(c);
   }
 }
+function foodCap() { return Math.round(W * H / 2400 * Math.max(0.3, foodRate)); }
 
 function reset() {
-  creatures = []; particles = []; history = [];
-  stats = { births: 0, eaten: 0, starved: 0, smited: 0 };
+  creatures = []; corpses = []; food = []; particles = []; history = [];
+  stats = { births: 0, eaten: 0, died: 0, smited: 0 };
   simTime = 0;
+  for (let i = 0, n = foodCap() / 3; i < n; i++) addFood(rand(W), rand(H));
   spawnRandom(Math.round(clamp(W * H / 14000, 30, 110)));
 }
 
@@ -418,6 +637,7 @@ function resize() {
   const r = graph.getBoundingClientRect();
   graph.width = Math.max(1, r.width * dpr); graph.height = Math.max(1, r.height * dpr);
   for (const c of creatures) { c.x = c.x % W; c.y = c.y % H; }
+  for (const f of food) { f.x = f.x % W; f.y = f.y % H; }
 }
 
 // ---------- simulation step ----------
@@ -431,15 +651,27 @@ function birth(child) {
 
 function step(dt) {
   simTime += dt;
+
+  // Food bits drift in from nowhere, in clumps, up to a cap.
+  foodAcc += dt * foodRate * W * H / 40000;
+  while (foodAcc >= 1) {
+    foodAcc -= 1;
+    if (food.length >= foodCap()) continue;
+    const x = rand(W), y = rand(H);
+    for (let i = 0, n = randi(1, 4); i < n; i++) addFood(x + rand(-14, 14), y + rand(-14, 14));
+  }
+  for (const f of food) { f.x = (f.x + f.vx * dt + W) % W; f.y = (f.y + f.vy * dt + H) % H; }
+  buildFoodGrid();
+
   // Sunlight is shared: the more green there is in the dish, the less each segment gets.
   let greenTotal = 0;
   for (const c of creatures) greenTotal += c.len[TYPE.GREEN] * c.scale;
   const capacity = W * H / 340;
   const sunShare = greenTotal > capacity ? capacity / greenTotal : 1;
 
-  for (const c of creatures) { c.update(dt, sunShare); c.computeWorld(); }
+  for (const c of creatures) { c.update(dt, sunShare); c.computeWorld(); if (!c.dead) graze(c); }
+  food = food.filter(f => !f.eaten);
 
-  // interactions
   const n = creatures.length;
   const crowded = n >= MAX_POP;
   for (let i = 0; i < n; i++) {
@@ -452,13 +684,13 @@ function step(dt) {
       const rr = a.radius + b.radius;
       if (dx * dx + dy * dy > rr * rr) continue;
       const ox = a.x + dx - b.x, oy = a.y + dy - b.y; // shift b next to a across the wrap
-      const kin = geneticDistance(a.g, b.g) < 0.3;
-      if (kin) {
+      if (geneticDistance(a.g, b.g) < 0.3) {
         if (!crowded && canBreed(a) && canBreed(b)) breed(a, b);
         continue;
       }
       fight(a, b, ox, oy, dt);
     }
+    if (a.len[TYPE.RED] > 0 && !a.dead) scavenge(a, dt);
   }
 
   // asexual budding when very well fed
@@ -476,14 +708,29 @@ function step(dt) {
 
   creatures = creatures.filter(c => !c.dead);
 
+  // corpses rot into food bits
+  for (const k of corpses) {
+    k.life -= dt;
+    if (k.life <= 0 && k.energy > 0) {
+      const bits = Math.min(6, Math.ceil(k.energy / FOOD_ENERGY));
+      for (let i = 0; i < bits; i++) addFood(k.x + rand(-k.radius, k.radius), k.y + rand(-k.radius, k.radius), k.energy / bits);
+      k.energy = 0;
+    }
+  }
+  corpses = corpses.filter(k => k.life > 0 && k.energy > 0);
+  if (corpses.length > 250) corpses.splice(0, corpses.length - 250);
+
   for (const p of particles) { p.x += p.vx * dt; p.y += p.vy * dt; p.vx *= 0.96; p.vy *= 0.96; p.life -= dt; }
   particles = particles.filter(p => p.life > 0);
 
   histTimer += dt;
   if (histTimer > 0.5) {
     histTimer = 0;
-    const tot = [0, 0, 0, 0];
-    for (const c of creatures) for (let t = 0; t < 4; t++) tot[t] += c.len[t];
+    const tot = new Array(NT + 3).fill(0);
+    for (const c of creatures) {
+      for (let t = 0; t < NT; t++) tot[t] += c.len[t];
+      for (let o = 1; o < 4; o++) tot[NT + o - 1] += c.organs[o] * 12; // an organ counts like ~12px of line
+    }
     history.push(tot);
     if (history.length > 240) history.shift();
   }
@@ -494,18 +741,40 @@ function step(dt) {
   }
 }
 
+function scavenge(a, dt) {
+  for (const k of corpses) {
+    if (k.energy <= 0) continue;
+    const dx = wrapD(k.x - a.x, W), dy = wrapD(k.y - a.y, H);
+    const rr = a.radius + k.radius;
+    if (dx * dx + dy * dy > rr * rr) continue;
+    const ox = a.x + dx - k.x, oy = a.y + dy - k.y;
+    let bites = 0;
+    for (const sa of a.ws) {
+      if (sa.type !== TYPE.RED) continue;
+      for (const sk of k.ws) if (segsIntersect(sa.x1, sa.y1, sa.x2, sa.y2, sk.x1 + ox, sk.y1 + oy, sk.x2 + ox, sk.y2 + oy)) bites++;
+    }
+    if (bites) {
+      const amount = Math.min(k.energy, bites * 30 * a.scale * dt);
+      k.energy -= amount; a.energy += amount * 0.7; a.ateMeat += amount * 0.7;
+    }
+  }
+}
+
+function breedThreshold(c) { return Math.max(0.3, 0.55 - c.organs[ORGAN.BROOD] * 0.07); }
 function canBreed(c) {
-  return c.age > MATURE_AGE && c.cooldown <= 0 && c.scale > 0.8 && c.energy > c.maxEnergy * c.scale * 0.55;
+  return c.age > MATURE_AGE && c.cooldown <= 0 && c.scale > 0.8 && c.fullness > breedThreshold(c);
 }
 
 function breed(a, b) {
-  const g = mutate(crossover(a.g, b.g), Math.random() < 0.5 ? a.g.absorbed : b.g.absorbed);
-  const e = a.energy * 0.3 + b.energy * 0.3;
+  const twins = Math.random() < (a.organs[ORGAN.BROOD] + b.organs[ORGAN.BROOD]) * 0.15 ? 2 : 1;
+  const e = (a.energy * 0.3 + b.energy * 0.3) / twins;
   a.energy *= 0.7; b.energy *= 0.7;
   a.cooldown = b.cooldown = BREED_COOLDOWN;
-  a.kids++; b.kids++;
-  const child = new Creature(g, (a.x + rand(-5, 5) + W) % W, (a.y + rand(-5, 5) + H) % H, e, Math.max(a.gen, b.gen) + 1);
-  birth(child);
+  for (let i = 0; i < twins; i++) {
+    const g = mutate(crossover(a.g, b.g), Math.random() < 0.5 ? a.g.absorbed : b.g.absorbed);
+    birth(new Creature(g, (a.x + rand(-5, 5) + W) % W, (a.y + rand(-5, 5) + H) % H, e, Math.max(a.gen, b.gen) + 1));
+    a.kids++; b.kids++;
+  }
 }
 
 // Red segments that cross the other creature's segments drain energy, unless they hit blue armour.
@@ -521,7 +790,6 @@ function fight(a, b, ox, oy, dt) {
   }
   if (aBites) feed(a, b, aBites, dt);
   if (bBites) feed(b, a, bBites, dt);
-  // blocked bites hurt the attacker a little and push the pair apart
   if (aBlocked || bBlocked) {
     a.energy -= aBlocked * 2 * dt; b.energy -= bBlocked * 2 * dt;
     const dx = wrapD(b.x - a.x, W), dy = wrapD(b.y - a.y, H), d = Math.hypot(dx, dy) || 1;
@@ -548,18 +816,37 @@ function feed(eater, prey, bites, dt) {
 }
 
 // ---------- drawing ----------
-function draw() {
-  if (trails) { ctx.fillStyle = 'rgba(4,7,12,0.28)'; ctx.fillRect(0, 0, W, H); }
-  else { ctx.fillStyle = '#04070c'; ctx.fillRect(0, 0, W, H); }
+function wrapOffsets(x, y, r) {
+  const xs = [0], ys = [0];
+  if (x < r) xs.push(W); else if (x > W - r) xs.push(-W);
+  if (y < r) ys.push(H); else if (y > H - r) ys.push(-H);
+  const out = [];
+  for (const ox of xs) for (const oy of ys) out.push([ox, oy]);
+  return out;
+}
 
-  for (const c of creatures) {
-    const r = c.radius + 4;
-    const xs = [0], ys = [0];
-    if (c.x < r) xs.push(W); else if (c.x > W - r) xs.push(-W);
-    if (c.y < r) ys.push(H); else if (c.y > H - r) ys.push(-H);
-    for (const ox of xs) for (const oy of ys) c.draw(ox, oy);
+function draw() {
+  ctx.fillStyle = trails ? 'rgba(4,7,12,0.28)' : '#04070c';
+  ctx.fillRect(0, 0, W, H);
+
+  ctx.fillStyle = FOOD_COLOR;
+  ctx.globalAlpha = 0.75;
+  for (const f of food) { ctx.beginPath(); ctx.arc(f.x, f.y, f.e > FOOD_ENERGY ? 2 : 1.4, 0, Math.PI * 2); ctx.fill(); }
+
+  ctx.lineCap = 'round';
+  ctx.strokeStyle = CORPSE_COLOR;
+  ctx.lineWidth = 1.5;
+  for (const k of corpses) {
+    ctx.globalAlpha = clamp(k.life / k.max, 0, 1) * 0.6;
+    ctx.beginPath();
+    for (const [ox, oy] of wrapOffsets(k.x, k.y, k.radius + 4))
+      for (const w of k.ws) { ctx.moveTo(w.x1 + ox, w.y1 + oy); ctx.lineTo(w.x2 + ox, w.y2 + oy); }
+    ctx.stroke();
   }
   ctx.globalAlpha = 1;
+
+  for (const c of creatures)
+    for (const [ox, oy] of wrapOffsets(c.x, c.y, c.radius + 6)) c.draw(ox, oy);
 
   for (const p of particles) {
     ctx.globalAlpha = clamp(p.life / p.max, 0, 1);
@@ -574,10 +861,12 @@ function draw() {
     ctx.lineWidth = 1;
     ctx.setLineDash([3, 4]);
     ctx.beginPath(); ctx.arc(h.x, h.y, h.radius + 6, 0, Math.PI * 2); ctx.stroke();
+    if (h.sight) { ctx.strokeStyle = 'rgba(232,241,255,0.18)'; ctx.beginPath(); ctx.arc(h.x, h.y, h.sight * h.scale, 0, Math.PI * 2); ctx.stroke(); }
     ctx.setLineDash([]);
   }
 }
 
+const GRAPH_COLORS = [...TYPE_COLOR, ...ORGAN_COLOR.slice(1)];
 function drawGraph() {
   const w = graph.width, h = graph.height;
   gctx.clearRect(0, 0, w, h);
@@ -585,8 +874,9 @@ function drawGraph() {
   let max = 1;
   for (const row of history) for (const v of row) max = Math.max(max, v);
   gctx.lineWidth = 1.5 * dpr;
-  for (let t = 0; t < 4; t++) {
-    gctx.strokeStyle = TYPE_COLOR[t];
+  for (let t = 0; t < GRAPH_COLORS.length; t++) {
+    gctx.strokeStyle = GRAPH_COLORS[t];
+    gctx.setLineDash(t >= NT ? [3 * dpr, 3 * dpr] : []);
     gctx.beginPath();
     history.forEach((row, i) => {
       const x = (i / (history.length - 1)) * w;
@@ -595,6 +885,7 @@ function drawGraph() {
     });
     gctx.stroke();
   }
+  gctx.setLineDash([]);
 }
 
 // ---------- UI ----------
@@ -618,36 +909,79 @@ function pick(x, y) {
 }
 function hovered() { return mouse.inside ? pick(mouse.x, mouse.y) : null; }
 
-function speciesCount() {
-  const set = new Set();
-  for (const c of creatures) set.add(c.g.arms + ':' + Math.round(c.g.hue / 24) + ':' + c.g.segs.map(s => s.type).join(''));
-  return set.size;
+// Species panel: the five most common body plans, each drawn from a living member.
+const speciesList = $('speciesList');
+const spRows = [];
+for (let i = 0; i < 5; i++) {
+  const row = document.createElement('div');
+  row.className = 'sp';
+  row.innerHTML = '<canvas width="80" height="80"></canvas><div><div class="n"></div><div class="m"></div></div><div class="c"></div>';
+  speciesList.appendChild(row);
+  spRows.push({ row, cv: row.querySelector('canvas'), n: row.querySelector('.n'), m: row.querySelector('.m'), c: row.querySelector('.c') });
+}
+function topSpecies() {
+  const groups = new Map();
+  for (const c of creatures) {
+    const k = speciesName(c);
+    const g = groups.get(k);
+    if (g) { g.count++; if (c.gen > g.gen) g.gen = c.gen; if (c.scale > g.rep.scale) g.rep = c; }
+    else groups.set(k, { name: k, count: 1, rep: c, gen: c.gen });
+  }
+  return { size: groups.size, top: [...groups.values()].sort((a, b) => b.count - a.count).slice(0, 5) };
+}
+function drawPortrait(cv, c) {
+  const g = cv.getContext('2d');
+  g.setTransform(1, 0, 0, 1, 0, 0);
+  g.clearRect(0, 0, cv.width, cv.height);
+  const k = (cv.width / 2 - 8) / (c.reach || 1);
+  g.translate(cv.width / 2, cv.height / 2);
+  g.scale(k, k);
+  g.lineCap = 'round';
+  g.lineWidth = 3 / k;
+  for (const w of c.local) { g.strokeStyle = TYPE_COLOR[w.type]; g.beginPath(); g.moveTo(w.x1, w.y1); g.lineTo(w.x2, w.y2); g.stroke(); }
+  drawOrgans(g, c.local, 0, 0, 1, 0);
+  g.fillStyle = `hsl(${c.g.hue} 85% 60%)`;
+  g.beginPath(); g.arc(0, 0, 3.5, 0, Math.PI * 2); g.fill();
 }
 
 function updatePanel() {
+  const sp = topSpecies();
   $('sPop').textContent = creatures.length;
-  $('sSpecies').textContent = speciesCount();
+  $('sSpecies').textContent = sp.size;
   $('sGen').textContent = creatures.reduce((m, c) => Math.max(m, c.gen), 0);
   const t = Math.floor(simTime);
   $('sTime').textContent = t < 120 ? t + 's' : Math.floor(t / 60) + 'm';
   $('sBirths').textContent = stats.births;
   $('sEaten').textContent = stats.eaten;
-  $('sStarved').textContent = stats.starved;
-  $('sSmited').textContent = stats.smited;
+  $('sCx').textContent = creatures.length ? (creatures.reduce((s, c) => s + c.parts, 0) / creatures.length).toFixed(1) : '0';
+  $('sFood').textContent = food.length;
   drawGraph();
+
+  spRows.forEach((r, i) => {
+    const s = sp.top[i];
+    r.row.hidden = !s;
+    if (!s) return;
+    drawPortrait(r.cv, s.rep);
+    r.n.textContent = s.name;
+    r.m.textContent = `${s.rep.parts} parts · gen ${s.gen}`;
+    r.c.textContent = s.count;
+  });
 
   const c = hovered();
   if (!c) { inspectEl.hidden = true; return; }
-  const diet = c.ateSun + c.ateMeat;
-  const meatPct = diet ? Math.round(c.ateMeat / diet * 100) : 0;
+  const diet = c.ateSun + c.ateMeat + c.ateFood || 1;
+  const pct = v => Math.round(v / diet * 100);
   const parts = c.len.map((v, i) => v > 0 ? `<span style="color:${TYPE_COLOR[i]}">${TYPE_NAME[i]} ${Math.round(v)}</span>` : '').filter(Boolean).join(' · ');
+  const organs = c.organs.map((n, o) => o && n ? `<span style="color:${ORGAN_COLOR[o]}">${n} ${ORGAN_NAME[o]}</span>` : '').filter(Boolean).join(' · ');
   inspectEl.innerHTML =
-    `<div class="t"><span class="dot" style="background:hsl(${c.g.hue} 85% 60%)"></span>Creature #${c.id}</div>` +
-    `<div><span class="k">generation</span> ${c.gen} · <span class="k">age</span> ${Math.floor(c.age)}s</div>` +
-    `<div><span class="k">energy</span> ${Math.round(c.energy)} / ${Math.round(c.maxEnergy * c.scale)}</div>` +
-    `<div><span class="k">diet</span> ${100 - meatPct}% sun · ${meatPct}% meat</div>` +
+    `<div class="t"><span class="dot" style="background:hsl(${c.g.hue} 85% 60%)"></span>${speciesName(c)}</div>` +
+    `<div><span class="k">#${c.id} · gen</span> ${c.gen} · <span class="k">age</span> ${Math.floor(c.age)}/${Math.floor(c.lifespan)}s</div>` +
+    `<div><span class="k">energy</span> ${Math.round(c.energy)}/${Math.round(c.maxEnergy * c.scale)} · <span class="k">upkeep</span> ${(c.baseUpkeep * c.scale).toFixed(1)}/s</div>` +
+    `<div><span class="k">complexity</span> ${c.parts} parts · <span class="k">now</span> ${c.mood}</div>` +
+    `<div><span class="k">diet</span> ${pct(c.ateSun)}% sun · ${pct(c.ateFood)}% bits · ${pct(c.ateMeat)}% meat</div>` +
     `<div><span class="k">kills</span> ${c.kills} · <span class="k">children</span> ${c.kids}</div>` +
     `<div>${parts}</div>` +
+    (organs ? `<div>${organs}</div>` : '') +
     (c.g.absorbed.length ? `<div><span class="k">carries prey genes</span> ${c.g.absorbed.map(s => `<span style="color:${TYPE_COLOR[s.type]}">●</span>`).join('')}</div>` : '');
   inspectEl.hidden = false;
   const bw = inspectEl.offsetWidth, bh = inspectEl.offsetHeight;
@@ -658,20 +992,33 @@ function updatePanel() {
   inspectEl.style.top = Math.max(8, ly) + 'px';
 }
 
+function setTool(t) {
+  tool = t;
+  $('tKill').setAttribute('aria-pressed', t === 'kill');
+  $('tFeed').setAttribute('aria-pressed', t === 'feed');
+}
+
 canvas.addEventListener('pointermove', e => { mouse.x = e.clientX; mouse.y = e.clientY; mouse.inside = e.pointerType === 'mouse'; });
 canvas.addEventListener('pointerleave', () => { mouse.inside = false; });
 canvas.addEventListener('pointerdown', e => {
   const c = pick(e.clientX, e.clientY);
-  if (!c) return;
-  if (e.shiftKey) {
-    c.energy = c.maxEnergy * c.scale; c.scale = Math.min(1, c.scale + 0.2); c.flash = 1;
-    toast(`Fed creature #${c.id}`);
+  const action = e.shiftKey ? (tool === 'kill' ? 'feed' : 'kill') : tool;
+  if (!c) {
+    // feeding empty water scatters food bits there
+    if (action === 'feed') for (let i = 0; i < 8; i++) addFood(e.clientX + rand(-12, 12), e.clientY + rand(-12, 12));
+    return;
+  }
+  if (action === 'feed') {
+    c.scale = Math.min(1, c.scale + 0.2); c.energy = c.maxEnergy * c.scale; c.flash = 1;
+    toast(`Fed ${speciesName(c)} #${c.id}`);
   } else {
     c.die('smited');
     creatures = creatures.filter(x => !x.dead);
   }
 });
 
+$('tKill').onclick = () => setTool('kill');
+$('tFeed').onclick = () => setTool('feed');
 $('bPause').onclick = () => { paused = !paused; $('bPause').setAttribute('aria-pressed', paused); $('bPause').textContent = paused ? 'Play' : 'Pause'; };
 const speeds = [1, 2, 4, 8];
 $('bSpeed').onclick = () => { speed = speeds[(speeds.indexOf(speed) + 1) % speeds.length]; $('bSpeed').textContent = `Speed ${speed}×`; };
@@ -679,12 +1026,22 @@ $('bTrails').onclick = () => { trails = !trails; $('bTrails').setAttribute('aria
 $('bAdd').onclick = () => { spawnRandom(10); toast('Added 10 random creatures'); };
 $('bReset').onclick = () => { reset(); toast('New dish'); };
 $('rLight').oninput = e => { light = +e.target.value; $('oLight').textContent = light.toFixed(2); };
+$('rFood').oninput = e => { foodRate = +e.target.value; $('oFood').textContent = foodRate.toFixed(2); };
 $('rMut').oninput = e => { mutRate = +e.target.value; $('oMut').textContent = mutRate.toFixed(2); };
-$('collapse').onclick = () => {
-  const min = $('panel').classList.toggle('min');
-  $('collapse').textContent = min ? 'show' : 'hide';
-  $('collapse').setAttribute('aria-expanded', !min);
-};
+function collapsible(btnId, cardId) {
+  $(btnId).onclick = () => {
+    const min = $(cardId).classList.toggle('min');
+    // on a phone only one card fits at a time
+    if (!min && window.matchMedia('(max-width: 760px)').matches) {
+      const [ob, oc] = cardId === 'panel' ? ['collapse2', 'species'] : ['collapse', 'panel'];
+      $(oc).classList.add('min'); $(ob).textContent = 'show'; $(ob).setAttribute('aria-expanded', false);
+    }
+    $(btnId).textContent = min ? 'show' : 'hide';
+    $(btnId).setAttribute('aria-expanded', !min);
+  };
+}
+collapsible('collapse', 'panel');
+collapsible('collapse2', 'species');
 window.addEventListener('keydown', e => { if (e.code === 'Space' && e.target === document.body) { e.preventDefault(); $('bPause').click(); } });
 window.addEventListener('resize', resize);
 
@@ -703,15 +1060,18 @@ function frame(now) {
   }
   draw();
   uiTimer += elapsed;
-  if (uiTimer > 0.15) { uiTimer = 0; updatePanel(); }
+  if (uiTimer > 0.25) { uiTimer = 0; updatePanel(); }
   requestAnimationFrame(frame);
 }
 
-if (window.matchMedia('(max-width: 600px)').matches) { $('panel').classList.add('min'); $('collapse').textContent = 'show'; }
+if (window.matchMedia('(max-width: 760px)').matches) {
+  for (const [b, c] of [['collapse', 'panel'], ['collapse2', 'species']]) { $(c).classList.add('min'); $(b).textContent = 'show'; }
+}
 resize();
 reset();
 // let the dish settle a little so the first frame already shows life in motion
 for (let i = 0; i < 30; i++) step(DT);
+updatePanel();
 requestAnimationFrame(frame);
 })();
 </script>

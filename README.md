@@ -2,6 +2,12 @@
 
 A modern take on the 1990s *Primordial Life* screensaver. It's an artificial-life petri dish that runs in the browser. Creatures are made of coloured lines with organs at their joints. They drift around, graze, hunt, breed and mutate, and over time the population evolves.
 
+![The dish after a few minutes of evolution, with the inspector open on one creature](docs/screenshot.png)
+
+| Close-up | On a phone |
+|---|---|
+| ![Close-up of creatures with eyes, fat stores and brood sacs](docs/closeup.png) | ![Phone layout](docs/phone.png) |
+
 ## Run it
 
 Open `index.html` in any modern browser. There is no build step and nothing to install.
@@ -46,3 +52,4 @@ Open `index.html` in any modern browser. There is no build step and nothing to i
 
 - `src/app.html` is the source: markup, styles and the whole simulation in one file.
 - `index.html` is `src/app.html` wrapped in a standard HTML document. Regenerate it with `./build.sh` after editing the source.
+- `docs/*.png` are the screenshots above. Regenerate them with `node scripts/screenshot.js` (needs Playwright) whenever the app changes.

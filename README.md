@@ -4,6 +4,10 @@ A modern take on the 1990s *Primordial Life* screensaver. It's an artificial-lif
 
 ![The dish after a few minutes of evolution, with the inspector open on one creature](docs/screenshot.png)
 
+| Graphs | A species page |
+|---|---|
+| ![Graphs of population, deaths, gene pool, complexity, species and food over time](docs/graphs.png) | ![A species page with its population, diet, food chain, family tree and history](docs/species.png) |
+
 | Close-up | On a phone |
 |---|---|
 | ![Close-up of creatures with eyes, fat stores and brood sacs](docs/closeup.png) | ![Phone layout](docs/phone.png) |
@@ -39,6 +43,7 @@ Open `index.html` in any modern browser. There is no build step and nothing to i
 - **Breeding.** Close relatives breed when they touch and are well fed, mixing both genomes. Very well fed creatures can also bud on their own.
 - **Mutation.** Segment length, angle, colour and organ drift; segments and arms are added or removed; the nucleus colour drifts so lineages diverge.
 - **You are what you eat.** A predator can keep genes from what it kills and pass them to its children.
+- **Predators hunt.** Red biters can smell prey close by even without eyes, lock on to a target, lunge with extra speed while chasing, and hunt whenever they're not full. A faint red line shows who is chasing whom.
 - **Species** are named from the body plan: main colour + number of arms + main organ, e.g. *Rhodopentapod oculata* is a five-armed red biter with eyes.
 
 ## Controls
@@ -46,7 +51,9 @@ Open `index.html` in any modern browser. There is no build step and nothing to i
 - Click to **Kill** or **Feed** (pick the tool; Shift-click uses the other one). Feeding empty water drops food bits there.
 - Hover a creature to inspect it: diet, upkeep, complexity, and what it's doing right now (hunting, fleeing, grazing, courting).
 - Space pauses. Speed goes up to 8×. Sliders set sunlight, food supply and mutation rate.
-- The graph shows total amount of each colour (solid) and organ (dashed) in the population over time.
+- The small graph shows the amount of each colour (solid) and organ (dashed) in the population over time.
+- **Graphs & stats** opens charts for the whole run: population by way of life (plants, grazers, predators), deaths per minute by cause, the gene pool, average complexity, species alive, and food. Hover a chart to read exact values.
+- **All species** lists every species that has ever lived, alive or extinct, with a population sparkline. Click one (or a row in Top species) for its page: when and where it came from, its line of descent and the species it branched into, population over time, diet, how its members died, who it ate and who ate it, and a timeline of its history. **Show in dish** rings every living member.
 
 ## Files
 

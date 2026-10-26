@@ -54,6 +54,7 @@ Open `index.html` in any modern browser. There is no build step and nothing to i
 - **You are what you eat.** A predator can keep genes from what it kills and pass them to its children.
 - **Predators hunt.** Anything with red, white or a spitter can smell prey close by even without eyes, lock on to a target, lunge with extra speed while chasing, and hunt whenever they're not full. A faint red line shows who is chasing whom.
 - **Packs and herds.** Every creature has a sociality gene. Loners keep to themselves. Social hunters gang up on whatever a relative is chasing and bite harder for each packmate nearby, so a pack can take prey too big for any one of them. Social prey herd together, and each neighbour in the herd makes them harder to bite, sting or spit at, so a predator thinks twice before attacking a crowd. Being social costs a little upkeep.
+- **Easy prey.** Newborns and the old take more damage and their armour counts for less, so hunters pick them out first, along with the starving and stragglers at the edge of a herd. Herds move off from any hunter they can see and bolt together, but hungry, young and old creatures can't run as fast and fall behind.
 - **Weed beds.** Dark weed patches dot the dish. A creature in the weeds is hidden from hunters unless they come very close, and frightened creatures dive for the nearest bed. The weeds cost them: half the sunlight and slower swimming.
 - **Species** are named from the body plan: main colour + number of arms + main organ, e.g. *Rhodopentapod oculata* is a five-armed red biter with eyes.
 
@@ -62,7 +63,7 @@ Open `index.html` in any modern browser. There is no build step and nothing to i
 - **New dish…** chooses how life starts: one simple ancestor (a three-armed green plant that has to evolve everything else), three simple types (plant, grazer, hunter), or a random soup, plus how many creatures and how much weed to hide in (none, some or lots).
 
 - Click to **Kill** or **Feed** (pick the tool; Shift-click uses the other one). Feeding empty water drops food bits there.
-- Hover a creature to inspect it: diet, upkeep, complexity, whether it lives alone or in a pack or herd, and what it's doing right now (hunting, fleeing, hiding, grazing, courting).
+- Hover a creature to inspect it: diet, upkeep, complexity, whether it lives alone or in a pack or herd, and what it's doing right now (hunting, fleeing, hiding, grazing, courting), and whether it is young or old enough to be easy prey.
 - **Scroll or pinch** to zoom (or use the − 100% + buttons), **drag** to look around, and press **F** while hovering a creature to follow it.
 - Space pauses. Speed goes up to 8×. Sliders set sunlight, food supply and mutation rate.
 - The small graph shows the amount of each colour (solid) and organ (dashed) in the population over time.

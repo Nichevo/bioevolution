@@ -65,6 +65,7 @@ body {
 .card header { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
 h1 { margin: 0; font-family: var(--font-display); font-weight: 800; font-size: 22px; letter-spacing: -0.02em; color: var(--ink); }
 h2 { margin: 0; font-family: var(--font-display); font-weight: 800; font-size: 15px; color: var(--ink); }
+#verPick { margin-right: auto; padding: 2px 4px; font-size: 11px; color: var(--ink-dim); }
 .toggle { background: none; border: 1px solid var(--panel-line); color: var(--ink-dim); border-radius: 6px; font: inherit; padding: 2px 8px; cursor: pointer; }
 .card.min > :not(header) { display: none !important; }
 .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 12px; font-variant-numeric: tabular-nums; }
@@ -109,6 +110,10 @@ input[type=range] { width: 100%; accent-color: var(--accent); }
 #inspect .t { font-family: var(--font-display); font-weight: 800; font-size: 14px; display: flex; align-items: center; gap: 6px; }
 #inspect .dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
 #inspect .k { color: var(--ink-dim); }
+#zoom { position: fixed; right: max(16px, env(safe-area-inset-right, 0px)); bottom: calc(12px + env(safe-area-inset-bottom, 0px)); display: flex; gap: 4px; z-index: 3; }
+#zoom button.ctl { background: var(--panel); min-width: 34px; font-variant-numeric: tabular-nums; }
+#world.grabbing { cursor: grabbing; }
+@media (max-width: 760px) { #zoom { right: auto; left: max(16px, env(safe-area-inset-left, 0px)); } }
 #toast {
   position: fixed; left: 50%; transform: translateX(-50%);
   bottom: calc(18px + env(safe-area-inset-bottom, 0px));
@@ -197,6 +202,7 @@ select { font: inherit; color: var(--ink); background: var(--panel-solid); borde
 <section id="panel" class="card" aria-label="Simulation controls">
   <header>
     <h1>Bioevolution</h1>
+    <select id="verPick" aria-label="Version" hidden></select>
     <button class="toggle" id="collapse" aria-expanded="true">hide</button>
   </header>
 
@@ -256,7 +262,7 @@ select { font: inherit; color: var(--ink); background: var(--panel-solid); borde
     <div><svg viewBox="0 0 12 12" aria-hidden="true"><circle cx="6" cy="6" r="1.8" fill="var(--food)"/></svg><span><b>Food bit</b> drifts in; dead bodies break down into more</span></div>
   </div>
 
-  <p class="hint">Every part costs upkeep, and each extra part costs a bit more than the last. Complex creatures live longer and can do more, but only if they feed themselves. Relatives breed when they meet. Eating can pass the prey's genes to the eater's children. <b>Shift-click</b> uses the other tool. Hover to inspect. Click a species to see its history.</p>
+  <p class="hint">Every part costs upkeep, and each extra part costs a bit more than the last. Complex creatures live longer and can do more, but only if they feed themselves. Relatives breed when they meet. Eating can pass the prey's genes to the eater's children. <b>Shift-click</b> uses the other tool. Hover to inspect; press <b>F</b> to follow. <b>Scroll or pinch</b> to zoom, <b>drag</b> to look around. Click a species to see its history.</p>
 </section>
 
 <section id="species" class="card" aria-label="Most common species">
@@ -269,6 +275,11 @@ select { font: inherit; color: var(--ink); background: var(--panel-solid); borde
 
 <div id="inspect" hidden></div>
 <div id="toast" hidden></div>
+<div id="zoom" role="group" aria-label="Zoom">
+  <button class="ctl" id="zOut" aria-label="Zoom out">−</button>
+  <button class="ctl" id="zReset" title="Show the whole dish">100%</button>
+  <button class="ctl" id="zIn" aria-label="Zoom in">+</button>
+</div>
 
 <aside id="drawer" class="card" hidden aria-label="Graphs and species">
   <header>
@@ -296,9 +307,13 @@ select { font: inherit; color: var(--ink); background: var(--panel-solid); borde
   </div>
 </div>
 
+<script src="versions/list.js"></script>
 <script>
 (() => {
 'use strict';
+
+// Which release this file is. versions/list.js lists every release, newest first.
+const APP_VERSION = 'v1';
 
 // ---------- constants ----------
 const TYPE = { GREEN: 0, RED: 1, BLUE: 2, YELLOW: 3, CYAN: 4, PURPLE: 5, WHITE: 6 };
@@ -339,6 +354,7 @@ let globs = [];            // spitter shots in flight
 let samples = [];          // one snapshot of the whole dish per simulated second
 let speciesDB = new Map(); // every species that has ever lived, by name
 let highlight = { name: null, until: 0 };
+const cam = { x: 0, y: 0, z: 1, follow: null }; // view centre in dish coordinates, zoom, creature being followed
 let histTimer = 0;
 let mouse = { x: -1, y: -1, inside: false };
 let reseedTimer = 0;
@@ -829,6 +845,8 @@ function resize() {
   W = nw; H = nh;
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.fillStyle = '#04070c'; ctx.fillRect(0, 0, W, H);
+  if (cam.z === 1) { cam.x = W / 2; cam.y = H / 2; }
+  clampCam();
   const r = graph.getBoundingClientRect();
   graph.width = Math.max(1, r.width * dpr); graph.height = Math.max(1, r.height * dpr);
   for (const c of creatures) { c.x = c.x % W; c.y = c.y % H; }
@@ -1148,9 +1166,33 @@ function wrapOffsets(x, y, r) {
   return out;
 }
 
+// ---------- camera ----------
+// The view never shows past the dish edge, so wrap-around drawing needs no extra copies.
+function clampCam() {
+  cam.z = clamp(cam.z, 1, 8);
+  const hw = W / (2 * cam.z), hh = H / (2 * cam.z);
+  cam.x = clamp(cam.x, hw, W - hw);
+  cam.y = clamp(cam.y, hh, H - hh);
+}
+function toWorld(sx, sy) { return { x: (sx - W / 2) / cam.z + cam.x, y: (sy - H / 2) / cam.z + cam.y }; }
+function zoomAt(sx, sy, z) {
+  const p = toWorld(sx, sy);
+  cam.z = clamp(z, 1, 8);
+  cam.x = p.x - (sx - W / 2) / cam.z;
+  cam.y = p.y - (sy - H / 2) / cam.z;
+  clampCam();
+  document.getElementById('zReset').textContent = Math.round(cam.z * 100) + '%';
+}
+
 function draw() {
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.fillStyle = trails ? 'rgba(4,7,12,0.28)' : '#04070c';
   ctx.fillRect(0, 0, W, H);
+  if (cam.follow) {
+    if (cam.follow.dead) { cam.follow = null; toast('The creature you were following died'); }
+    else { cam.x = cam.follow.x; cam.y = cam.follow.y; clampCam(); }
+  }
+  ctx.setTransform(dpr * cam.z, 0, 0, dpr * cam.z, dpr * (W / 2 - cam.x * cam.z), dpr * (H / 2 - cam.y * cam.z));
 
   ctx.fillStyle = FOOD_COLOR;
   ctx.globalAlpha = 0.75;
@@ -1258,7 +1300,11 @@ function pick(x, y) {
   }
   return best;
 }
-function hovered() { return mouse.inside ? pick(mouse.x, mouse.y) : null; }
+function hovered() {
+  if (!mouse.inside) return null;
+  const p = toWorld(mouse.x, mouse.y);
+  return pick(p.x, p.y);
+}
 
 // Species panel: the five most common body plans, each drawn from a living member.
 const speciesList = $('speciesList');
@@ -1338,6 +1384,7 @@ function updatePanel() {
     `<div><span class="k">kills</span> ${c.kills} · <span class="k">children</span> ${c.kids}</div>` +
     `<div>${parts}</div>` +
     (organs ? `<div>${organs}</div>` : '') +
+    `<div class="k">${cam.follow === c ? 'following · drag to stop' : 'press F to follow'}</div>` +
     (c.g.absorbed.length ? `<div><span class="k">carries prey genes</span> ${c.g.absorbed.map(s => `<span style="color:${TYPE_COLOR[s.type]}">●</span>`).join('')}</div>` : '');
   inspectEl.hidden = false;
   const bw = inspectEl.offsetWidth, bh = inspectEl.offsetHeight;
@@ -1751,14 +1798,14 @@ function setTool(t) {
   $('tFeed').setAttribute('aria-pressed', t === 'feed');
 }
 
-canvas.addEventListener('pointermove', e => { mouse.x = e.clientX; mouse.y = e.clientY; mouse.inside = e.pointerType === 'mouse'; });
-canvas.addEventListener('pointerleave', () => { mouse.inside = false; });
-canvas.addEventListener('pointerdown', e => {
-  const c = pick(e.clientX, e.clientY);
-  const action = e.shiftKey ? (tool === 'kill' ? 'feed' : 'kill') : tool;
+// A quick tap or click acts with the current tool; dragging pans; two fingers pinch-zoom.
+function act(sx, sy, shift) {
+  const p = toWorld(sx, sy);
+  const c = pick(p.x, p.y);
+  const action = shift ? (tool === 'kill' ? 'feed' : 'kill') : tool;
   if (!c) {
     // feeding empty water scatters food bits there
-    if (action === 'feed') for (let i = 0; i < 8; i++) addFood(e.clientX + rand(-12, 12), e.clientY + rand(-12, 12));
+    if (action === 'feed') for (let i = 0; i < 8; i++) addFood(p.x + rand(-12, 12), p.y + rand(-12, 12));
     return;
   }
   if (action === 'feed') {
@@ -1767,6 +1814,64 @@ canvas.addEventListener('pointerdown', e => {
   } else {
     c.die('smited');
     creatures = creatures.filter(x => !x.dead);
+  }
+}
+const pointers = new Map();
+let drag = null, pinch = null;
+canvas.addEventListener('pointerdown', e => {
+  pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  try { canvas.setPointerCapture(e.pointerId); } catch (_) { /* not supported everywhere */ }
+  if (pointers.size === 1) drag = { x: e.clientX, y: e.clientY, moved: false, shift: e.shiftKey };
+  else if (pointers.size === 2) {
+    const [a, b] = [...pointers.values()];
+    pinch = { d: Math.hypot(a.x - b.x, a.y - b.y) || 1, z: cam.z };
+    if (drag) drag.moved = true;
+  }
+});
+canvas.addEventListener('pointermove', e => {
+  mouse.x = e.clientX; mouse.y = e.clientY; mouse.inside = e.pointerType === 'mouse';
+  const prev = pointers.get(e.pointerId);
+  if (!prev) return;
+  pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (pinch && pointers.size === 2) {
+    const [a, b] = [...pointers.values()];
+    zoomAt((a.x + b.x) / 2, (a.y + b.y) / 2, pinch.z * Math.hypot(a.x - b.x, a.y - b.y) / pinch.d);
+    return;
+  }
+  if (!drag) return;
+  if (!drag.moved && Math.hypot(e.clientX - drag.x, e.clientY - drag.y) > 6) { drag.moved = true; canvas.classList.add('grabbing'); }
+  if (drag.moved && cam.z > 1) {
+    cam.follow = null;
+    cam.x -= (e.clientX - prev.x) / cam.z;
+    cam.y -= (e.clientY - prev.y) / cam.z;
+    clampCam();
+  }
+});
+function endPointer(e) {
+  if (!pointers.delete(e.pointerId)) return;
+  if (pointers.size < 2) pinch = null;
+  if (pointers.size === 0) {
+    if (drag && !drag.moved && e.type === 'pointerup') act(e.clientX, e.clientY, drag.shift);
+    drag = null;
+    canvas.classList.remove('grabbing');
+  }
+}
+canvas.addEventListener('pointerup', endPointer);
+canvas.addEventListener('pointercancel', endPointer);
+canvas.addEventListener('pointerleave', () => { mouse.inside = false; });
+canvas.addEventListener('wheel', e => { e.preventDefault(); zoomAt(e.clientX, e.clientY, cam.z * Math.exp(-e.deltaY * 0.0015)); }, { passive: false });
+$('zIn').onclick = () => zoomAt(W / 2, H / 2, cam.z * 1.5);
+$('zOut').onclick = () => zoomAt(W / 2, H / 2, cam.z / 1.5);
+$('zReset').onclick = () => { cam.follow = null; zoomAt(W / 2, H / 2, 1); };
+window.addEventListener('keydown', e => {
+  if (e.target.closest('input, select, textarea') || e.metaKey || e.ctrlKey || e.altKey) return;
+  if (e.key === '+' || e.key === '=') zoomAt(W / 2, H / 2, cam.z * 1.5);
+  else if (e.key === '-' || e.key === '_') zoomAt(W / 2, H / 2, cam.z / 1.5);
+  else if (e.key === '0') $('zReset').click();
+  else if (e.key === 'f' || e.key === 'F') {
+    const c = hovered();
+    if (cam.follow && (!c || c === cam.follow)) { cam.follow = null; toast('Stopped following'); }
+    else if (c) { cam.follow = c; if (cam.z < 2.5) zoomAt(W / 2, H / 2, 2.5); toast(`Following ${c.species} #${c.id}`); }
   }
 });
 
@@ -1817,6 +1922,16 @@ function collapsible(btnId, cardId) {
   };
 }
 collapsible('collapse', 'panel');
+// Version picker: the newest release is index.html, older ones live in versions/.
+(() => {
+  const list = window.BIO_VERSIONS || [];
+  if (list.length < 2) return;
+  const root = window.BIO_ROOT || '';
+  const pick = $('verPick');
+  pick.innerHTML = list.map((v, i) => `<option value="${i ? root + 'versions/' + v.id + '.html' : root + 'index.html'}"${v.id === APP_VERSION ? ' selected' : ''}>${v.id}${i ? '' : ' (latest)'} · ${v.title}</option>`).join('');
+  pick.hidden = false;
+  pick.onchange = () => { location.href = pick.value; };
+})();
 collapsible('collapse2', 'species');
 $('bGraphs').onclick = () => openDrawer('graphs');
 $('bSpeciesAll').onclick = () => openDrawer('species');

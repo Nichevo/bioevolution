@@ -59,14 +59,20 @@ Open `index.html` in any modern browser. There is no build step and nothing to i
 
 - Click to **Kill** or **Feed** (pick the tool; Shift-click uses the other one). Feeding empty water drops food bits there.
 - Hover a creature to inspect it: diet, upkeep, complexity, and what it's doing right now (hunting, fleeing, grazing, courting).
+- **Scroll or pinch** to zoom (or use the − 100% + buttons), **drag** to look around, and press **F** while hovering a creature to follow it.
 - Space pauses. Speed goes up to 8×. Sliders set sunlight, food supply and mutation rate.
 - The small graph shows the amount of each colour (solid) and organ (dashed) in the population over time.
 - **Graphs & stats** opens charts for the whole run: population by way of life (plants, grazers, predators), deaths per minute by cause, the gene pool, average complexity, species alive, and food. Hover a chart to read exact values.
 - **All species** groups every species that has ever lived by its place in the food chain, worked out from what it has actually eaten: producers (sunlight), grazers (food bits), predators (other creatures) and omnivores (a mix). It lists them alive or extinct, alive or extinct, with a population sparkline. Click one (or a row in Top species) for its page: when and where it came from, its line of descent and the species it branched into, population over time, diet, how its members died, who it ate and who ate it, and a timeline of its history. **Show in dish** rings every living member.
 - **Wipe out** kills a whole species, or a whole food-chain group from its header. It needs a second tap to confirm. **Bring back 10** revives an extinct species from its type specimen, and **Add 10** tops up a living one.
 
+## Versions
+
+Each release is kept playable. Use the menu next to the title to switch, or open `versions/<id>.html`. See [CHANGELOG.md](CHANGELOG.md).
+
 ## Files
 
 - `src/app.html` is the source: markup, styles and the whole simulation in one file.
 - `index.html` is `src/app.html` wrapped in a standard HTML document. Regenerate it with `./build.sh` after editing the source.
+- `versions/` holds a frozen copy of every release plus `list.js`, the list the version menu reads.
 - `docs/*.png` are the screenshots above. Regenerate them with `node scripts/screenshot.js` (needs Playwright) whenever the app changes.

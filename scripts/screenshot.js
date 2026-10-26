@@ -49,7 +49,11 @@ const page_url = 'file://' + path.join(root, 'index.html');
   await page.mouse.move(5, 845);
   await page.evaluate(() => { for (const id of ['collapse', 'collapse2', 'bTrails']) document.getElementById(id).click(); });
   await page.waitForTimeout(400);
+  await page.mouse.move(700, 425);
+  await page.mouse.wheel(0, -700); // zoom in about 3x on the middle of the dish
+  await page.waitForTimeout(600);
   await page.screenshot({ path: path.join(root, 'docs/closeup.png'), clip: { x: 450, y: 225, width: 500, height: 400 } });
+  await page.click('#zReset');
 
   // graphs drawer and a species page
   await page.evaluate(() => { for (const id of ['collapse', 'bTrails']) document.getElementById(id).click(); });

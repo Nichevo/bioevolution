@@ -42,6 +42,7 @@ Open `index.html` in any modern browser. There is no build step and nothing to i
 | Square (fat store) | Holds extra energy, but adds mass, so the creature is slower. |
 | Triangle (brood sac) | Lowers the energy needed to breed and gives a chance of twins. |
 | Kite (spitter) | Shoots globs at the prey its owner is chasing. A hit drains energy from a distance; blue armour softens it. |
+| Hexagon (brain) | Intelligence. Unlocks smarter moves (see *Brains* below). Costs upkeep and weight, and brainy parents need more energy to breed. |
 
 ## Rules
 
@@ -55,20 +56,23 @@ Open `index.html` in any modern browser. There is no build step and nothing to i
 - **Predators hunt.** Anything with red, white or a spitter can smell prey close by even without eyes, lock on to a target, lunge with extra speed while chasing, and hunt whenever they're not full. A faint red line shows who is chasing whom.
 - **Packs and herds.** Every creature has a sociality gene. Loners keep to themselves. Social hunters gang up on whatever a relative is chasing and bite harder for each packmate nearby, so a pack can take prey too big for any one of them. Social prey herd together, and each neighbour in the herd makes them harder to bite, sting or spit at, so a predator thinks twice before attacking a crowd. Being social costs a little upkeep.
 - **Easy prey.** Newborns and the old take more damage and their armour counts for less, so hunters pick them out first, along with the starving and stragglers at the edge of a herd. Herds move off from any hunter they can see and bolt together, but hungry, young and old creatures can't run as fast and fall behind.
+- **Brains.** Intelligence runs from instinct through clever, cunning and brilliant. Clever hunters aim where the prey is going. Cunning hunters drive prey into a packmate or a rock, flank it, or lie in wait in the weeds. Clever prey hide as soon as they spot a hunter, flee the way that avoids every threat and the rocks, and bunch up as a herd. Cunning poisonous herd members shield the rest, and brilliant armed herds mob a lone hunter. A brain also remembers which species hurt it and where food was.
+- **Hives.** With a strong hive gene and a brain, a creature becomes a queen (ringed) and settles into a nest by a rock or in the weeds. Her eggs hatch as small sterile workers that bring food home; armed workers guard her. She feeds hungry workers from the hive's store and now and then lays a young queen who leaves to found a new hive.
+- **Rocks.** Nothing swims through rock, so a creature that runs the wrong way gets cornered. Food that drifts against rock stays there.
 - **Weed beds.** Dark weed patches dot the dish. A creature in the weeds is hidden from hunters unless they come very close, and frightened creatures dive for the nearest bed. The weeds cost them: half the sunlight and slower swimming.
 - **Species** are named from the body plan: main colour + number of arms + main organ, e.g. *Rhodopentapod oculata* is a five-armed red biter with eyes.
 
 ## Controls
 
-- **New dish…** chooses how life starts: one simple ancestor (a three-armed green plant that has to evolve everything else), three simple types (plant, grazer, hunter), or a random soup, plus how many creatures and how much weed to hide in (none, some or lots).
+- **New dish…** chooses how life starts: one simple ancestor (a three-armed green plant that has to evolve everything else), three simple types (plant, grazer, hunter), or a random soup, plus clever creatures (plants, a hive, a poisonous herd and brainy hunters), how many creatures, rocks (none, scattered, a walled pond, or a pond with corridors) and how much weed to hide in.
 
 - Click to **Kill** or **Feed** (pick the tool; Shift-click uses the other one). Feeding empty water drops food bits there.
 - Hover a creature to inspect it: diet, upkeep, complexity, whether it lives alone or in a pack or herd, and what it's doing right now (hunting, fleeing, hiding, grazing, courting), and whether it is young or old enough to be easy prey.
 - **Scroll or pinch** to zoom (or use the − 100% + buttons), **drag** to look around, and press **F** while hovering a creature to follow it.
 - Space pauses. Speed goes up to 8×. Sliders set sunlight, food supply and mutation rate.
 - The small graph shows the amount of each colour (solid) and organ (dashed) in the population over time.
-- **Graphs & stats** opens charts for the whole run: population by way of life (plants, grazers, predators), deaths per minute by cause, the gene pool, average complexity, average sociality, species alive, and food. Hover a chart to read exact values.
-- **All species** groups every species that has ever lived by its place in the food chain, worked out from what it has actually eaten: producers (sunlight), grazers (food bits), predators (live prey), scavengers (corpses) and omnivores (a mix). It lists them alive or extinct, with a population sparkline. Click one (or a row in Top species) for its page: when and where it came from, its line of descent and the species it branched into, population over time, diet, how its members died, who it ate and who ate it, and a timeline of its history. **Show in dish** rings every living member.
+- **Graphs & stats** opens charts for the whole run: population by way of life (plants, grazers, predators), deaths per minute by cause, the gene pool, average complexity, average sociality, intelligence, kills by tactic, ways of living, traits in the population, species alive, and food. Hover a chart to read exact values.
+- **All species** groups every species that has ever lived by its place in the food chain, worked out from what it has actually eaten: producers (sunlight), grazers (food bits), predators (live prey), scavengers (corpses) and omnivores (a mix). Filter by trait (brain, eyes, poison, armour, stinger, spitter, pack or herd, hive) or by brain level, or sort by brain size. It lists them alive or extinct, with a population sparkline. Click one (or a row in Top species) for its page: when and where it came from, its line of descent and the species it branched into, population over time, diet, how its members died, who it ate and who ate it, and a timeline of its history. **Show in dish** rings every living member.
 - **Wipe out** kills a whole species, or a whole food-chain group from its header. It needs a second tap to confirm. **Bring back 10** revives an extinct species from its type specimen, and **Add 10** tops up a living one.
 
 ## Versions

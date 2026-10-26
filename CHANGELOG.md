@@ -2,9 +2,29 @@
 
 Every release stays playable. Pick one from the menu next to the title in the app, or open the file directly. The newest is always `index.html`.
 
+## v5: Brains, hives & rocks (2026-10-26)
+
+`versions/v5.html` (also the current `index.html`)
+
+- **Brain** organ (hexagon). It's inherited and mutated like every other part. It costs upkeep and weight, and brainy parents need a little more energy to breed. Brain size runs from instinct through clever (0.5), cunning (1.5) and brilliant (2.5). A brain also stretches sight a little.
+- **Hunting tactics:** clever hunters aim where the prey is going. Cunning hunters drive prey into a packmate or against a rock, or flank it from the side. When nothing's in sight they lie in wait in the weeds and pounce.
+- **Escape tactics:**
+  - Clever creatures head for weeds as soon as they spot a hunter, flee in the direction that gets them away from every threat without running into rock, and step out of the way of armed creatures they can't beat.
+  - Clever herds bunch up as they run. Cunning poisonous herd members put themselves between the hunter and the herd, and brilliant armed herds mob a lone hunter.
+- **Memory:** a creature with a brain remembers the species that poisoned or hurt it and avoids them, and remembers where it last found food.
+- **Hives** (hive gene plus a brain):
+  - A queen settles in a nest against a rock or in the weeds and lays eggs. Most hatch as small sterile workers that forage and bring food home. Armed workers act as soldiers and guard her.
+  - The queen feeds hungry workers from the hive's store. Now and then she lays a young queen who leaves to found a new hive, and if the queen dies a worker can take her place.
+- **Rocks:**
+  - New dish offers none, scattered, a walled pond or a pond with corridors (the default). In a walled pond the edge is rock and nothing wraps round.
+  - Food bits that drift against rock stay there, and weed beds grow next to the rocks.
+- **Clever creatures** start: plants, a hive, a poisonous herd and a brainy pack of hunters.
+- **Species filters:** show only species with a brain (or a minimum brain level), poison, armour, stingers, spitters, eyes, packs or herds, or hives. You can also sort by brain size. Species pages show brain level, hive numbers and how the species' kills were made.
+- **New graphs:** intelligence (average and biggest brain), kills by tactic, ways of living (alone, packs, herds, hives) and traits in the population.
+
 ## v4: Easy prey & stampedes (2026-10-26)
 
-`versions/v4.html` (also the current `index.html`)
+`versions/v4.html`
 
 - **The young and old are easy prey.** Newborns and creatures near the end of their lifespan take more damage, their armour counts for less, and hunters go for them first. Starving creatures and stragglers at the edge of a herd are also singled out. The inspector marks a creature as "young, easy prey" or "old, easy prey".
 - **Herds flee.** Social creatures move away from any hunter they can see that could hurt them, and when one bolts its relatives bolt with it.

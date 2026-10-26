@@ -13,6 +13,12 @@ const page_url = 'file://' + path.join(root, 'index.html');
   page.on('pageerror', e => errors.push(e.message));
   await page.goto(page_url);
 
+  // the New dish dialog
+  await page.click('#bReset');
+  await page.waitForTimeout(400);
+  await page.screenshot({ path: path.join(root, 'docs/new-dish.png'), clip: { x: 400, y: 190, width: 600, height: 470 } });
+  await page.click('#setupCancel');
+
   // let a few generations evolve at 8x before taking pictures
   for (let i = 0; i < 3; i++) await page.click('#bSpeed');
   await page.waitForTimeout(20000);
@@ -52,6 +58,7 @@ const page_url = 'file://' + path.join(root, 'index.html');
   await page.screenshot({ path: path.join(root, 'docs/graphs.png') });
   await page.click('[data-tab=species]');
   await page.waitForTimeout(1200);
+  await page.screenshot({ path: path.join(root, 'docs/groups.png') });
   await page.click('.sprow');
   await page.waitForTimeout(1500);
   await page.screenshot({ path: path.join(root, 'docs/species.png') });
@@ -64,5 +71,5 @@ const page_url = 'file://' + path.join(root, 'index.html');
 
   await browser.close();
   if (errors.length) { console.error('Page errors:', errors); process.exit(1); }
-  console.log('Wrote docs/screenshot.png, closeup.png, graphs.png, species.png, phone.png');
+  console.log('Wrote docs/screenshot.png, new-dish.png, closeup.png, graphs.png, groups.png, species.png, phone.png');
 })();

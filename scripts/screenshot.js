@@ -16,7 +16,8 @@ const page_url = 'file://' + path.join(root, 'index.html');
   // the New dish dialog
   await page.click('#bReset');
   await page.waitForTimeout(400);
-  await page.screenshot({ path: path.join(root, 'docs/new-dish.png'), clip: { x: 400, y: 190, width: 600, height: 470 } });
+  const box = await page.locator('#setup > *').first().boundingBox();
+  await page.screenshot({ path: path.join(root, 'docs/new-dish.png'), clip: { x: box.x - 8, y: box.y - 8, width: box.width + 16, height: box.height + 16 } });
   await page.click('#setupCancel');
 
   // let a few generations evolve at 8x before taking pictures
@@ -25,22 +26,35 @@ const page_url = 'file://' + path.join(root, 'index.html');
   await page.click('#bSpeed');
   await page.waitForTimeout(1500);
 
-  // hover the creature nearest the middle so the inspector card shows
-  const spot = await page.evaluate(() => {
+  // Find creatures by their bright, saturated colours (food bits are pale and rocks are grey, so neither counts).
+  // Returns the creature pixel nearest the middle, and the middle of the busiest 200px patch.
+  const findLife = () => page.evaluate(() => {
     const canvas = document.getElementById('world');
     const ctx = canvas.getContext('2d');
     const { width, height } = canvas.getBoundingClientRect();
     const d = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
     const sx = canvas.width / width;
     let best = null, bd = Infinity;
+    const cells = new Map();
     for (let y = 100; y < height - 100; y += 4) for (let x = 400; x < width - 300; x += 4) {
       const i = ((y * sx | 0) * canvas.width + (x * sx | 0)) * 4;
-      if (d[i] + d[i + 1] + d[i + 2] < 300) continue;
+      const r = d[i], g = d[i + 1], b = d[i + 2];
+      if (r + g + b < 300 || Math.max(r, g, b) - Math.min(r, g, b) < 90) continue;
       const dist = Math.hypot(x - width / 2, y - height / 2);
       if (dist < bd) { bd = dist; best = { x, y }; }
+      const k = Math.floor(x / 50) + ',' + Math.floor(y / 50);
+      cells.set(k, (cells.get(k) || 0) + 1);
     }
-    return best;
+    let busy = null, bn = -1;
+    for (let cy = 4; cy < height / 50 - 4; cy++) for (let cx = 10; cx < (width - 300) / 50 - 2; cx++) {
+      let n = 0;
+      for (let j = -2; j < 2; j++) for (let k = -2; k < 2; k++) n += cells.get((cx + k) + ',' + (cy + j)) || 0;
+      if (n > bn) { bn = n; busy = { x: cx * 50, y: cy * 50 }; }
+    }
+    return { best, busy };
   });
+  // hover the creature nearest the middle so the inspector card shows
+  const { best: spot } = await findLife();
   if (spot) await page.mouse.move(spot.x, spot.y);
   await page.waitForTimeout(400);
   await page.screenshot({ path: path.join(root, 'docs/screenshot.png') });
@@ -49,10 +63,13 @@ const page_url = 'file://' + path.join(root, 'index.html');
   await page.mouse.move(5, 845);
   await page.evaluate(() => { for (const id of ['collapse', 'collapse2', 'bTrails']) document.getElementById(id).click(); });
   await page.waitForTimeout(400);
-  await page.mouse.move(700, 425);
-  await page.mouse.wheel(0, -700); // zoom in about 3x on the middle of the dish
+  const { busy } = await findLife();
+  const at = busy || { x: 700, y: 425 };
+  await page.mouse.move(at.x, at.y);
+  await page.mouse.wheel(0, -700); // zoom in about 3x on the busiest part of the dish
   await page.waitForTimeout(600);
-  await page.screenshot({ path: path.join(root, 'docs/closeup.png'), clip: { x: 450, y: 225, width: 500, height: 400 } });
+  const cx = Math.min(Math.max(at.x - 250, 0), 900), cy = Math.min(Math.max(at.y - 200, 0), 450);
+  await page.screenshot({ path: path.join(root, 'docs/closeup.png'), clip: { x: cx, y: cy, width: 500, height: 400 } });
   await page.click('#zReset');
 
   // graphs drawer and a species page

@@ -1928,7 +1928,7 @@ collapsible('collapse', 'panel');
   if (list.length < 2) return;
   const root = window.BIO_ROOT || '';
   const pick = $('verPick');
-  pick.innerHTML = list.map((v, i) => `<option value="${i ? root + 'versions/' + v.id + '.html' : root + 'index.html'}"${v.id === APP_VERSION ? ' selected' : ''}>${v.id}${i ? '' : ' (latest)'} · ${v.title}</option>`).join('');
+  pick.innerHTML = list.map((v, i) => `<option value="${i ? root + 'versions/' + v.id + '.html' : root + 'index.html'}"${v.id === APP_VERSION ? ' selected' : ''} title="${v.title}">${v.id}${i ? '' : ' · latest'}</option>`).join('');
   pick.hidden = false;
   pick.onchange = () => { location.href = pick.value; };
 })();

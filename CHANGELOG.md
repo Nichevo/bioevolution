@@ -2,9 +2,20 @@
 
 Every release stays playable. Pick one from the menu next to the title in the app, or open the file directly. The newest is always `index.html`.
 
+## v6: Food cycle & family trees (2026-10-26)
+
+`versions/v6.html` (also the current `index.html`)
+
+- **Food has a source.** Food bits no longer appear from nowhere. Plants shed them from their arm tips, glowing vents puff them out (New dish: none, 2 or 4 vents), and corpses rot into them. Seedlings land further from their parent.
+- **Food values:** sunlight gives about 25% less, food bits are worth 10, meat 1.25× and carrion 85%. Meat and carrion can overfill a creature into a **fat reserve** (up to half its normal energy, more with fat stores) that pays upkeep first.
+- **Less bunching.** Plants within 30px shade each other. Packs and herds now form only with close family, and herd members keep 30px of personal space.
+- **Rare but real hives.** A clever brain (0.5) is enough. The hive gene can jump high in about one birth in 200. Only one queen per species in an area, she nests in the weeds first and her workers protect her. The hive gene costs upkeep.
+- **Balance panel:** Sunlight, Vent output (was Food bits) and Mutation, plus a collapsible Balance section with plant shedding, food bit value, meat value, fat reserve, crowding, brain cost and hive tendency. Settings are remembered; Reset balance restores them.
+- **Family tree** on every species page: a timeline where each species is a band (thicker = more alive) branching off its parent. Shows the family or the whole dish, folds away short-lived species, hover for details and click to open.
+
 ## v5: Brains, hives & rocks (2026-10-26)
 
-`versions/v5.html` (also the current `index.html`)
+`versions/v5.html`
 
 - **Brain** organ (hexagon). It's inherited and mutated like every other part. It costs upkeep and weight, and brainy parents need a little more energy to breed. Brain size runs from instinct through clever (0.5), cunning (1.5) and brilliant (2.5). A brain also stretches sight a little.
 - **Hunting tactics:** clever hunters aim where the prey is going. Cunning hunters drive prey into a packmate or against a rock, or flank it from the side. When nothing's in sight they lie in wait in the weeds and pounce.

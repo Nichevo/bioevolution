@@ -26,6 +26,9 @@
   --blue: #60a5fa;
   --yellow: #facc15;
   --cyan: #22d3ee;
+  --purple: #a78bfa;
+  --white: #f1f5f9;
+  --spit: #a3e635;
   --food: #c7f9ff;
   --eye: #e8f1ff;
   --fat: #fb923c;
@@ -111,6 +114,28 @@ input[type=range] { width: 100%; accent-color: var(--accent); }
   bottom: calc(18px + env(safe-area-inset-bottom, 0px));
   background: var(--panel); border: 1px solid var(--panel-line); border-radius: 8px; padding: 7px 12px; color: var(--ink);
 }
+/* new dish dialog */
+#setup { position: fixed; inset: 0; z-index: 8; display: grid; place-items: center; background: rgba(2, 4, 8, 0.6); padding: 16px; }
+.setupcard { width: min(520px, 100%); max-height: 100%; overflow-y: auto; background: var(--panel-solid); border: 1px solid var(--panel-line); border-radius: 12px; padding: 18px; display: grid; gap: 14px; }
+.setupcard h2 { font-size: 20px; }
+.presets { display: grid; gap: 8px; }
+.preset { position: relative; display: grid; grid-template-columns: 56px minmax(0, 1fr); gap: 12px; align-items: center; padding: 10px; border: 1px solid var(--panel-line); border-radius: 10px; cursor: pointer; }
+.preset:has(input:checked) { border-color: var(--accent); background: rgba(143, 227, 208, 0.08); }
+.preset:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }
+.preset input { position: absolute; opacity: 0; pointer-events: none; }
+.preset canvas { width: 56px; height: 56px; border-radius: 8px; background: rgba(255, 255, 255, 0.03); }
+.preset span { display: grid; gap: 2px; min-width: 0; }
+.preset b { font-family: var(--font-display); font-weight: 800; font-size: 14px; color: var(--ink); }
+.preset small { line-height: 1.45; }
+button.ctl.primary { background: rgba(143, 227, 208, 0.18); border-color: var(--accent); color: var(--accent); }
+button.ctl.danger { color: #fca5a5; border-color: rgba(248, 113, 113, 0.35); }
+button.ctl.danger.armed { background: rgba(248, 113, 113, 0.2); border-color: #f87171; color: #fecaca; }
+.grouphead { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 12px; padding-bottom: 4px; border-bottom: 1px solid var(--panel-line); }
+.grouphead:first-child { margin-top: 0; }
+.grouphead b { font-family: var(--font-display); font-weight: 800; font-size: 14px; }
+.grouphead small { flex: 1; min-width: 140px; }
+.gdot { width: 10px; height: 10px; border-radius: 50%; }
+.seg.wrap { flex-wrap: wrap; }
 /* graphs & species drawer */
 #drawer { right: max(16px, env(safe-area-inset-right, 0px)); width: min(480px, calc(100vw - 32px)); bottom: calc(12px + env(safe-area-inset-bottom, 0px)); background: var(--panel-solid); z-index: 4; gap: 14px; }
 #drawer > header { position: sticky; top: -12px; margin-top: -12px; padding-top: 12px; padding-bottom: 6px; background: var(--panel-solid); z-index: 1; }
@@ -197,7 +222,7 @@ select { font: inherit; color: var(--ink); background: var(--panel-solid); borde
     <button class="ctl" id="bSpeed">Speed 1×</button>
     <button class="ctl" id="bTrails" aria-pressed="true">Trails</button>
     <button class="ctl" id="bAdd">+10</button>
-    <button class="ctl" id="bReset">Reset</button>
+    <button class="ctl" id="bReset">New dish…</button>
   </div>
 
   <div class="row">
@@ -221,10 +246,13 @@ select { font: inherit; color: var(--ink); background: var(--panel-solid); borde
     <div><i style="background:var(--red)"></i><span><b>Red</b> bites live prey and corpses</span></div>
     <div><i style="background:var(--blue)"></i><span><b>Blue</b> armour, blocks bites</span></div>
     <div><i style="background:var(--yellow)"></i><span><b>Yellow</b> swims, costs energy</span></div>
+    <div><i style="background:var(--purple)"></i><span><b>Purple</b> poison: biting it poisons the biter</span></div>
+    <div><i style="background:var(--white)"></i><span><b>White</b> stinger: stuns and drains on touch</span></div>
     <span class="label" style="margin-top: 4px">Organs: shape is the job</span>
     <div><svg viewBox="0 0 12 12" aria-hidden="true"><circle cx="6" cy="6" r="4.5" fill="none" stroke="var(--eye)" stroke-width="1.4"/><circle cx="6" cy="6" r="1.6" fill="var(--eye)"/></svg><span><b>Eye</b> sees food, prey, danger and mates</span></div>
     <div><svg viewBox="0 0 12 12" aria-hidden="true"><rect x="2" y="2" width="8" height="8" fill="var(--fat)"/></svg><span><b>Fat store</b> holds more energy, slows you</span></div>
     <div><svg viewBox="0 0 12 12" aria-hidden="true"><polygon points="6,1.5 10.5,10 1.5,10" fill="var(--brood)"/></svg><span><b>Brood sac</b> breeds sooner, twins</span></div>
+    <div><svg viewBox="0 0 12 12" aria-hidden="true"><polygon points="11.5,6 5,9.5 2,6 5,2.5" fill="var(--spit)"/></svg><span><b>Spitter</b> shoots globs at prey it's chasing</span></div>
     <div><svg viewBox="0 0 12 12" aria-hidden="true"><circle cx="6" cy="6" r="1.8" fill="var(--food)"/></svg><span><b>Food bit</b> drifts in; dead bodies break down into more</span></div>
   </div>
 
@@ -254,19 +282,34 @@ select { font: inherit; color: var(--ink); background: var(--panel-solid); borde
 </aside>
 <div id="chartTip" hidden></div>
 
+<div id="setup" hidden>
+  <div class="setupcard" role="dialog" aria-modal="true" aria-labelledby="setupTitle">
+    <h2 id="setupTitle">New dish</h2>
+    <p class="note">Pick what life starts from. Everything after that is up to evolution.</p>
+    <div class="presets">
+      <label class="preset"><input type="radio" name="start" value="single" checked><canvas width="112" height="112" data-preset="single"></canvas><span><b>One simple ancestor</b><small>Every creature starts as the same three-armed green plant. Watch it branch into grazers, predators and stranger things.</small></span></label>
+      <label class="preset"><input type="radio" name="start" value="few"><canvas width="112" height="112" data-preset="few"></canvas><span><b>Three simple types</b><small>A plant, a swimming grazer and a small hunter, in equal numbers.</small></span></label>
+      <label class="preset"><input type="radio" name="start" value="random"><canvas width="112" height="112" data-preset="random"></canvas><span><b>Random soup</b><small>Lots of random body plans with every part available from the start.</small></span></label>
+    </div>
+    <label class="slider" for="rStart">Creatures <input type="range" id="rStart" min="1" max="150" step="1" value="20"><output id="oStart">20</output></label>
+    <div class="row"><button class="ctl primary" id="setupGo">Start</button><button class="ctl" id="setupCancel">Cancel</button></div>
+  </div>
+</div>
+
 <script>
 (() => {
 'use strict';
 
 // ---------- constants ----------
-const TYPE = { GREEN: 0, RED: 1, BLUE: 2, YELLOW: 3, CYAN: 4 };
-const NT = 5;
-const TYPE_COLOR = ['#4ade80', '#f87171', '#60a5fa', '#facc15', '#22d3ee'];
-const TYPE_NAME = ['green', 'red', 'blue', 'yellow', 'cyan'];
-const ORGAN = { NONE: 0, EYE: 1, FAT: 2, BROOD: 3 };
-const ORGAN_COLOR = [null, '#e8f1ff', '#fb923c', '#f472b6'];
-const ORGAN_NAME = [null, 'eye', 'fat', 'brood'];
-const ORGAN_UPKEEP = [0, 0.14, 0.05, 0.1]; // energy per second
+const TYPE = { GREEN: 0, RED: 1, BLUE: 2, YELLOW: 3, CYAN: 4, PURPLE: 5, WHITE: 6 };
+const NT = 7;
+const TYPE_COLOR = ['#4ade80', '#f87171', '#60a5fa', '#facc15', '#22d3ee', '#a78bfa', '#f1f5f9'];
+const TYPE_NAME = ['green', 'red', 'blue', 'yellow', 'cyan', 'purple', 'white'];
+const ORGAN = { NONE: 0, EYE: 1, FAT: 2, BROOD: 3, SPIT: 4 };
+const NO = 5;
+const ORGAN_COLOR = [null, '#e8f1ff', '#fb923c', '#f472b6', '#a3e635'];
+const ORGAN_NAME = [null, 'eye', 'fat', 'brood', 'spitter'];
+const ORGAN_UPKEEP = [0, 0.14, 0.05, 0.1, 0.15]; // energy per second
 const FOOD_COLOR = '#c7f9ff';
 const FOOD_ENERGY = 7;
 const CORPSE_COLOR = '#5b6573';
@@ -291,7 +334,8 @@ let simTime = 0;
 let paused = false, speed = 1, trails = true;
 let light = 1, foodRate = 1, mutRate = 1;
 let tool = 'kill';
-let stats = { births: 0, eaten: 0, starved: 0, old: 0, smited: 0 };
+let stats = { births: 0, eaten: 0, starved: 0, poison: 0, old: 0, smited: 0 };
+let globs = [];            // spitter shots in flight
 let samples = [];          // one snapshot of the whole dish per simulated second
 let speciesDB = new Map(); // every species that has ever lived, by name
 let highlight = { name: null, until: 0 };
@@ -331,11 +375,11 @@ function distToSeg(px, py, ax, ay, bx, by) {
 // and may carry an organ (eye, fat store or brood sac) at its far end.
 function randomOrgan() {
   const r = Math.random();
-  return r < 0.78 ? ORGAN.NONE : r < 0.86 ? ORGAN.EYE : r < 0.93 ? ORGAN.FAT : ORGAN.BROOD;
+  return r < 0.78 ? ORGAN.NONE : r < 0.85 ? ORGAN.EYE : r < 0.91 ? ORGAN.FAT : r < 0.96 ? ORGAN.BROOD : ORGAN.SPIT;
 }
 function randomType() {
   const r = Math.random();
-  return r < 0.36 ? TYPE.GREEN : r < 0.52 ? TYPE.CYAN : r < 0.68 ? TYPE.RED : r < 0.84 ? TYPE.BLUE : TYPE.YELLOW;
+  return r < 0.32 ? TYPE.GREEN : r < 0.46 ? TYPE.CYAN : r < 0.6 ? TYPE.RED : r < 0.74 ? TYPE.BLUE : r < 0.86 ? TYPE.YELLOW : r < 0.93 ? TYPE.PURPLE : TYPE.WHITE;
 }
 function randomSeg() {
   return { len: rand(5, 12), ang: rand(-0.9, 0.9), type: randomType(), organ: randomOrgan() };
@@ -372,7 +416,7 @@ function mutate(g, parentAbsorbed) {
     if (Math.random() < 0.12 * m) s.len = clamp(s.len + gauss() * 2, 3, 16);
     if (Math.random() < 0.12 * m) s.ang = clamp(s.ang + gauss() * 0.3, -1.6, 1.6);
     if (Math.random() < 0.035 * m) s.type = randi(0, NT - 1);
-    if (Math.random() < 0.03 * m) s.organ = Math.random() < 0.4 ? ORGAN.NONE : randi(1, 3);
+    if (Math.random() < 0.03 * m) s.organ = Math.random() < 0.4 ? ORGAN.NONE : randi(1, NO - 1);
   }
   if (Math.random() < 0.04 * m && g.segs.length < 6) g.segs.push(randomSeg());
   if (Math.random() < 0.04 * m && g.segs.length > 1) g.segs.splice(randi(0, g.segs.length - 1), 1);
@@ -402,14 +446,14 @@ function geneticDistance(a, b) {
 }
 
 // Species name from the body plan: dominant colour + arm count + main organ. Creatures sharing a name count as one species.
-const COLOR_ROOT = ['Chloro', 'Rhodo', 'Lazuro', 'Xantho', 'Cyano'];
+const COLOR_ROOT = ['Chloro', 'Rhodo', 'Lazuro', 'Xantho', 'Cyano', 'Porphyro', 'Leuco'];
 const ARM_ROOT = ['', 'monad', 'dipod', 'tripod', 'tetrapod', 'pentapod', 'hexapod'];
-const ORGAN_EPITHET = ['', 'oculata', 'crassa', 'fecunda'];
+const ORGAN_EPITHET = ['', 'oculata', 'crassa', 'fecunda', 'jaculans'];
 function speciesName(c) {
   let dom = 0;
   for (let t = 1; t < NT; t++) if (c.len[t] > c.len[dom]) dom = t;
   let org = 0;
-  for (let o = 1; o < 4; o++) if (c.organs[o] > (org ? c.organs[org] : 0)) org = o;
+  for (let o = 1; o < NO; o++) if (c.organs[o] > (org ? c.organs[org] : 0)) org = o;
   return COLOR_ROOT[dom] + ARM_ROOT[c.g.arms] + (org ? ' ' + ORGAN_EPITHET[org] : '');
 }
 
@@ -433,6 +477,9 @@ class Creature {
     this.mood = 'drifting';
     this.goal = null; // {dx, dy, flee}
     this.thinkT = rand(0.3);
+    this.poison = 0;    // seconds of poison left
+    this.paralysed = 0; // seconds of sting paralysis left
+    this.spitT = rand(1.5);
     this.build();
     this.lifespan = rand(60, 100) + this.parts * 2.5;
     this.energy = Math.min(energy, this.maxEnergy);
@@ -442,7 +489,7 @@ class Creature {
     const g = this.g;
     this.local = [];
     this.len = new Array(NT).fill(0);
-    this.organs = [0, 0, 0, 0];
+    this.organs = new Array(NO).fill(0);
     let reach = 0;
     for (let a = 0; a < g.arms; a++) {
       const flip = g.mirror && a % 2 ? -1 : 1;
@@ -461,14 +508,15 @@ class Creature {
     this.reach = reach + 4;
     this.total = this.len.reduce((s, v) => s + v, 0);
     // complexity: every segment is a part, every organ counts double
-    this.parts = this.local.length + 2 * (this.organs[1] + this.organs[2] + this.organs[3]);
+    this.parts = this.local.length + 2 * this.organs.reduce((s, n, o) => s + (o ? n : 0), 0);
     this.maxEnergy = 25 + this.total * 2.2 + this.organs[ORGAN.FAT] * 45;
     // eyes see far; without them, red biters can still smell prey close by
-    this.sight = this.organs[ORGAN.EYE] ? Math.min(230, 60 + this.organs[ORGAN.EYE] * 35) : this.len[TYPE.RED] > 0 ? 45 : 0;
+    this.attack = this.len[TYPE.RED] + this.len[TYPE.WHITE] + this.organs[ORGAN.SPIT] * 8;
+    this.sight = this.organs[ORGAN.EYE] ? Math.min(230, 60 + this.organs[ORGAN.EYE] * 35) : this.attack > 0 ? 45 : 0;
     this.mass = this.total + 10 + this.organs[ORGAN.FAT] * 10;
     // Upkeep grows faster than the part count, so complexity has to pay for itself.
     this.baseUpkeep = 0.4 + this.total * 0.032 + Math.pow(this.parts, 1.25) * 0.03
-      + this.len[TYPE.YELLOW] * 0.05 + this.len[TYPE.RED] * 0.01
+      + this.len[TYPE.YELLOW] * 0.05 + this.len[TYPE.RED] * 0.01 + this.len[TYPE.PURPLE] * 0.02 + this.len[TYPE.WHITE] * 0.015
       + this.organs.reduce((s, n, o) => s + n * ORGAN_UPKEEP[o], 0);
     this.ws = this.local.map(() => ({ x1: 0, y1: 0, x2: 0, y2: 0, type: 0, organ: 0 }));
   }
@@ -483,7 +531,7 @@ class Creature {
     const range = this.sight * this.scale;
     let best = null, bestScore = 0, mood = 'drifting';
     const hungry = this.fullness < 0.75;
-    const hunter = this.len[TYPE.RED] > 0 && this.fullness < 0.95; // predators are almost always on the prowl
+    const hunter = this.attack > 0 && this.fullness < 0.95; // predators are almost always on the prowl
     const consider = (dx, dy, score, flee, m, target = null) => { if (score > bestScore) { bestScore = score; best = { dx, dy, flee, target }; mood = m; } };
     for (const o of creatures) {
       if (o === this || o.dead) continue;
@@ -495,12 +543,13 @@ class Creature {
         if (canBreed(this) && canBreed(o)) consider(dx, dy, 1.2 / d, false, 'courting');
         continue;
       }
-      const theirBite = o.len[TYPE.RED] * o.scale, myArmor = this.len[TYPE.BLUE] * this.scale;
+      const theirBite = o.attack * o.scale, myArmor = this.len[TYPE.BLUE] * this.scale;
       if (theirBite > 4 && myArmor < theirBite * 0.6) {
         consider(dx, dy, 0.3 * theirBite / d, true, 'fleeing');
       } else if (hunter) {
-        const myBite = this.len[TYPE.RED] * this.scale, theirArmor = o.len[TYPE.BLUE] * o.scale;
-        if (theirArmor < myBite) consider(dx, dy, (myBite - theirArmor) / (d * 5), false, 'hunting', o);
+        const myBite = this.attack * this.scale, theirArmor = o.len[TYPE.BLUE] * o.scale;
+        // poisonous prey is a last resort
+        if (theirArmor < myBite) consider(dx, dy, (myBite - theirArmor) / (d * 5) / (1 + o.len[TYPE.PURPLE] / 8), false, 'hunting', o);
       }
     }
     if (!hungry) { this.goal = best; this.mood = mood; return; }
@@ -527,6 +576,8 @@ class Creature {
     this.age += dt;
     this.cooldown -= dt;
     this.flash = Math.max(0, this.flash - dt * 3);
+    if (this.poison > 0) { this.poison -= dt; this.energy -= 6 * dt; }
+    if (this.paralysed > 0) this.paralysed -= dt;
     this.thinkT -= dt;
     if (this.thinkT <= 0) { this.thinkT = 0.3; this.think(); }
 
@@ -558,6 +609,7 @@ class Creature {
     // predators lunge: red segments add thrust while chasing
     let thrust = (this.len[TYPE.YELLOW] * 9 + 3 + (this.mood === 'hunting' ? this.len[TYPE.RED] * 3 : 0)) / this.mass;
     if (urgent) { thrust *= 1.6; upkeep += this.len[TYPE.YELLOW] * 0.03 * s; }
+    if (this.paralysed > 0) thrust = 0;
     this.energy -= upkeep * dt;
     if (this.energy > this.maxEnergy * s) this.energy = this.maxEnergy * s;
 
@@ -569,8 +621,22 @@ class Creature {
     this.y = (this.y + this.vy * dt + H) % H;
     this.rot += (this.g.spin + this.vx * 0.002) * dt;
 
+    // spitters fire at the prey they're chasing
+    if (this.organs[ORGAN.SPIT] && this.paralysed <= 0) {
+      this.spitT -= dt;
+      const t = this.goal && this.goal.target;
+      if (this.spitT <= 0 && t && !t.dead && this.mood === 'hunting') {
+        const d = Math.hypot(this.goal.dx, this.goal.dy) || 1;
+        if (d < 160) {
+          this.spitT = 1.6;
+          this.energy -= 1.5;
+          globs.push({ x: this.x, y: this.y, vx: this.goal.dx / d * 170, vy: this.goal.dy / d * 170, life: 1.1, owner: this, power: 8 + this.organs[ORGAN.SPIT] * 4 });
+        }
+      }
+    }
+
     if (this.age > this.lifespan) this.die('old');
-    else if (this.energy <= 0) this.die('starved');
+    else if (this.energy <= 0) this.die(this.poison > 0 ? 'poison' : 'starved');
   }
 
   computeWorld() {
@@ -616,8 +682,12 @@ class Creature {
     }
     drawOrgans(ctx, this.ws, ox, oy, this.scale, this.rot);
     ctx.globalAlpha = 1;
-    ctx.fillStyle = `hsl(${this.g.hue} 85% ${60 + this.flash * 30}%)`;
+    ctx.fillStyle = this.poison > 0 ? '#a78bfa' : `hsl(${this.g.hue} 85% ${60 + this.flash * 30}%)`;
     ctx.beginPath(); ctx.arc(this.x + ox, this.y + oy, 2.2 + this.scale * 1.6 + this.flash * 2, 0, Math.PI * 2); ctx.fill();
+    if (this.paralysed > 0) {
+      ctx.strokeStyle = 'rgba(241,245,249,0.8)'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.arc(this.x + ox, this.y + oy, 6 + this.scale * 2, 0, Math.PI * 2); ctx.stroke();
+    }
   }
 }
 
@@ -633,6 +703,15 @@ function drawOrgans(g, ws, ox, oy, scale, rot) {
       g.beginPath(); g.arc(x, y, r * 0.4, 0, Math.PI * 2); g.fill();
     } else if (w.organ === ORGAN.FAT) {
       g.save(); g.translate(x, y); g.rotate(rot); g.fillRect(-r, -r, r * 2, r * 2); g.restore();
+    } else if (w.organ === ORGAN.SPIT) {
+      // a kite pointing outward, like a nozzle
+      const a = Math.atan2(w.y2 - w.y1, w.x2 - w.x1), ca = Math.cos(a), sa = Math.sin(a);
+      g.beginPath();
+      g.moveTo(x + ca * r * 1.8, y + sa * r * 1.8);
+      g.lineTo(x - sa * r * 0.8, y + ca * r * 0.8);
+      g.lineTo(x - ca * r * 0.6, y - sa * r * 0.6);
+      g.lineTo(x + sa * r * 0.8, y - ca * r * 0.8);
+      g.closePath(); g.fill();
     } else {
       const a = Math.atan2(w.y2 - w.y1, w.x2 - w.x1);
       g.beginPath();
@@ -707,13 +786,40 @@ function spawnRandom(n, origin = 'seeded at the start') {
 }
 function foodCap() { return Math.round(W * H / 2400 * Math.max(0.3, foodRate)); }
 
-function reset() {
+const defaultCount = () => Math.round(clamp(W * H / 14000, 30, 110));
+function reset(n = defaultCount()) {
   creatures = []; corpses = []; food = []; particles = []; samples = [];
   speciesDB = new Map(); openSpecies = null;
-  stats = { births: 0, eaten: 0, starved: 0, old: 0, smited: 0 };
+  stats = { births: 0, eaten: 0, starved: 0, poison: 0, old: 0, smited: 0 };
+  globs = [];
   simTime = 0;
   for (let i = 0, n = foodCap() / 3; i < n; i++) addFood(rand(W), rand(H));
-  spawnRandom(Math.round(clamp(W * H / 14000, 30, 110)));
+  if (n) spawnRandom(n);
+}
+
+// Starting points for the New dish dialog
+function simpleGenome(arms, hue, segs) {
+  return { arms, mirror: false, hue, spin: 0.3, absorbed: [], segs: segs.map(([type, len, ang]) => ({ type, len, ang, organ: ORGAN.NONE })) };
+}
+const PRESETS = {
+  single: () => [simpleGenome(3, 130, [[TYPE.GREEN, 9, 0]])],
+  few: () => [
+    simpleGenome(3, 130, [[TYPE.GREEN, 9, 0]]),
+    simpleGenome(2, 190, [[TYPE.CYAN, 8, 0.3], [TYPE.YELLOW, 6, 0]]),
+    simpleGenome(2, 0, [[TYPE.YELLOW, 7, 0], [TYPE.RED, 8, 0.3]]),
+  ],
+};
+function startDish(mode, n) {
+  reset(mode === 'random' ? n : 0);
+  if (mode === 'random') return;
+  const gs = PRESETS[mode]();
+  for (let i = 0; i < n; i++) {
+    const c = new Creature(cloneGenome(gs[i % gs.length]), rand(W), rand(H), 0, 0);
+    c.scale = rand(0.7, 1);
+    c.energy = c.maxEnergy * c.scale * 0.7;
+    creatures.push(c);
+    registerBirth(c, null, mode === 'single' ? 'the single starting ancestor' : 'one of the three starting types');
+  }
 }
 
 function resize() {
@@ -731,7 +837,7 @@ function resize() {
 
 // ---------- simulation step ----------
 // ---------- species records ----------
-const DEATH_PHRASE = { eaten: 'was eaten by {}', starved: 'starved', old: 'died of old age', smited: 'was killed by you' };
+const DEATH_PHRASE = { eaten: 'was eaten by {}', starved: 'starved', poison: 'died of poison', old: 'died of old age', smited: 'was killed by you' };
 function logEvent(sp, text, ref = null) {
   sp.events.push({ t: simTime, text, ref });
   if (sp.events.length > 40) sp.events.splice(1, 1); // keep the founding event
@@ -745,10 +851,10 @@ function registerBirth(c, parents, origin) {
     sp = {
       name, hue: c.g.hue, firstSeen: simTime, firstGen: c.gen, ancestor: parent, origin: parent ? null : origin,
       children: [], alive: 0, peak: 0, peakAt: simTime, born: 0, kills: 0,
-      deaths: { eaten: 0, starved: 0, old: 0, smited: 0 }, diet: { sun: 0, bits: 0, meat: 0 },
+      deaths: { eaten: 0, starved: 0, poison: 0, old: 0, smited: 0 }, diet: { sun: 0, bits: 0, meat: 0 },
       prey: {}, eatenBy: {}, extinctAt: null, hist: [], events: [],
       // the first member is kept as the "type specimen" drawn in the species pages
-      specimen: { local: c.local.map(l => ({ ...l })), reach: c.reach, hue: c.g.hue, parts: c.parts, len: c.len.slice(), organs: c.organs.slice(), arms: c.g.arms },
+      specimen: { genome: cloneGenome(c.g), local: c.local.map(l => ({ ...l })), reach: c.reach, hue: c.g.hue, parts: c.parts, len: c.len.slice(), organs: c.organs.slice(), arms: c.g.arms },
     };
     speciesDB.set(name, sp);
     if (parent && speciesDB.has(parent)) {
@@ -784,19 +890,19 @@ function speciesDeath(c, cause) {
 
 // ---------- history ----------
 function roleOf(c) {
-  const g = c.len[TYPE.GREEN], cy = c.len[TYPE.CYAN], r = c.len[TYPE.RED];
+  const g = c.len[TYPE.GREEN], cy = c.len[TYPE.CYAN], r = c.attack;
   if (!g && !cy && !r) return 3;
   return r >= g && r >= cy ? 2 : cy > g ? 1 : 0;
 }
 // halve the resolution of a long series so the whole run still fits
 function decimate(arr) { return arr.filter((_, i) => i % 2 === 0 || i === arr.length - 1); }
 function takeSample() {
-  const roles = [0, 0, 0, 0], genes = new Array(NT + 3).fill(0);
+  const roles = [0, 0, 0, 0], genes = new Array(NT + NO - 1).fill(0);
   let parts = 0;
   for (const c of creatures) {
     roles[roleOf(c)]++; parts += c.parts;
     for (let t = 0; t < NT; t++) genes[t] += c.len[t];
-    for (let o = 1; o < 4; o++) genes[NT + o - 1] += c.organs[o] * 12; // an organ counts like ~12px of line
+    for (let o = 1; o < NO; o++) genes[NT + o - 1] += c.organs[o] * 12; // an organ counts like ~12px of line
   }
   let alive = 0;
   for (const sp of speciesDB.values()) {
@@ -894,6 +1000,24 @@ function step(dt) {
   if (corpses.length > 250) corpses.splice(0, corpses.length - 250);
 
   for (const p of particles) { p.x += p.vx * dt; p.y += p.vy * dt; p.vx *= 0.96; p.vy *= 0.96; p.life -= dt; }
+
+  // spitter globs: the first non-relative they touch takes the hit; blue armour softens it
+  for (const b of globs) {
+    b.x = (b.x + b.vx * dt + W) % W; b.y = (b.y + b.vy * dt + H) % H; b.life -= dt;
+    for (const c of creatures) {
+      if (c === b.owner || c.dead) continue;
+      const dx = wrapD(c.x - b.x, W), dy = wrapD(c.y - b.y, H), r = Math.max(5, c.radius * 0.55);
+      if (dx * dx + dy * dy > r * r) continue;
+      if (geneticDistance(b.owner.g, c.g) < 0.3) continue;
+      const dmg = Math.min(c.energy + 0.01, b.power / (1 + c.len[TYPE.BLUE] / 25));
+      c.energy -= dmg; c.flash = 1;
+      if (!b.owner.dead) { b.owner.energy += dmg * 0.6; b.owner.ateMeat += dmg * 0.6; }
+      if (c.energy <= 0) killedBy(b.owner, c);
+      b.life = 0;
+      break;
+    }
+  }
+  globs = globs.filter(b => b.life > 0);
   particles = particles.filter(p => p.life > 0);
 
   histTimer += dt;
@@ -941,21 +1065,35 @@ function breed(a, b) {
   }
 }
 
-// Red segments that cross the other creature's segments drain energy, unless they hit blue armour.
+// What happens where two creatures' segments cross. Red bites (blocked by blue armour, punished
+// by purple poison). White stings: it stuns and drains, and only blue stops it.
+function contact(mine, theirs, out) {
+  if (mine === TYPE.RED) {
+    if (theirs === TYPE.BLUE) out.blocked++;
+    else if (theirs === TYPE.PURPLE) out.poisoned++;
+    else out.bites++;
+  } else if (mine === TYPE.WHITE) {
+    if (theirs === TYPE.BLUE) out.blocked++;
+    else out.stings++;
+  }
+}
 function fight(a, b, ox, oy, dt) {
-  let aBites = 0, bBites = 0, aBlocked = 0, bBlocked = 0;
+  const A = { bites: 0, stings: 0, blocked: 0, poisoned: 0 }, B = { bites: 0, stings: 0, blocked: 0, poisoned: 0 };
   for (const sa of a.ws) {
     for (const sb of b.ws) {
-      if (sa.type !== TYPE.RED && sb.type !== TYPE.RED) continue;
+      if (sa.type !== TYPE.RED && sa.type !== TYPE.WHITE && sb.type !== TYPE.RED && sb.type !== TYPE.WHITE) continue;
       if (!segsIntersect(sa.x1, sa.y1, sa.x2, sa.y2, sb.x1 + ox, sb.y1 + oy, sb.x2 + ox, sb.y2 + oy)) continue;
-      if (sa.type === TYPE.RED) { if (sb.type === TYPE.BLUE) aBlocked++; else aBites++; }
-      if (sb.type === TYPE.RED) { if (sa.type === TYPE.BLUE) bBlocked++; else bBites++; }
+      contact(sa.type, sb.type, A);
+      contact(sb.type, sa.type, B);
     }
   }
-  if (aBites) feed(a, b, aBites, dt);
-  if (bBites) feed(b, a, bBites, dt);
-  if (aBlocked || bBlocked) {
-    a.energy -= aBlocked * 2 * dt; b.energy -= bBlocked * 2 * dt;
+  for (const [me, them, r] of [[a, b, A], [b, a, B]]) {
+    if (r.bites) feed(me, them, r.bites, dt);
+    if (r.stings) sting(me, them, r.stings, dt);
+    if (r.poisoned) { me.poison = Math.max(me.poison, 3); me.energy -= r.poisoned * 10 * dt; me.flash = 1; }
+  }
+  if (A.blocked || B.blocked) {
+    a.energy -= A.blocked * 2 * dt; b.energy -= B.blocked * 2 * dt;
     const dx = wrapD(b.x - a.x, W), dy = wrapD(b.y - a.y, H), d = Math.hypot(dx, dy) || 1;
     a.vx -= dx / d * 4; a.vy -= dy / d * 4; b.vx += dx / d * 4; b.vy += dy / d * 4;
   }
@@ -967,23 +1105,36 @@ function feed(eater, prey, bites, dt) {
   eater.energy += amount * 0.85;
   eater.ateMeat += amount * 0.85;
   prey.flash = 1;
-  if (prey.energy <= 0 && !prey.dead) {
-    prey.killer = eater.species;
-    prey.die('eaten');
-    eater.kills++;
-    const es = speciesDB.get(eater.species), ps = speciesDB.get(prey.species);
-    if (es) {
-      if (!es.kills) logEvent(es, 'First kill: ate a {}', prey.species);
-      es.kills++;
-      es.prey[prey.species] = (es.prey[prey.species] || 0) + 1;
-    }
-    if (ps) ps.eatenBy[eater.species] = (ps.eatenBy[eater.species] || 0) + 1;
-    eater.flash = 1;
-    // eater keeps up to 3 of the prey's genes to hand down to its children
-    if (Math.random() < 0.35) {
-      const s = prey.g.segs[randi(0, prey.g.segs.length - 1)];
-      eater.g = { ...eater.g, absorbed: [...eater.g.absorbed.slice(-2), { ...s }] };
-    }
+  if (prey.energy <= 0) killedBy(eater, prey);
+}
+
+function sting(stinger, victim, n, dt) {
+  victim.paralysed = Math.max(victim.paralysed, 1.5);
+  const amount = Math.min(victim.energy + 0.01, n * 15 * stinger.scale * dt);
+  victim.energy -= amount;
+  stinger.energy += amount * 0.5;
+  stinger.ateMeat += amount * 0.5;
+  victim.flash = 1;
+  if (victim.energy <= 0) killedBy(stinger, victim);
+}
+
+function killedBy(eater, prey) {
+  if (prey.dead) return;
+  prey.killer = eater.species;
+  prey.die('eaten');
+  eater.kills++;
+  eater.flash = 1;
+  const es = speciesDB.get(eater.species), ps = speciesDB.get(prey.species);
+  if (es) {
+    if (!es.kills) logEvent(es, 'First kill: ate a {}', prey.species);
+    es.kills++;
+    es.prey[prey.species] = (es.prey[prey.species] || 0) + 1;
+  }
+  if (ps) ps.eatenBy[eater.species] = (ps.eatenBy[eater.species] || 0) + 1;
+  // eater keeps up to 3 of the prey's genes to hand down to its children
+  if (Math.random() < 0.35) {
+    const s = prey.g.segs[randi(0, prey.g.segs.length - 1)];
+    eater.g = { ...eater.g, absorbed: [...eater.g.absorbed.slice(-2), { ...s }] };
   }
 }
 
@@ -1046,6 +1197,14 @@ function draw() {
     ctx.fillRect(p.x - 1.2, p.y - 1.2, 2.4, 2.4);
   }
   ctx.globalAlpha = 1;
+
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = 'rgba(163,230,53,0.45)';
+  ctx.fillStyle = '#a3e635';
+  for (const b of globs) {
+    ctx.beginPath(); ctx.moveTo(b.x, b.y); ctx.lineTo(b.x - b.vx * 0.04, b.y - b.vy * 0.04); ctx.stroke();
+    ctx.beginPath(); ctx.arc(b.x, b.y, 2.4, 0, Math.PI * 2); ctx.fill();
+  }
 
   const h = hovered();
   if (h) {
@@ -1174,7 +1333,7 @@ function updatePanel() {
     `<div class="t"><span class="dot" style="background:hsl(${c.g.hue} 85% 60%)"></span>${c.species}</div>` +
     `<div><span class="k">#${c.id} · gen</span> ${c.gen} · <span class="k">age</span> ${Math.floor(c.age)}/${Math.floor(c.lifespan)}s</div>` +
     `<div><span class="k">energy</span> ${Math.round(c.energy)}/${Math.round(c.maxEnergy * c.scale)} · <span class="k">upkeep</span> ${(c.baseUpkeep * c.scale).toFixed(1)}/s</div>` +
-    `<div><span class="k">complexity</span> ${c.parts} parts · <span class="k">now</span> ${c.mood}</div>` +
+    `<div><span class="k">complexity</span> ${c.parts} parts · <span class="k">now</span> ${c.mood}${c.poison > 0 ? ' · poisoned' : ''}${c.paralysed > 0 ? ' · stunned' : ''}</div>` +
     `<div><span class="k">diet</span> ${pct(c.ateSun)}% sun · ${pct(c.ateFood)}% bits · ${pct(c.ateMeat)}% meat</div>` +
     `<div><span class="k">kills</span> ${c.kills} · <span class="k">children</span> ${c.kids}</div>` +
     `<div>${parts}</div>` +
@@ -1196,7 +1355,7 @@ const ROLE = [
   { label: 'predators', color: '#f87171' }, { label: 'other', color: '#94a3b8' },
 ];
 const DEATH = [
-  { key: 'eaten', label: 'eaten', color: '#f87171' }, { key: 'starved', label: 'starved', color: '#f59e0b' },
+  { key: 'eaten', label: 'eaten', color: '#f87171' }, { key: 'starved', label: 'starved', color: '#f59e0b' }, { key: 'poison', label: 'poisoned', color: '#a78bfa' },
   { key: 'old', label: 'old age', color: '#94a3b8' }, { key: 'smited', label: 'killed by you', color: '#e8f1ff' },
 ];
 const chartState = new Map(); // canvas -> { times, series, fmt, hoverX, hoverIndex }
@@ -1342,7 +1501,7 @@ const tile = (k, v) => `<div class="tile"><span>${k}</span><b>${v}</b></div>`;
 const spLink = name => `<button class="link" data-sp="${name}">${name}</button>`;
 
 const GRAPHS = [
-  { id: 'gPop', title: 'Population by way of life', note: 'Each creature is counted by its main food source: green lines make plants, cyan grazers, red predators.' },
+  { id: 'gPop', title: 'Population by way of life', note: 'Each creature is counted by its body: mostly green lines make a plant, cyan a grazer, and red, white or spitters a predator.' },
   { id: 'gDeaths', title: 'Deaths per minute', note: 'Averaged over the previous 20 seconds.' },
   { id: 'gGenes', title: 'Gene pool', note: 'Total length of each line colour across all creatures. Dashed lines are organs, each counted as 12px.' },
   { id: 'gParts', title: 'Average complexity', note: 'Parts per creature; organs count double.' },
@@ -1369,7 +1528,7 @@ function renderGraphs(full) {
   $('gTiles').innerHTML =
     tile('Time', fmtTime(simTime)) + tile('Alive', creatures.length) +
     tile('Species ever', all.length) + tile('Extinct', all.filter(s => !s.alive).length) +
-    tile('Births', stats.births) + tile('Deaths', stats.eaten + stats.starved + stats.old + stats.smited) +
+    tile('Births', stats.births) + tile('Deaths', stats.eaten + stats.starved + stats.poison + stats.old + stats.smited) +
     tile('Top hunter', topKiller && topKiller.kills ? `${spLink(topKiller.name)} <small>${topKiller.kills} kills</small>` : '—') +
     tile('Longest running', longest ? `${spLink(longest.name)} <small>${fmtTime(lifeOf(longest))}</small>` : '—');
 
@@ -1384,7 +1543,7 @@ function renderGraphs(full) {
       return span > 0 ? (s.deaths[d.key] - samples[j].deaths[d.key]) / span * 60 : 0;
     }),
   })), v => v.toFixed(v < 10 ? 1 : 0));
-  const geneLabels = [...TYPE_NAME, 'eyes', 'fat', 'brood'];
+  const geneLabels = [...TYPE_NAME, 'eyes', 'fat', 'brood', 'spitters'];
   drawChart('gGenes', times, GRAPH_COLORS.map((color, k) => ({ label: geneLabels[k], color, dash: k >= NT, values: samples.map(s => s.genes[k]) })));
   drawChart('gParts', times, [{ label: 'parts', color: '#8fe3d0', values: samples.map(s => s.parts) }], v => v.toFixed(1));
   drawChart('gSpecies', times, [{ label: 'species', color: '#c4b5fd', values: samples.map(s => s.species) }]);
@@ -1394,25 +1553,108 @@ function renderGraphs(full) {
   ]);
 }
 
+const GROUPS = [
+  { key: 'producer', label: 'Producers', one: 'Producer', note: 'live mostly on sunlight', color: '#4ade80' },
+  { key: 'grazer', label: 'Grazers', one: 'Grazer', note: 'live mostly on food bits', color: '#22d3ee' },
+  { key: 'predator', label: 'Predators', one: 'Predator', note: 'live mostly on other creatures', color: '#f87171' },
+  { key: 'omnivore', label: 'Omnivores', one: 'Omnivore', note: 'eat a bit of everything', color: '#f59e0b' },
+];
+let spGroup = 'all';
+let armed = { key: null, until: 0 }; // a destructive button waiting for its second tap
+
+function dietOf(s) {
+  // living members haven't banked their meals yet
+  const d = { ...s.diet };
+  for (const c of creatures) if (c.species === s.name) { d.sun += c.ateSun; d.bits += c.ateFood; d.meat += c.ateMeat; }
+  return d;
+}
+// Place in the food chain, from what the species has actually eaten (or its body, before its first meals).
+function groupOf(s, diet = dietOf(s)) {
+  const total = diet.sun + diet.bits + diet.meat;
+  if (total < 20) {
+    const sp = s.specimen, g = sp.len[TYPE.GREEN], cy = sp.len[TYPE.CYAN];
+    const r = sp.len[TYPE.RED] + sp.len[TYPE.WHITE] + sp.organs[ORGAN.SPIT] * 8;
+    return r > g && r > cy ? 'predator' : cy > g ? 'grazer' : 'producer';
+  }
+  if (diet.sun / total >= 0.6) return 'producer';
+  if (diet.bits / total >= 0.6) return 'grazer';
+  if (diet.meat / total >= 0.6) return 'predator';
+  return 'omnivore';
+}
+const groupInfo = key => GROUPS.find(g => g.key === key);
+
+function confirmBtn(key, label, armedLabel) {
+  const on = armed.key === key && performance.now() < armed.until;
+  return `<button class="ctl danger${on ? ' armed' : ''}" data-confirm="${key}">${on ? armedLabel : label}</button>`;
+}
+
+function wipeOut(test) {
+  let n = 0;
+  for (const c of creatures) if (!c.dead && test(c)) { c.die('smited'); n++; }
+  creatures = creatures.filter(c => !c.dead);
+  return n;
+}
+function runConfirmed(key) {
+  if (key.startsWith('species:')) {
+    const name = key.slice(8);
+    toast(`Wiped out ${wipeOut(c => c.species === name)} ${name}`);
+  } else if (key.startsWith('group:')) {
+    const g = key.slice(6), names = new Set();
+    for (const s of speciesDB.values()) if (s.alive && groupOf(s) === g) names.add(s.name);
+    toast(`Wiped out ${wipeOut(c => names.has(c.species))} ${groupInfo(g).label.toLowerCase()}`);
+  }
+}
+// Drop in copies of a species' type specimen: brings back the extinct, or tops up the living.
+function revive(name, n = 10) {
+  const s = speciesDB.get(name);
+  if (!s) return;
+  const wasExtinct = !s.alive;
+  for (let i = 0; i < n; i++) {
+    const c = new Creature(cloneGenome(s.specimen.genome), rand(W), rand(H), 0, s.firstGen);
+    c.scale = rand(0.8, 1);
+    c.energy = c.maxEnergy * c.scale * 0.7;
+    creatures.push(c);
+    registerBirth(c, null, wasExtinct ? 'brought back by you' : 'added by you');
+  }
+  toast(wasExtinct ? `Brought back ${n} ${name}` : `Added ${n} ${name}`);
+}
+
 function renderSpeciesList(full) {
   if (full) {
     drawerBody.innerHTML = `<div class="listbar"><div class="seg">${['alive', 'extinct', 'all'].map(f =>
       `<button class="ctl" data-filter="${f}" aria-pressed="${f === spFilter}">${f[0].toUpperCase() + f.slice(1)}</button>`).join('')}</div>
       <label class="sort" for="spSort">Sort <select id="spSort">${[['pop', 'Alive now'], ['peak', 'Peak size'], ['kills', 'Kills'], ['new', 'Newest'], ['old', 'Oldest']]
         .map(([v, l]) => `<option value="${v}"${v === spSort ? ' selected' : ''}>${l}</option>`).join('')}</select></label></div>
+      <div class="seg wrap">${[['all', 'All groups'], ...GROUPS.map(g => [g.key, g.label])].map(([k, l]) =>
+        `<button class="ctl" data-group="${k}" aria-pressed="${k === spGroup}">${l}</button>`).join('')}</div>
       <p class="note" id="spCount"></p><div id="spList" class="splist"></div>`;
     $('spSort').onchange = e => { spSort = e.target.value; renderSpeciesList(false); };
   }
   let list = [...speciesDB.values()].filter(s => spFilter === 'all' || (spFilter === 'alive' ? s.alive > 0 : s.alive === 0));
+  const groupBy = new Map(list.map(s => [s, groupOf(s)]));
+  if (spGroup !== 'all') list = list.filter(s => groupBy.get(s) === spGroup);
   const by = { pop: s => -s.alive * 1e6 - s.peak, peak: s => -s.peak, kills: s => -s.kills, new: s => -s.firstSeen, old: s => s.firstSeen };
   list.sort((a, b) => by[spSort](a) - by[spSort](b));
-  $('spCount').textContent = `${list.length} species` + (list.length > 120 ? ', showing the first 120' : '') + '. Click one for its history.';
-  list = list.slice(0, 120);
-  $('spList').innerHTML = list.map(s => `<button class="sprow" data-sp="${s.name}"><canvas class="pt" width="72" height="72"></canvas>` +
-    `<span class="nm"><b>${s.name}</b><small>${s.alive ? `since ${fmtAxisTime(s.firstSeen)} · peak ${s.peak}` : `extinct · lasted ${fmtTime(lifeOf(s))}`}${s.kills ? ` · ${s.kills} kills` : ''}</small></span>` +
-    `<canvas class="spark" width="140" height="44"></canvas><span class="cnt${s.alive ? '' : ' dead'}">${s.alive || '†'}</span></button>`).join('');
-  const rows = $('spList').children;
-  list.forEach((s, i) => {
+  $('spCount').textContent = `${list.length} species, grouped by their place in the food chain (what they have actually eaten). Click one for its history.`;
+  const html = [], drawn = [];
+  for (const g of GROUPS) {
+    const items = list.filter(s => groupBy.get(s) === g.key);
+    if (!items.length) continue;
+    const alive = items.reduce((n, s) => n + s.alive, 0);
+    html.push(`<div class="grouphead"><span class="gdot" style="background:${g.color}"></span><b>${g.label}</b>` +
+      `<small>${g.note} · ${items.length} species${alive ? ` · ${alive} alive` : ''}</small>` +
+      (alive ? confirmBtn('group:' + g.key, 'Wipe out', `Tap again to kill ${alive}`) : '') + `</div>`);
+    for (const s of items.slice(0, 80)) {
+      drawn.push(s);
+      html.push(`<button class="sprow" data-sp="${s.name}"><canvas class="pt" width="72" height="72"></canvas>` +
+        `<span class="nm"><b>${s.name}</b><small>${s.alive ? `since ${fmtAxisTime(s.firstSeen)} · peak ${s.peak}` : `extinct · lasted ${fmtTime(lifeOf(s))}`}${s.kills ? ` · ${s.kills} kills` : ''}</small></span>` +
+        `<canvas class="spark" width="140" height="44"></canvas><span class="cnt${s.alive ? '' : ' dead'}">${s.alive || '†'}</span></button>`);
+    }
+    if (items.length > 80) html.push(`<p class="note">…and ${items.length - 80} more. Change the sort to see others.</p>`);
+  }
+  $('spList').innerHTML = html.join('');
+  const rows = $('spList').querySelectorAll('.sprow');
+  drawn.forEach((s, i) => {
     drawPortrait(rows[i].querySelector('.pt'), s.specimen);
     sparkline(rows[i].querySelector('.spark'), s.hist, `hsl(${s.hue} 70% 62%)`);
   });
@@ -1432,7 +1674,7 @@ function renderDetail(full) {
     drawerBody.innerHTML = `<div><button class="link" data-act="back">← All species</button></div>
       <div class="dhead"><canvas id="dPortrait" width="240" height="240"></canvas>
         <div class="dmeta"><h3 class="dname">${s.name}</h3><div id="dStatus"></div><p class="note" id="dBody"></p>
-        <button class="ctl" data-act="highlight">Show in dish</button></div></div>
+        <div class="row" id="dActions"></div></div></div>
       <div class="tiles" id="dFacts"></div>
       <section class="chart"><h3>Population</h3><canvas id="dChart"></canvas></section>
       <section><h3>Diet</h3><div id="dDiet"></div></section>
@@ -1442,11 +1684,13 @@ function renderDetail(full) {
       <section><h3>History</h3><ol id="dEvents" class="events"></ol></section>`;
     drawPortrait($('dPortrait'), s.specimen);
   }
-  // living members haven't banked their meals yet
-  const diet = { ...s.diet };
-  for (const c of creatures) if (c.species === s.name) { diet.sun += c.ateSun; diet.bits += c.ateFood; diet.meat += c.ateMeat; }
-  const sp = s.specimen;
-  $('dStatus').innerHTML = s.alive ? `<span class="pill live">${s.alive} alive</span>` : `<span class="pill dead">Extinct at ${fmtTime(s.extinctAt)}</span>`;
+  const diet = dietOf(s);
+  const sp = s.specimen, grp = groupInfo(groupOf(s, diet));
+  $('dStatus').innerHTML = (s.alive ? `<span class="pill live">${s.alive} alive</span>` : `<span class="pill dead">Extinct at ${fmtTime(s.extinctAt)}</span>`) +
+    ` <span class="pill" style="color:${grp.color}">${grp.one}</span>`;
+  $('dActions').innerHTML = s.alive
+    ? `<button class="ctl" data-act="highlight">Show in dish</button><button class="ctl" data-act="add">Add 10</button>` + confirmBtn('species:' + s.name, 'Wipe out', `Tap again to kill ${s.alive}`)
+    : `<button class="ctl primary" data-act="add">Bring back 10</button>`;
   $('dBody').textContent = `Type specimen: ${sp.arms} arm${sp.arms > 1 ? 's' : ''}, ${sp.parts} part${sp.parts === 1 ? '' : 's'}. ` +
     [...sp.len.map((v, i) => v ? `${Math.round(v)}px ${TYPE_NAME[i]}` : ''), ...sp.organs.map((n, o) => o && n ? `${n} ${ORGAN_NAME[o]}` : '')].filter(Boolean).join(', ') + '.';
   $('dFacts').innerHTML =
@@ -1474,9 +1718,17 @@ function renderDetail(full) {
 }
 
 drawer.addEventListener('click', e => {
-  const t = e.target.closest('[data-sp],[data-act],[data-filter],[data-tab]');
+  const t = e.target.closest('[data-sp],[data-act],[data-filter],[data-tab],[data-group],[data-confirm]');
   if (!t) return;
-  if (t.dataset.sp) openSpeciesDetail(t.dataset.sp);
+  if (t.dataset.confirm) {
+    const key = t.dataset.confirm;
+    if (armed.key !== key || performance.now() > armed.until) armed = { key, until: performance.now() + 3000 };
+    else { armed = { key: null, until: 0 }; runConfirmed(key); }
+    renderDrawer(false);
+  }
+  else if (t.dataset.sp) openSpeciesDetail(t.dataset.sp);
+  else if (t.dataset.group) { spGroup = t.dataset.group; renderDrawer(true); }
+  else if (t.dataset.act === 'add') { revive(openSpecies); renderDrawer(false); }
   else if (t.dataset.tab) openDrawer(t.dataset.tab);
   else if (t.dataset.filter) { spFilter = t.dataset.filter; renderDrawer(true); }
   else if (t.dataset.act === 'back') { openSpecies = null; renderDrawer(true); }
@@ -1487,7 +1739,11 @@ drawer.addEventListener('click', e => {
     toast(`Ringed every ${openSpecies} for 6 seconds`);
   }
 });
-window.addEventListener('keydown', e => { if (e.key === 'Escape' && !drawer.hidden) closeDrawer(); });
+window.addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  if (!setupEl.hidden) setupEl.hidden = true;
+  else if (!drawer.hidden) closeDrawer();
+});
 
 function setTool(t) {
   tool = t;
@@ -1521,7 +1777,30 @@ const speeds = [1, 2, 4, 8];
 $('bSpeed').onclick = () => { speed = speeds[(speeds.indexOf(speed) + 1) % speeds.length]; $('bSpeed').textContent = `Speed ${speed}×`; };
 $('bTrails').onclick = () => { trails = !trails; $('bTrails').setAttribute('aria-pressed', trails); };
 $('bAdd').onclick = () => { spawnRandom(10, 'dropped in by you'); toast('Added 10 random creatures'); };
-$('bReset').onclick = () => { reset(); toast('New dish'); };
+const setupEl = $('setup');
+const setupDefaults = { single: 20, few: 30, random: null };
+function drawPresets() {
+  for (const cv of setupEl.querySelectorAll('canvas[data-preset]')) {
+    const mode = cv.dataset.preset;
+    const g = mode === 'random' ? randomGenome() : PRESETS[mode]().slice(-1)[0];
+    const c = new Creature(g, 0, 0, 0);
+    drawPortrait(cv, { local: c.local, reach: c.reach, hue: g.hue });
+  }
+}
+function setupMode() { return setupEl.querySelector('input[name=start]:checked').value; }
+function syncStartCount() { const n = setupDefaults[setupMode()] ?? defaultCount(); $('rStart').value = n; $('oStart').textContent = n; }
+$('bReset').onclick = () => { drawPresets(); syncStartCount(); setupEl.hidden = false; setupEl.querySelector('input:checked').focus(); };
+for (const r of setupEl.querySelectorAll('input[name=start]')) r.onchange = syncStartCount;
+$('rStart').oninput = e => { $('oStart').textContent = e.target.value; };
+$('setupCancel').onclick = () => { setupEl.hidden = true; };
+setupEl.addEventListener('click', e => { if (e.target === setupEl) setupEl.hidden = true; });
+$('setupGo').onclick = () => {
+  const mode = setupMode(), n = +$('rStart').value;
+  setupEl.hidden = true;
+  startDish(mode, n);
+  renderDrawer(true);
+  toast(mode === 'single' ? `New dish: ${n} copies of one simple ancestor` : mode === 'few' ? `New dish: three simple types, ${n} creatures` : `New dish: ${n} random creatures`);
+};
 $('rLight').oninput = e => { light = +e.target.value; $('oLight').textContent = light.toFixed(2); };
 $('rFood').oninput = e => { foodRate = +e.target.value; $('oFood').textContent = foodRate.toFixed(2); };
 $('rMut').oninput = e => { mutRate = +e.target.value; $('oMut').textContent = mutRate.toFixed(2); };

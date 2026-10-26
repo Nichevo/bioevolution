@@ -86,6 +86,11 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
 .tools span { color: var(--ink-dim); }
 label.slider { display: grid; grid-template-columns: 78px 1fr 34px; align-items: center; gap: 8px; color: var(--ink-dim); }
 label.slider output { color: var(--ink); text-align: right; font-variant-numeric: tabular-nums; }
+details.balance { display: grid; gap: 8px; }
+details.balance[open] { padding-bottom: 4px; }
+details.balance summary { cursor: pointer; color: var(--ink-dim); font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; }
+details.balance label.slider { grid-template-columns: 98px 1fr 34px; margin-top: 8px; }
+details.balance .ctl { margin-top: 8px; justify-self: start; }
 input[type=range] { width: 100%; accent-color: var(--accent); }
 .legend { display: grid; gap: 4px; }
 .legend div { display: grid; grid-template-columns: 22px 1fr; gap: 8px; align-items: center; }
@@ -190,6 +195,8 @@ select { font: inherit; color: var(--ink); background: var(--panel-solid); borde
 .bar { display: flex; gap: 2px; height: 10px; }
 .bar i { display: block; border-radius: 3px; min-width: 3px; }
 .chainrow { line-height: 1.8; }
+.tree canvas { width: 100%; display: block; touch-action: pan-y; cursor: pointer; }
+.tree .seg { margin: 4px 0 8px; flex-wrap: wrap; }
 .events { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; line-height: 1.45; }
 .events .k { display: inline-block; min-width: 60px; font-variant-numeric: tabular-nums; }
 #chartTip { position: fixed; z-index: 6; pointer-events: none; background: var(--panel-solid); border: 1px solid var(--panel-line); border-radius: 8px; padding: 6px 9px; line-height: 1.6; font-variant-numeric: tabular-nums; color: var(--ink-dim); }
@@ -243,8 +250,19 @@ select { font: inherit; color: var(--ink); background: var(--panel-solid); borde
   </div>
 
   <label class="slider">Sunlight <input type="range" id="rLight" min="0" max="2" step="0.05" value="1"><output id="oLight">1.00</output></label>
-  <label class="slider">Food bits <input type="range" id="rFood" min="0" max="3" step="0.05" value="1"><output id="oFood">1.00</output></label>
+  <label class="slider">Vent output <input type="range" id="rFood" min="0" max="3" step="0.05" value="1"><output id="oFood">1.00</output></label>
   <label class="slider">Mutation <input type="range" id="rMut" min="0" max="3" step="0.05" value="1"><output id="oMut">1.00</output></label>
+  <details class="balance" id="balance">
+    <summary>Balance</summary>
+    <label class="slider">Plant shedding <input type="range" data-bal="shed" min="0" max="2" step="0.05" value="1"><output>1.00</output></label>
+    <label class="slider">Food bit value <input type="range" data-bal="bits" min="0.5" max="2" step="0.05" value="1"><output>1.00</output></label>
+    <label class="slider">Meat value <input type="range" data-bal="meat" min="0.5" max="3" step="0.05" value="1"><output>1.00</output></label>
+    <label class="slider">Fat reserve <input type="range" data-bal="fat" min="0" max="2" step="0.05" value="1"><output>1.00</output></label>
+    <label class="slider">Crowding <input type="range" data-bal="crowd" min="0" max="2" step="0.05" value="1"><output>1.00</output></label>
+    <label class="slider">Brain cost <input type="range" data-bal="brainCost" min="0" max="2" step="0.05" value="1"><output>1.00</output></label>
+    <label class="slider">Hive tendency <input type="range" data-bal="hive" min="0" max="2" step="0.05" value="1"><output>1.00</output></label>
+    <button class="ctl" id="balReset">Reset balance</button>
+  </details>
 
   <div>
     <div class="label">Gene pool over time</div>
@@ -318,6 +336,7 @@ select { font: inherit; color: var(--ink); background: var(--panel-solid); borde
       <label class="preset"><input type="radio" name="start" value="random"><canvas width="112" height="112" data-preset="random"></canvas><span><b>Random soup</b><small>Lots of random body plans with every part available from the start.</small></span></label>
     </div>
     <label class="slider" for="sRocks">Rocks <select id="sRocks"><option value="0">None</option><option value="1">Scattered</option><option value="2">Walled pond</option><option value="3" selected>Pond with corridors</option></select><span></span></label>
+    <label class="slider" for="sVents">Vents <select id="sVents"><option value="0">None</option><option value="2" selected>2</option><option value="4">4</option></select><span></span></label>
     <label class="slider" for="sCover">Weed beds <select id="sCover"><option value="0">None</option><option value="1" selected>Some</option><option value="2">Lots</option></select><span></span></label>
     <label class="slider" for="rStart">Creatures <input type="range" id="rStart" min="1" max="150" step="1" value="20"><output id="oStart">20</output></label>
     <div class="row"><button class="ctl primary" id="setupGo">Start</button><button class="ctl" id="setupCancel">Cancel</button></div>
@@ -330,7 +349,7 @@ select { font: inherit; color: var(--ink); background: var(--panel-solid); borde
 'use strict';
 
 // Which release this file is. versions/list.js lists every release, newest first.
-const APP_VERSION = 'v5';
+const APP_VERSION = 'v6';
 
 // ---------- constants ----------
 const TYPE = { GREEN: 0, RED: 1, BLUE: 2, YELLOW: 3, CYAN: 4, PURPLE: 5, WHITE: 6 };
@@ -355,7 +374,7 @@ const TACTICS = [
 ];
 const brainLevel = b => b < 0.5 ? 'instinct' : b < 1.5 ? 'clever' : b < 2.5 ? 'cunning' : 'brilliant';
 const FOOD_COLOR = '#c7f9ff';
-const FOOD_ENERGY = 7;
+const FOOD_ENERGY = 10;
 const CORPSE_COLOR = '#5b6573';
 const DT = 1 / 60;
 const MAX_POP = 420;
@@ -377,6 +396,10 @@ let nextId = 1;
 let simTime = 0;
 let paused = false, speed = 1, trails = true;
 let light = 1, foodRate = 1, mutRate = 1;
+// Balance sliders (all 1 = the standard dish). foodRate is the vents' output.
+const BAL_DEFAULTS = { shed: 1, bits: 1, meat: 1, fat: 1, crowd: 1, brainCost: 1, hive: 1 };
+const bal = { ...BAL_DEFAULTS };
+let vents = [], ventLevel = 2;
 let tool = 'kill';
 let stats = newStats();
 let globs = [];            // spitter shots in flight
@@ -387,7 +410,6 @@ const cam = { x: 0, y: 0, z: 1, follow: null }; // view centre in dish coordinat
 let histTimer = 0;
 let mouse = { x: -1, y: -1, inside: false };
 let reseedTimer = 0;
-let foodAcc = 0;
 let grid = null, gcols = 0, grows = 0;
 let walled = false;
 
@@ -484,6 +506,8 @@ function mutate(g, parentAbsorbed) {
   g.spin = clamp(g.spin + gauss() * 0.08 * m, -1.5, 1.5);
   g.social = clamp((g.social ?? 0.2) + gauss() * 0.06 * m, 0, 1);
   g.hive = clamp((g.hive ?? 0) + gauss() * 0.05 * m, 0, 1);
+  // once in a while the hive instinct switches on in one step
+  if (Math.random() < 0.005 * m * bal.hive) g.hive = rand(0.6, 0.9);
   // You are what you eat: genes taken from prey can replace one of the child's segments.
   if (parentAbsorbed && parentAbsorbed.length && Math.random() < 0.5) {
     const s = parentAbsorbed[randi(0, parentAbsorbed.length - 1)];
@@ -491,6 +515,10 @@ function mutate(g, parentAbsorbed) {
   }
   return g;
 }
+
+// Close family: parents, children, siblings, or anyone with almost the same genes.
+// (Breeding and not fighting use the looser 0.3 match.)
+function isFamily(a, b) { return geneticDistance(a.g, b.g) < 0.12; }
 
 function geneticDistance(a, b) {
   const d = Math.abs(a.arms - b.arms) * 0.25 + hueDist(a.hue, b.hue) / 180 * 0.6;
@@ -546,6 +574,9 @@ class Creature {
     this.memory = null;  // species it has learned to avoid (needs a brain)
     this.lastFood = null;
     this.pounce = 0;
+    this.fat = 0;        // reserve above the normal maximum, banked from meat
+    this.shadeN = 0;     // green neighbours close enough to shade it
+    this.shedAcc = 0;    // sunlight waiting to drop off as a food bit
     this.caste = null;   // 'queen' or 'worker' in a hive
     this.queen = null; this.nest = null; this.nestT = 0;
     this.build();
@@ -591,7 +622,7 @@ class Creature {
     this.attack = this.pow[TYPE.RED] + this.pow[TYPE.WHITE] + this.organPow[ORGAN.SPIT] * 8;
     // eyes see far; without them, hunters smell prey and social creatures sense relatives close by
     this.sight = this.organs[ORGAN.EYE] ? Math.min(260, 60 + this.organPow[ORGAN.EYE] * 35) : this.attack > 0 ? 45 : this.g.social > 0.3 ? 40 : 0;
-    this.mass = this.totalPow + 10 + this.organPow[ORGAN.FAT] * 10 + this.organPow[ORGAN.BRAIN] * 3;
+    this.mass = this.totalPow + 10 + this.organPow[ORGAN.FAT] * 10 + this.organPow[ORGAN.BRAIN] * 3 * bal.brainCost;
     // intelligence: 0 is pure instinct, 3 is the most a brain can do
     this.brain = Math.min(3, this.organPow[ORGAN.BRAIN] * 0.5);
     // a brain makes more of what the eyes see: it spots things further off
@@ -599,7 +630,7 @@ class Creature {
     // Upkeep grows faster than the part count, so complexity has to pay for itself.
     this.baseUpkeep = 0.4 + this.totalPow * 0.032 + Math.pow(this.parts, 1.25) * 0.03
       + this.pow[TYPE.YELLOW] * 0.05 + this.pow[TYPE.RED] * 0.01 + this.pow[TYPE.PURPLE] * 0.02 + this.pow[TYPE.WHITE] * 0.015
-      + this.organPow.reduce((s, n, o) => s + n * ORGAN_UPKEEP[o], 0) + (this.g.social ?? 0) * 0.1;
+      + this.organPow.reduce((s, n, o) => s + n * ORGAN_UPKEEP[o] * (o === ORGAN.BRAIN ? bal.brainCost : 1), 0) + (this.g.social ?? 0) * 0.1 + (this.g.hive ?? 0) * 0.1;
     this.ws = this.local.map(() => ({ x1: 0, y1: 0, x2: 0, y2: 0, type: 0, organ: 0 }));
   }
 
@@ -607,6 +638,8 @@ class Creature {
   // queens grow big, workers stay small
   get maxScale() { return this.caste === 'queen' ? 1.35 : this.caste === 'worker' ? 0.85 : 1; }
   get fullness() { return this.energy / (this.maxEnergy * this.scale); }
+  // how much meat it can bank above its normal maximum; fat stores make room for more
+  get fatCap() { return this.maxEnergy * this.scale * (0.5 + this.organPow[ORGAN.FAT] * 0.25) * bal.fat; }
   // 0 in the prime of life, up to 1 for a newborn or a creature near the end of its lifespan
   get frailty() {
     const young = this.scale < this.maxScale ? (this.maxScale - this.scale) / 0.45 : 0;
@@ -621,15 +654,19 @@ class Creature {
   think() {
     this.goal = null;
     // relatives close by (for herd protection) and the middle of the wider herd (for clumping up)
-    let kin = 0, hx = 0, hy = 0, hn = 0;
+    // also counts green neighbours close enough to shade it
+    let kin = 0, hx = 0, hy = 0, hn = 0, shade = 0;
     for (const o of creatures) {
       if (o === this || o.dead) continue;
       const dx = wrapD(o.x - this.x, W), dy = wrapD(o.y - this.y, H), d2 = dx * dx + dy * dy;
-      if (d2 > 90 * 90 || geneticDistance(this.g, o.g) >= 0.3) continue;
+      if (d2 > 90 * 90) continue;
+      if (d2 < 30 * 30 && o.pow[TYPE.GREEN] > 0) shade++;
+      if (!isFamily(this, o)) continue;
       if (d2 < 55 * 55) kin++;
       hx += dx; hy += dy; hn++;
     }
     this.kinNear = kin;
+    this.shadeN = shade;
     if (this.caste === 'worker' && (!this.queen || this.queen.dead)) this.findQueen();
     else if (!this.caste && this.canFoundHive()) { this.caste = 'queen'; this.nest = null; this.nestT = 0; }
     if (this.caste === 'queen') { this.queenThink(); return; }
@@ -660,6 +697,8 @@ class Creature {
       const mem = this.memory && this.memory.get(o.species);
       if (geneticDistance(this.g, o.g) < 0.3) {
         if (canBreed(this) && canBreed(o)) consider(dx, dy, 1.2 / d, false, 'courting');
+        // only close family hunt or herd together; more distant relatives are just left alone
+        if (!isFamily(this, o)) continue;
         // pack hunters join a relative's chase
         const t = o.goal && o.goal.target;
         if (hunter && social > 0.4 && HUNT_MOODS.has(o.mood) && t && !t.dead && !(t.hidden && d > 25)) {
@@ -667,7 +706,7 @@ class Creature {
           consider(wrapD(t.x - this.x, W), wrapD(t.y - this.y, H), 2 * social / d, false, 'hunting', t);
         }
         // herd animals drift toward relatives
-        if (social > 0.3 && d > 18) consider(dx, dy, 0.25 * social / d, false, 'herding');
+        if (social > 0.3 && d > 30) consider(dx, dy, 0.25 * social / d, false, 'herding');
         // ...and bolt when a relative bolts, even before they see the danger themselves
         if (social > 0.3 && o.mood === 'fleeing' && o.goal && !this.attack) consider(o.goal.dx, o.goal.dy, 0.12 * social / d, o.goal.flee, 'fleeing');
         continue;
@@ -811,7 +850,7 @@ class Creature {
 
   // ---------- hives ----------
   canFoundHive() {
-    if ((this.g.hive ?? 0) <= 0.5 || this.brain < 1 || this.age < MATURE_AGE || this.scale < 1 || this.fullness < 0.75 || Math.random() > 0.05) return false;
+    if ((this.g.hive ?? 0) <= 0.5 || this.brain < 0.5 || this.age < MATURE_AGE || this.scale < 1 || this.fullness < 0.75 || Math.random() > 0.05 * bal.hive) return false;
     for (const o of creatures) {
       if (o.caste !== 'queen' || o.dead || o.species !== this.species) continue;
       const dx = wrapD(o.x - this.x, W), dy = wrapD(o.y - this.y, H);
@@ -828,7 +867,7 @@ class Creature {
       if (d2 < bd) { bd = d2; this.queen = o; }
     }
     // the queen is gone: a worker with strong hive instincts takes her place
-    if (!this.queen && (this.g.hive ?? 0) > 0.6 && this.brain >= 1 && this.fullness > 0.3 && Math.random() < 0.2) {
+    if (!this.queen && (this.g.hive ?? 0) > 0.6 && this.brain >= 0.5 && this.fullness > 0.3 && Math.random() < 0.2) {
       this.caste = 'queen'; this.nest = null; this.nestT = 0;
       this.lifespan = Math.max(this.lifespan, this.age + 40);
     }
@@ -837,9 +876,10 @@ class Creature {
   queenThink() {
     if (!this.nest) {
       let nx = this.x, ny = this.y;
-      const r = nearestRock(this.x, this.y, 150), c = r ? null : nearestCover(this.x, this.y, 150);
-      if (r) { const l = Math.hypot(r.dx, r.dy) || 1; nx += r.dx - r.dx / l * (r.r + 10); ny += r.dy - r.dy / l * (r.r + 10); }
-      else if (c) { nx += c.dx; ny += c.dy; }
+      // weeds first, so she is hidden; otherwise her back to a rock
+      const c = nearestCover(this.x, this.y, 150), r = c ? null : nearestRock(this.x, this.y, 150);
+      if (c) { nx += c.dx; ny += c.dy; }
+      else if (r) { const l = Math.hypot(r.dx, r.dy) || 1; nx += r.dx - r.dx / l * (r.r + 10); ny += r.dy - r.dy / l * (r.r + 10); }
       this.nest = { x: (nx + W) % W, y: (ny + H) % H };
     }
     const dx = wrapD(this.nest.x - this.x, W), dy = wrapD(this.nest.y - this.y, H);
@@ -880,7 +920,22 @@ class Creature {
     // energy in: sunlight on green segments (shared out when the dish is crowded)
     this.hidden = inCover(this.x, this.y);
     // weed beds shade out half the sun
-    const sun = this.pow[TYPE.GREEN] * this.scale * 0.2 * light * sunShare * dt * (this.hidden ? 0.5 : 1);
+    // close green neighbours shade each other, so a dense clump gets less sun each
+    let sun = this.pow[TYPE.GREEN] * this.scale * 0.15 * light * sunShare * dt * (this.hidden ? 0.5 : 1) / (1 + this.shadeN * 0.1 * bal.crowd);
+    // plants shed part of what they gather as food bits, which drift off for the grazers
+    if (sun > 0 && bal.shed > 0) {
+      const shed = sun * Math.min(0.6, 0.15 * bal.shed);
+      sun -= shed;
+      this.shedAcc += shed;
+      if (this.shedAcc >= FOOD_ENERGY) {
+        if (food.length < foodCap() * 1.5) {
+          const w = this.ws[randi(0, this.ws.length - 1)];
+          const a = Math.atan2(w.y2 - this.y, w.x2 - this.x);
+          addFood(w.x2, w.y2, FOOD_ENERGY, a, rand(6, 14));
+          this.shedAcc -= FOOD_ENERGY;
+        } else { sun += this.shedAcc; this.shedAcc = 0; } // nowhere to put it: the plant keeps it
+      }
+    }
     this.energy += sun;
     this.ateSun += sun;
 
@@ -927,7 +982,10 @@ class Creature {
     if (this.paralysed > 0 || (m === 'hiding' && this.hidden) || m === 'ambushing') thrust = 0;
     else if (this.hidden) thrust *= 0.6; // weeds are slow going
     if (m === 'ambushing') upkeep *= 0.7; // lying still saves energy
-    this.energy -= upkeep * dt;
+    // the fat reserve pays the bills first
+    const bill = upkeep * dt, fromFat = Math.min(this.fat, bill);
+    this.fat -= fromFat;
+    this.energy -= bill - fromFat;
     if (this.energy > this.maxEnergy * s) this.energy = this.maxEnergy * s;
 
     this.vx += Math.cos(this.heading) * thrust * 60 * dt;
@@ -996,7 +1054,7 @@ class Creature {
       // a kill leaves only a picked-over carcass
       corpses.push({
         x: this.x, y: this.y, life: 25, max: 25,
-        energy: Math.max(0, this.energy) + this.total * this.scale * (cause === 'eaten' ? 0.3 : 0.6),
+        energy: Math.max(0, this.energy) + this.fat + this.total * this.scale * (cause === 'eaten' ? 0.3 : 0.6),
         ws: this.ws.map(w => ({ ...w })),
         radius: this.radius,
       });
@@ -1071,8 +1129,7 @@ function drawOrgans(g, ws, ox, oy, scale, rot) {
 }
 
 // ---------- food ----------
-function addFood(x, y, e = FOOD_ENERGY) {
-  const a = rand(Math.PI * 2), sp = rand(2, 6);
+function addFood(x, y, e = FOOD_ENERGY, a = rand(Math.PI * 2), sp = rand(2, 6)) {
   food.push({ x: (x + W) % W, y: (y + H) % H, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, e, eaten: false });
 }
 function buildFoodGrid() {
@@ -1103,7 +1160,7 @@ function graze(c) {
         }
         if (got) {
           f.eaten = true;
-          const gain = f.e * (hasCyan ? 1 : 0.5);
+          const gain = f.e * bal.bits * (hasCyan ? 1 : 0.5);
           c.energy += gain; c.ateFood += gain;
           if (c.brain >= 1) c.lastFood = { x: f.x, y: f.y };
         }
@@ -1140,7 +1197,11 @@ function reset(n = defaultCount()) {
   stats = newStats();
   globs = [];
   simTime = 0;
-  for (let i = 0, n = foodCap() / 3; i < n; i++) addFood(rand(W), rand(H));
+  // a starter cloud of food around each vent (food only ever comes from vents, plants and corpses)
+  for (const v of vents) for (let i = 0, k = foodCap() / 3 / vents.length; i < k; i++) {
+    const a = rand(Math.PI * 2), r = rand(10, 90), x = v.x + Math.cos(a) * r, y = v.y + Math.sin(a) * r;
+    if (!inRock(x, y)) addFood(x, y);
+  }
   if (n) spawnRandom(n);
 }
 
@@ -1339,6 +1400,40 @@ function freeAhead(x, y, a, max) {
   }
   return max;
 }
+// ---------- vents ----------
+// Cracks in the pond floor that puff out food bits. Placed in open water, away from rock and from each other.
+function makeVents(n) {
+  ventLevel = n;
+  vents = [];
+  for (let tries = 0; vents.length < n && tries < 200; tries++) {
+    const x = rand(W * 0.12, W * 0.88), y = rand(H * 0.12, H * 0.88);
+    if (inRock(x, y) || [0, 1, 2, 3].some(k => freeAhead(x, y, k * Math.PI / 2, 40) < 40)) continue;
+    if (vents.some(v => Math.hypot(v.x - x, v.y - y) < Math.min(W, H) * 0.3)) continue;
+    const cracks = [];
+    for (let i = 0; i < 4; i++) {
+      let a = rand(Math.PI * 2), px = 0, py = 0;
+      const pts = [[0, 0]];
+      for (let k = 0; k < 3; k++) { a += rand(-0.7, 0.7); px += Math.cos(a) * rand(3, 6); py += Math.sin(a) * rand(3, 6); pts.push([px, py]); }
+      cracks.push(pts);
+    }
+    vents.push({ x, y, acc: rand(1), cracks, phase: rand(Math.PI * 2) });
+  }
+}
+function drawVents(g, t) {
+  for (const v of vents) {
+    const pulse = 0.75 + 0.25 * Math.sin(t * 2 + v.phase);
+    const glow = g.createRadialGradient(v.x, v.y, 0, v.x, v.y, 22);
+    glow.addColorStop(0, `rgba(255, 170, 90, ${0.45 * pulse})`);
+    glow.addColorStop(1, 'rgba(255, 120, 60, 0)');
+    g.fillStyle = glow;
+    g.beginPath(); g.arc(v.x, v.y, 22, 0, Math.PI * 2); g.fill();
+    g.strokeStyle = `rgba(255, 200, 140, ${0.8 * pulse})`; g.lineWidth = 1.2; g.lineCap = 'round';
+    g.beginPath();
+    for (const c of v.cracks) c.forEach(([px, py], i) => i ? g.lineTo(v.x + px, v.y + py) : g.moveTo(v.x + px, v.y + py));
+    g.stroke();
+  }
+}
+
 // A random open spot for a new creature.
 function freeSpot() {
   for (let i = 0; i < 40; i++) {
@@ -1366,9 +1461,10 @@ const PRESETS = {
     simpleGenome(2, 10, [[TYPE.YELLOW, 7, 0, ORGAN.EYE], [TYPE.RED, 9, 0.3, ORGAN.BRAIN]], 0.8),
   ],
 };
-function startDish(mode, n, coverAmount = coverLevel, rockAmount = rockLevel) {
+function startDish(mode, n, coverAmount = coverLevel, rockAmount = rockLevel, ventAmount = ventLevel) {
   makeRocks(rockAmount);
   makeCover(coverAmount);
+  makeVents(ventAmount);
   reset(mode === 'random' ? n : 0);
   if (mode === 'random') return;
   const gs = PRESETS[mode]();
@@ -1384,7 +1480,7 @@ function startDish(mode, n, coverAmount = coverLevel, rockAmount = rockLevel) {
 function resize() {
   dpr = Math.min(window.devicePixelRatio || 1, 2);
   const nw = window.innerWidth, nh = window.innerHeight;
-  if (W && H && (nw !== W || nh !== H)) for (const c of [...rocks, ...cover]) { c.x *= nw / W; c.y *= nh / H; }
+  if (W && H && (nw !== W || nh !== H)) for (const c of [...rocks, ...cover, ...vents]) { c.x *= nw / W; c.y *= nh / H; }
   canvas.width = nw * dpr; canvas.height = nh * dpr;
   W = nw; H = nh;
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -1468,7 +1564,7 @@ const TRAITS = [
   { key: 'sting', label: 'Stinger', color: '#f1f5f9', live: c => c.len[TYPE.WHITE] > 0, spec: sp => sp.len[TYPE.WHITE] > 0 },
   { key: 'spit', label: 'Spitter', color: '#a3e635', live: c => c.organs[ORGAN.SPIT] > 0, spec: sp => sp.organs[ORGAN.SPIT] > 0 },
   { key: 'social', label: 'Pack or herd', color: '#fda4af', live: c => (c.g.social ?? 0) > 0.3, spec: sp => (sp.genome.social ?? 0) > 0.3 },
-  { key: 'hive', label: 'Hive', color: '#f472b6', live: c => !!c.caste, spec: sp => (sp.genome.hive ?? 0) > 0.5 && specBrain(sp) >= 1 },
+  { key: 'hive', label: 'Hive', color: '#f472b6', live: c => !!c.caste, spec: sp => (sp.genome.hive ?? 0) > 0.5 && specBrain(sp) >= 0.5 },
 ];
 function lifeKey(c) { return c.caste ? 'hive' : (c.g.social ?? 0) < 0.3 ? 'alone' : c.attack > 0 ? 'pack' : 'herd'; }
 const LIFE = [
@@ -1508,7 +1604,8 @@ function takeSample() {
 
 function birth(child, parents) {
   // newborns drift away from the parent so colonies spread out
-  const a = rand(Math.PI * 2), sp = rand(25, 45);
+  // plants can't swim, so their seedlings are flung further to keep clumps from forming
+  const a = rand(Math.PI * 2), sp = child.pow[TYPE.YELLOW] > 0 ? rand(25, 45) : rand(110, 190);
   child.vx = Math.cos(a) * sp; child.vy = Math.sin(a) * sp; child.heading = a;
   creatures.push(child);
   registerBirth(child, parents);
@@ -1518,14 +1615,13 @@ function birth(child, parents) {
 function step(dt) {
   simTime += dt;
 
-  // Food bits drift in from nowhere, in clumps, up to a cap.
-  foodAcc += dt * foodRate * W * H / 40000;
-  while (foodAcc >= 1) {
-    foodAcc -= 1;
-    if (food.length >= foodCap()) continue;
-    const x = rand(W), y = rand(H);
-    if (inRock(x, y)) continue;
-    for (let i = 0, n = randi(1, 4); i < n; i++) addFood(x + rand(-14, 14), y + rand(-14, 14));
+  // Vents on the pond floor puff out a slow stream of food bits.
+  for (const v of vents) {
+    v.acc += dt * foodRate * 2.5;
+    while (v.acc >= 1) {
+      v.acc -= 1;
+      if (food.length < foodCap()) addFood(v.x + rand(-4, 4), v.y + rand(-4, 4), FOOD_ENERGY, rand(Math.PI * 2), rand(5, 14));
+    }
   }
   for (const f of food) {
     f.x = (f.x + f.vx * dt + W) % W; f.y = (f.y + f.vy * dt + H) % H;
@@ -1607,7 +1703,7 @@ function step(dt) {
       const dmg = Math.min(c.energy + 0.01, b.power / (1 + c.pow[TYPE.BLUE] / 25) * groupFactor(b.owner, c));
       c.energy -= dmg; c.flash = 1;
       c.remember(b.owner.species, 'danger');
-      if (!b.owner.dead) { b.owner.energy += dmg * 0.6; b.owner.ateMeat += dmg * 0.6; }
+      if (!b.owner.dead) { gainMeat(b.owner, dmg * 0.9 * bal.meat); b.owner.ateMeat += dmg * 0.9 * bal.meat; }
       if (c.energy <= 0) killedBy(b.owner, c);
       b.life = 0;
       break;
@@ -1639,7 +1735,7 @@ function scavenge(a, dt) {
     }
     if (bites) {
       const amount = Math.min(k.energy, bites * 30 * a.scale * dt);
-      k.energy -= amount; a.energy += amount * 0.7; a.ateCarrion += amount * 0.7;
+      k.energy -= amount; gainMeat(a, amount * 0.85 * bal.meat); a.ateCarrion += amount * 0.85 * bal.meat;
     }
   }
 }
@@ -1707,15 +1803,23 @@ function fight(a, b, ox, oy, dt) {
 
 // Attacks land harder with packmates nearby and softer on a creature surrounded by its herd.
 // The very young and very old are easier to hurt.
+// A queen surrounded by her workers is protected like the middle of a herd.
 function groupFactor(attacker, victim) {
-  return (1 + attacker.kinNear * (attacker.g.social ?? 0) * 0.3) / (1 + victim.kinNear * (victim.g.social ?? 0) * 0.25) * (1 + victim.frailty);
+  const vs = victim.caste === 'queen' ? 1 : victim.g.social ?? 0;
+  return (1 + attacker.kinNear * (attacker.g.social ?? 0) * 0.3) / (1 + victim.kinNear * vs * 0.25) * (1 + victim.frailty);
 }
 
+// Meat is the richest food, and what doesn't fit is banked as fat.
+function gainMeat(c, x) {
+  const cap = c.maxEnergy * c.scale, room = cap - c.energy;
+  if (x <= room) c.energy += x;
+  else { c.energy = Math.max(c.energy, cap); c.fat = Math.min(c.fatCap, c.fat + x - Math.max(0, room)); }
+}
 function feed(eater, prey, bites, dt) {
   const amount = Math.min(prey.energy + 0.01, bites * 45 * eater.scale * dt * groupFactor(eater, prey));
   prey.energy -= amount;
-  eater.energy += amount * 0.85;
-  eater.ateMeat += amount * 0.85;
+  gainMeat(eater, amount * 1.25 * bal.meat);
+  eater.ateMeat += amount * 1.25 * bal.meat;
   prey.flash = 1;
   if (prey.energy <= 0) killedBy(eater, prey);
 }
@@ -1724,8 +1828,8 @@ function sting(stinger, victim, n, dt) {
   victim.paralysed = Math.max(victim.paralysed, 1.5);
   const amount = Math.min(victim.energy + 0.01, n * 15 * stinger.scale * dt * groupFactor(stinger, victim));
   victim.energy -= amount;
-  stinger.energy += amount * 0.5;
-  stinger.ateMeat += amount * 0.5;
+  gainMeat(stinger, amount * 0.75 * bal.meat);
+  stinger.ateMeat += amount * 0.75 * bal.meat;
   victim.flash = 1;
   if (victim.energy <= 0) killedBy(stinger, victim);
 }
@@ -1792,6 +1896,7 @@ function draw() {
   }
   ctx.setTransform(dpr * cam.z, 0, 0, dpr * cam.z, dpr * (W / 2 - cam.x * cam.z), dpr * (H / 2 - cam.y * cam.z));
 
+  drawVents(ctx, performance.now() / 1000);
   ctx.fillStyle = FOOD_COLOR;
   ctx.globalAlpha = 0.75;
   for (const f of food) { ctx.beginPath(); ctx.arc(f.x, f.y, f.e > FOOD_ENERGY ? 2 : 1.4, 0, Math.PI * 2); ctx.fill(); }
@@ -1988,7 +2093,7 @@ function updatePanel() {
   inspectEl.innerHTML =
     `<div class="t"><span class="dot" style="background:hsl(${c.g.hue} 85% 60%)"></span>${c.species}</div>` +
     `<div><span class="k">#${c.id} · gen</span> ${c.gen} · <span class="k">age</span> ${Math.floor(c.age)}/${Math.floor(c.lifespan)}s${c.frailty > 0.3 ? (c.scale < 1 ? ' · young, easy prey' : ' · old, easy prey') : ''}</div>` +
-    `<div><span class="k">energy</span> ${Math.round(c.energy)}/${Math.round(c.maxEnergy * c.scale)} · <span class="k">upkeep</span> ${(c.baseUpkeep * c.scale).toFixed(1)}/s</div>` +
+    `<div><span class="k">energy</span> ${Math.round(c.energy + c.fat)}/${Math.round(c.maxEnergy * c.scale)}${c.fat >= 1 ? ` (+${Math.round(c.fat)} fat)` : ''} · <span class="k">upkeep</span> ${(c.baseUpkeep * c.scale).toFixed(1)}/s</div>` +
     `<div><span class="k">brain</span> ${brainLevel(c.brain)}${c.brain ? ` (${c.brain.toFixed(1)})` : ''}${c.memory && c.memory.size ? ` · <span class="k">avoids</span> ${[...c.memory.keys()].join(', ')}` : ''}</div>` +
     `<div><span class="k">complexity</span> ${c.parts} parts · <span class="k">now</span> ${MOOD_TEXT[c.mood] || c.mood}${c.hidden && c.mood !== 'hiding' ? ' · in cover' : ''}${c.poison > 0 ? ' · poisoned' : ''}${c.paralysed > 0 ? ' · stunned' : ''}</div>` +
     `<div><span class="k">diet</span> ${pct(c.ateSun)}% sun · ${pct(c.ateFood)}% bits · ${pct(c.ateMeat)}% meat · ${pct(c.ateCarrion)}% carrion</div>` +
@@ -2369,7 +2474,7 @@ function renderDetail(full) {
       <section><h3>How they died</h3><div id="dDeaths"></div></section>
       <section><h3>How they hunt</h3><div id="dTactics"></div></section>
       <section><h3>Food chain</h3><div id="dChain" class="note"></div></section>
-      <section><h3>Family tree</h3><div id="dLineage" class="note"></div></section>
+      <section class="tree"><h3>Family tree</h3><div class="seg" id="dTreeCtl"></div><canvas id="dTree"></canvas><div id="dLineage" class="note"></div></section>
       <section><h3>History</h3><ol id="dEvents" class="events"></ol></section>`;
     drawPortrait($('dPortrait'), s.specimen);
   }
@@ -2400,6 +2505,11 @@ function renderDetail(full) {
   const top = obj => Object.entries(obj).sort((a, b) => b[1] - a[1]).slice(0, 4).map(([n, k]) => `${spLink(n)} <small>×${k}</small>`).join(', ');
   $('dChain').innerHTML = `<div><span class="k">Has eaten</span> ${top(s.prey) || 'nobody yet'}</div><div><span class="k">Eaten by</span> ${top(s.eatenBy) || 'nobody yet'}</div>`;
 
+  $('dTreeCtl').innerHTML = [['family', 'This family'], ['dish', 'Whole dish']].map(([k, l]) =>
+    `<button class="ctl" data-tree="${k}" aria-pressed="${treeScope === k}">${l}</button>`).join('') +
+    `<button class="ctl" data-tree="short" aria-pressed="${treeShort}">Short-lived too</button>`;
+  drawTree($('dTree'), s);
+
   const chain = [];
   const seen = new Set([s.name]);
   for (let a = s.ancestor; a && !seen.has(a) && chain.length < 30; a = speciesDB.get(a)?.ancestor) { chain.unshift(a); seen.add(a); }
@@ -2412,9 +2522,117 @@ function renderDetail(full) {
     `<li><span class="k">${fmtTime(e.t)}</span> ${e.ref ? e.text.replace('{}', spLink(e.ref)) : e.text}</li>`).join('');
 }
 
+// ---------- family tree ----------
+// Each species is a band through time (thicker = more alive), branching off its parent where it split.
+let treeScope = 'family', treeShort = false;
+const treeState = new WeakMap();
+const shortLived = s => lifeOf(s) < 10 && s.peak <= 3;
+function treeRows(sel) {
+  let pool;
+  if (treeScope === 'dish') pool = new Set(speciesDB.keys());
+  else {
+    pool = new Set([sel.name]);
+    for (let a = sel.ancestor, n = 0; a && n < 60; a = speciesDB.get(a)?.ancestor, n++) pool.add(a);
+    const stack = [sel.name];
+    while (stack.length) for (const ch of speciesDB.get(stack.pop())?.children || []) if (!pool.has(ch)) { pool.add(ch); stack.push(ch); }
+  }
+  // folded species hand their children to their nearest shown ancestor
+  const keep = n => n === sel.name || treeShort || !shortLived(speciesDB.get(n));
+  let shown = [...pool].filter(n => speciesDB.has(n) && keep(n));
+  if (shown.length > 120) { // a huge dish: keep the biggest, plus the selected line
+    const must = new Set([sel.name]);
+    for (let a = sel.ancestor; a && !must.has(a); a = speciesDB.get(a)?.ancestor) must.add(a);
+    shown = shown.sort((a, b) => (must.has(b) - must.has(a)) || speciesDB.get(b).peak - speciesDB.get(a).peak).slice(0, 120);
+  }
+  const on = new Set(shown);
+  const parentOf = n => { let a = speciesDB.get(n).ancestor; while (a && !on.has(a)) a = speciesDB.get(a)?.ancestor; return a || null; };
+  const kids = new Map(shown.map(n => [n, []])), roots = [];
+  for (const n of shown) { const p = parentOf(n); p ? kids.get(p).push(n) : roots.push(n); }
+  const byTime = (a, b) => speciesDB.get(a).firstSeen - speciesDB.get(b).firstSeen;
+  const rows = [], walk = n => { rows.push({ name: n, parent: parentOf(n) }); kids.get(n).sort(byTime).forEach(walk); };
+  roots.sort(byTime).forEach(walk);
+  return { rows, folded: pool.size - shown.length };
+}
+function drawTree(cv, sel) {
+  const { rows, folded } = treeRows(sel);
+  const r = cv.getBoundingClientRect();
+  const rowH = rows.length > 40 ? 8 : rows.length > 16 ? 14 : 22;
+  const T = 6, B = 18, L = 6, R = 8, cssH = T + B + rows.length * rowH;
+  cv.style.height = cssH + 'px';
+  if (!r.width) return;
+  const w = Math.round(r.width * dpr), h = Math.round(cssH * dpr);
+  if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; }
+  const g = cv.getContext('2d');
+  g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  g.clearRect(0, 0, r.width, cssH);
+  let t0 = Infinity, maxN = 1;
+  for (const row of rows) { const s = speciesDB.get(row.name); t0 = Math.min(t0, s.firstSeen); maxN = Math.max(maxN, s.peak); }
+  const t1 = Math.max(simTime, t0 + 1), pw = r.width - L - R;
+  const X = t => L + (t - t0) / (t1 - t0) * pw;
+  const yOf = new Map(rows.map((row, i) => [row.name, T + i * rowH + rowH / 2]));
+  const thick = n => n > 0 ? Math.max(1.5, Math.sqrt(n / maxN) * rowH * 0.85) : 1;
+  g.font = '10px "JetBrains Mono", ui-monospace, monospace';
+  g.fillStyle = INK_DIM;
+  g.textAlign = 'left'; g.fillText(fmtAxisTime(t0), L, cssH - 4);
+  g.textAlign = 'right'; g.fillText(fmtAxisTime(t1), L + pw, cssH - 4);
+  // branch lines first, so bands sit on top
+  g.lineWidth = 1;
+  for (const row of rows) if (row.parent) {
+    const s = speciesDB.get(row.name), x = Math.round(X(s.firstSeen)) + 0.5;
+    g.strokeStyle = `hsla(${s.hue} 60% 60% / 0.55)`;
+    g.beginPath(); g.moveTo(x, yOf.get(row.parent)); g.lineTo(x, yOf.get(row.name)); g.stroke();
+  }
+  for (const row of rows) {
+    const s = speciesDB.get(row.name), y = yOf.get(row.name), end = s.extinctAt ?? t1;
+    const pts = [[s.firstSeen, s.hist.length ? s.hist[0][1] : s.alive], ...s.hist.filter(p => p[0] > s.firstSeen && p[0] < end), [end, s.alive]];
+    g.fillStyle = `hsl(${s.hue} 70% ${s.alive ? 58 : 40}%)`;
+    g.beginPath();
+    pts.forEach(([t, n], i) => i ? g.lineTo(X(t), y - thick(n) / 2) : g.moveTo(X(t), y - thick(n) / 2));
+    for (let i = pts.length - 1; i >= 0; i--) g.lineTo(X(pts[i][0]), y + thick(pts[i][1]) / 2);
+    g.closePath(); g.fill();
+    if (row.name === sel.name) {
+      g.strokeStyle = '#fff'; g.lineWidth = 1.5;
+      g.strokeRect(X(s.firstSeen) - 2, y - rowH / 2 + 1, Math.max(4, X(end) - X(s.firstSeen) + 4), rowH - 2);
+    }
+    if (rowH >= 14) {
+      const x = X(s.firstSeen) + 4, lab = s.name + (s.alive ? '' : ' †');
+      g.textAlign = 'left'; g.lineWidth = 3; g.strokeStyle = '#090e15';
+      g.fillStyle = row.name === sel.name ? '#fff' : '#c6d3de';
+      const tx = Math.min(x, L + pw - g.measureText(lab).width);
+      g.strokeText(lab, tx, y + 3.5); g.fillText(lab, tx, y + 3.5);
+    }
+  }
+  if (folded) { g.textAlign = 'center'; g.fillStyle = INK_DIM; g.fillText(`${folded} short-lived folded away`, L + pw / 2, cssH - 4); }
+  const st = treeState.get(cv) || {};
+  Object.assign(st, { rows, rowH, T, X, t0, t1 });
+  treeState.set(cv, st);
+  if (!cv.dataset.hooked) {
+    cv.dataset.hooked = '1';
+    const at = e => { const st = treeState.get(cv), i = Math.floor((e.clientY - cv.getBoundingClientRect().top - st.T) / st.rowH); return st.rows[i]?.name; };
+    cv.addEventListener('pointermove', e => {
+      const n = at(e), s = n && speciesDB.get(n);
+      if (!s) { chartTip.hidden = true; return; }
+      chartTip.innerHTML = `<div><i style="background:hsl(${s.hue} 70% 58%)"></i><b>${s.name}</b></div>` +
+        `<div>appeared ${fmtTime(s.firstSeen)}${s.ancestor ? ` from ${s.ancestor}` : ''}</div>` +
+        `<div>${s.alive ? `${s.alive} alive` : `extinct at ${fmtTime(s.extinctAt)}`} · peak ${s.peak}</div>` +
+        (s.children.length ? `<div>${s.children.length} new species</div>` : '');
+      chartTip.hidden = false;
+      chartTip.style.left = Math.max(8, e.clientX - chartTip.offsetWidth - 14) + 'px';
+      chartTip.style.top = Math.max(8, e.clientY - 10) + 'px';
+    });
+    cv.addEventListener('pointerleave', () => { chartTip.hidden = true; });
+    cv.addEventListener('click', e => { const n = at(e); if (n && n !== openSpecies) { chartTip.hidden = true; openSpeciesDetail(n); } });
+  }
+}
+
 drawer.addEventListener('click', e => {
-  const t = e.target.closest('[data-sp],[data-act],[data-filter],[data-tab],[data-group],[data-confirm],[data-trait]');
+  const t = e.target.closest('[data-sp],[data-act],[data-tree],[data-filter],[data-tab],[data-group],[data-confirm],[data-trait]');
   if (!t) return;
+  if (t.dataset.tree) {
+    if (t.dataset.tree === 'short') treeShort = !treeShort; else treeScope = t.dataset.tree;
+    renderDrawer(false);
+    return;
+  }
   if (t.dataset.trait) {
     const k = t.dataset.trait;
     spTraits.has(k) ? spTraits.delete(k) : spTraits.add(k);
@@ -2557,13 +2775,28 @@ setupEl.addEventListener('click', e => { if (e.target === setupEl) setupEl.hidde
 $('setupGo').onclick = () => {
   const mode = setupMode(), n = +$('rStart').value, coverAmount = +$('sCover').value, rockAmount = +$('sRocks').value;
   setupEl.hidden = true;
-  startDish(mode, n, coverAmount, rockAmount);
+  startDish(mode, n, coverAmount, rockAmount, +$('sVents').value);
   renderDrawer(true);
   toast(mode === 'single' ? `New dish: ${n} copies of one simple ancestor` : mode === 'few' ? `New dish: three simple types, ${n} creatures` : mode === 'clever' ? `New dish: ${n} clever creatures` : `New dish: ${n} random creatures`);
 };
 $('rLight').oninput = e => { light = +e.target.value; $('oLight').textContent = light.toFixed(2); };
 $('rFood').oninput = e => { foodRate = +e.target.value; $('oFood').textContent = foodRate.toFixed(2); };
 $('rMut').oninput = e => { mutRate = +e.target.value; $('oMut').textContent = mutRate.toFixed(2); };
+// Balance sliders: live, and remembered in this browser between visits.
+const balInputs = [...document.querySelectorAll('input[data-bal]')];
+function showBal() { for (const el of balInputs) { el.value = bal[el.dataset.bal]; el.nextElementSibling.textContent = (+bal[el.dataset.bal]).toFixed(2); } }
+function saveBal() { try { localStorage.setItem('bio-balance', JSON.stringify(bal)); } catch (_) { /* storage may be blocked */ } }
+// costs that are worked out once per body need every creature rebuilt when they change
+function rebuildAll() { for (const c of creatures) c.build(); }
+for (const el of balInputs) el.oninput = () => {
+  bal[el.dataset.bal] = +el.value;
+  el.nextElementSibling.textContent = (+el.value).toFixed(2);
+  if (el.dataset.bal === 'brainCost') rebuildAll();
+  saveBal();
+};
+$('balReset').onclick = () => { Object.assign(bal, BAL_DEFAULTS); showBal(); rebuildAll(); saveBal(); toast('Balance reset'); };
+try { const saved = JSON.parse(localStorage.getItem('bio-balance') || 'null'); if (saved) for (const k in BAL_DEFAULTS) if (typeof saved[k] === 'number') bal[k] = saved[k]; } catch (_) { /* ignore */ }
+showBal();
 function collapsible(btnId, cardId) {
   $(btnId).onclick = () => {
     const min = $(cardId).classList.toggle('min');
@@ -2623,6 +2856,7 @@ if (window.matchMedia('(max-width: 760px)').matches) {
 resize();
 makeRocks(3);
 makeCover(1);
+makeVents(2);
 reset();
 // let the dish settle a little so the first frame already shows life in motion
 for (let i = 0; i < 30; i++) step(DT);

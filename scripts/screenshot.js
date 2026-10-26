@@ -83,6 +83,27 @@ const page_url = 'file://' + path.join(root, 'index.html');
   await page.click('.sprow');
   await page.waitForTimeout(1500);
   await page.screenshot({ path: path.join(root, 'docs/species.png') });
+  // its family tree, across the whole dish
+  await page.click('[data-tree=dish]');
+  await page.waitForTimeout(600);
+  await page.evaluate(() => {
+    // scroll the tree to the top of the drawer, just below its sticky header
+    const t = document.querySelector('section.tree');
+    t.scrollIntoView();
+    let p = t.parentElement;
+    while (p && p.scrollHeight <= p.clientHeight) p = p.parentElement;
+    if (p) p.scrollTop -= 70;
+  });
+  await page.waitForTimeout(300);
+  const tb = await (await page.$('section.tree')).boundingBox();
+  await page.screenshot({ path: path.join(root, 'docs/tree.png'), clip: { x: tb.x - 8, y: Math.max(0, tb.y - 8), width: tb.width + 16, height: Math.min(tb.height + 16, 850 - Math.max(0, tb.y - 8)) } });
+  await page.click('[data-act=close]');
+  // the balance controls
+  await page.evaluate(() => { if (document.getElementById('panel').classList.contains('min')) document.getElementById('collapse').click(); document.getElementById('balance').open = true; });
+  await page.waitForTimeout(400);
+  const pb = await (await page.$('#balance')).boundingBox();
+  const top = pb.y - 120;
+  await page.screenshot({ path: path.join(root, 'docs/balance.png'), clip: { x: pb.x - 12, y: top, width: pb.width + 24, height: pb.y + pb.height + 12 - top } });
 
   // phone layout
   await page.setViewportSize({ width: 390, height: 800 });
@@ -92,5 +113,5 @@ const page_url = 'file://' + path.join(root, 'index.html');
 
   await browser.close();
   if (errors.length) { console.error('Page errors:', errors); process.exit(1); }
-  console.log('Wrote docs/screenshot.png, new-dish.png, closeup.png, graphs.png, groups.png, species.png, phone.png');
+  console.log('Wrote docs/screenshot.png, new-dish.png, closeup.png, graphs.png, groups.png, species.png, tree.png, balance.png, phone.png');
 })();

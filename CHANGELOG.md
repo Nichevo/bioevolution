@@ -2,9 +2,17 @@
 
 Every release stays playable. Pick one from the menu next to the title in the app, or open the file directly. The newest is always `index.html`.
 
+## v3: Packs, herds & hiding (2026-10-26)
+
+`versions/v3.html` (also the current `index.html`)
+
+- **Scavengers** are a new food-chain group: species that live mostly on corpses rather than live prey. Kills now leave scraps behind, and diet charts split live prey from carrion.
+- **Sociality gene.** Loners hunt alone. Social hunters join a relative's chase and bite harder with packmates nearby. Social prey herd together and are harder to hurt in a crowd. New "Average sociality" chart; the inspector and species pages say whether a species lives alone, in a pack or in a herd.
+- **Weed beds** to hide in. Creatures in the weeds are invisible to hunters until they get very close, and fleeing creatures dive for cover. Weeds halve sunlight and slow swimming. New dish lets you choose none, some or lots.
+
 ## v2: Stronger parts (2026-10-26)
 
-`versions/v2.html` (also the current `index.html`)
+`versions/v2.html`
 
 - Every line has a thickness and every organ a size, both inherited and mutated. Bigger does its job harder and costs more upkeep and weight.
 - Thick green catches more sun, thick yellow swims faster, thick cyan sweeps up food from further away.

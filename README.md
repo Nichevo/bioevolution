@@ -45,6 +45,8 @@ Open `index.html` in any modern browser. There is no build step and nothing to i
 
 ## Rules
 
+- **Size is strength.** Each line has a thickness and each organ a size, inherited and mutated like everything else. Thicker and bigger work harder (more sun, faster swimming, harder bites, longer sight) but cost more upkeep and weigh more. A weapon much thicker than the armour it hits breaks through.
+
 - **Complexity costs.** Every part has upkeep, and upkeep grows faster than the part count, so a big complex body has to earn its keep. In return, complex creatures live longer and can do more.
 - **Food.** Food bits drift into the dish in clumps. Cyan segments gather them; any creature can swallow one with its nucleus for half value. Dead bodies stay as corpses that red-biters can scavenge, then rot into more food bits.
 - **Breeding.** Close relatives breed when they touch and are well fed, mixing both genomes. Very well fed creatures can also bud on their own.

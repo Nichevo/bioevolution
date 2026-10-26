@@ -313,7 +313,7 @@ select { font: inherit; color: var(--ink); background: var(--panel-solid); borde
 'use strict';
 
 // Which release this file is. versions/list.js lists every release, newest first.
-const APP_VERSION = 'v3';
+const APP_VERSION = 'v4';
 
 // ---------- constants ----------
 const TYPE = { GREEN: 0, RED: 1, BLUE: 2, YELLOW: 3, CYAN: 4, PURPLE: 5, WHITE: 6 };
@@ -558,6 +558,14 @@ class Creature {
 
   get radius() { return this.reach * this.scale; }
   get fullness() { return this.energy / (this.maxEnergy * this.scale); }
+  // 0 in the prime of life, up to 1 for a newborn or a creature near the end of its lifespan
+  get frailty() {
+    const young = this.scale < 1 ? (1 - this.scale) / 0.45 : 0;
+    const old = clamp((this.age / this.lifespan - 0.75) / 0.25, 0, 1);
+    return clamp(Math.max(young, old), 0, 1);
+  }
+  // how hard it can push when running for its life: tired, starving, very young or old creatures lag behind
+  get stamina() { return (0.35 + 0.65 * clamp(this.fullness / 0.5, 0, 1)) * (1 - 0.45 * this.frailty); }
 
   // Eyes let a creature pick a goal: run from danger, chase food or prey, or find a partner.
   think() {
@@ -594,16 +602,23 @@ class Creature {
         }
         // herd animals drift toward relatives
         if (social > 0.3 && d > 18) consider(dx, dy, 0.25 * social / d, false, 'herding');
+        // ...and bolt when a relative bolts, even before they see the danger themselves
+        if (social > 0.3 && o.mood === 'fleeing' && o.goal && !this.attack) consider(o.goal.dx, o.goal.dy, 0.12 * social / d, o.goal.flee, 'fleeing');
         continue;
       }
       const theirBite = o.attack * o.scale, myArmor = this.pow[TYPE.BLUE] * this.scale;
-      if (theirBite > 4 && myArmor < theirBite * 0.6) {
-        consider(dx, dy, 0.3 * theirBite / d, true, 'fleeing');
+      // herd animals are skittish: they move off from any hunter they can see that could hurt them
+      const skittish = social > 0.3 && theirBite > 2 && myArmor < theirBite;
+      if ((theirBite > 4 && myArmor < theirBite * 0.6) || skittish) {
+        consider(dx, dy, 0.3 * Math.max(theirBite, 4) * (1 + social) / d, true, 'fleeing');
       } else if (hunter) {
-        const myBite = this.attack * this.scale, theirArmor = o.pow[TYPE.BLUE] * o.scale;
+        // the young, the old and the starving are easy pickings: their armour counts for less and hunters single them out
+        const frail = o.frailty, weak = clamp(1 - o.fullness / 0.3, 0, 1);
+        const myBite = this.attack * this.scale, theirArmor = o.pow[TYPE.BLUE] * o.scale * (1 - 0.5 * frail);
         // poisonous prey is a last resort
-        // ...and a creature in the middle of a herd is hard to single out
-        if (theirArmor < myBite * pack) consider(dx, dy, (myBite * pack - theirArmor) / (d * 5) / (1 + o.pow[TYPE.PURPLE] / 8) / (1 + o.kinNear * (o.g.social ?? 0) * 0.6), false, 'hunting', o);
+        // ...and a creature in the middle of a herd is hard to single out (unless it's lagging behind)
+        const herd = 1 + o.kinNear * (o.g.social ?? 0) * 0.6 * (1 - 0.6 * Math.max(frail, weak));
+        if (theirArmor < myBite * pack) consider(dx, dy, (myBite * pack - theirArmor) * (1 + 4 * frail + weak) / (d * 5) / (1 + o.pow[TYPE.PURPLE] / 8) / herd, false, 'hunting', o);
       }
     }
     // threatened: dive for the nearest weed bed if there is one in reach
@@ -669,11 +684,13 @@ class Creature {
     } else {
       this.heading += gauss() * 1.6 * dt;
     }
-    const urgent = this.mood === 'fleeing' || this.mood === 'hunting';
+    const running = this.mood === 'fleeing' || (this.mood === 'hiding' && !this.hidden);
+    const urgent = running || this.mood === 'hunting';
     // predators lunge: red segments add thrust while chasing
     let thrust = (this.pow[TYPE.YELLOW] * 9 + 3 + (this.mood === 'hunting' ? this.pow[TYPE.RED] * 3 : 0)) / this.mass;
     if (urgent) { thrust *= 1.6; upkeep += this.pow[TYPE.YELLOW] * 0.03 * s; }
-    if (this.paralysed > 0 || this.mood === 'hiding') thrust = 0;
+    if (running) thrust *= this.stamina;
+    if (this.paralysed > 0 || (this.mood === 'hiding' && this.hidden)) thrust = 0;
     else if (this.hidden) thrust *= 0.6; // weeds are slow going
     this.energy -= upkeep * dt;
     if (this.energy > this.maxEnergy * s) this.energy = this.maxEnergy * s;
@@ -1222,8 +1239,9 @@ function fight(a, b, ox, oy, dt) {
 }
 
 // Attacks land harder with packmates nearby and softer on a creature surrounded by its herd.
+// The very young and very old are easier to hurt.
 function groupFactor(attacker, victim) {
-  return (1 + attacker.kinNear * (attacker.g.social ?? 0) * 0.3) / (1 + victim.kinNear * (victim.g.social ?? 0) * 0.25);
+  return (1 + attacker.kinNear * (attacker.g.social ?? 0) * 0.3) / (1 + victim.kinNear * (victim.g.social ?? 0) * 0.25) * (1 + victim.frailty);
 }
 
 function feed(eater, prey, bites, dt) {
@@ -1491,7 +1509,7 @@ function updatePanel() {
   const organs = c.organs.map((n, o) => o && n ? `<span style="color:${ORGAN_COLOR[o]}">${n} ${ORGAN_NAME[o]}${times(c.organPow[o] / n)}</span>` : '').filter(Boolean).join(' · ');
   inspectEl.innerHTML =
     `<div class="t"><span class="dot" style="background:hsl(${c.g.hue} 85% 60%)"></span>${c.species}</div>` +
-    `<div><span class="k">#${c.id} · gen</span> ${c.gen} · <span class="k">age</span> ${Math.floor(c.age)}/${Math.floor(c.lifespan)}s</div>` +
+    `<div><span class="k">#${c.id} · gen</span> ${c.gen} · <span class="k">age</span> ${Math.floor(c.age)}/${Math.floor(c.lifespan)}s${c.frailty > 0.3 ? (c.scale < 1 ? ' · young, easy prey' : ' · old, easy prey') : ''}</div>` +
     `<div><span class="k">energy</span> ${Math.round(c.energy)}/${Math.round(c.maxEnergy * c.scale)} · <span class="k">upkeep</span> ${(c.baseUpkeep * c.scale).toFixed(1)}/s</div>` +
     `<div><span class="k">complexity</span> ${c.parts} parts · <span class="k">now</span> ${c.mood}${c.hidden && c.mood !== 'hiding' ? ' · in cover' : ''}${c.poison > 0 ? ' · poisoned' : ''}${c.paralysed > 0 ? ' · stunned' : ''}</div>` +
     `<div><span class="k">diet</span> ${pct(c.ateSun)}% sun · ${pct(c.ateFood)}% bits · ${pct(c.ateMeat)}% meat · ${pct(c.ateCarrion)}% carrion</div>` +

@@ -2,9 +2,15 @@
 
 Every release stays playable. Pick one from the menu next to the title in the app, or open the file directly. The newest is always `index.html`.
 
+## v8.1: Gene pool graph fix (2026-10-27)
+
+`versions/v8.1.html` (also the current `index.html`)
+
+- Fix: the small gene pool graph in the left panel went blank if the panel was hidden when the window resized, or when the page opened on a phone. It now resizes itself whenever it draws.
+
 ## v8: A full food chain (2026-10-27)
 
-`versions/v8.html` (also the current `index.html`)
+`versions/v8.html`
 
 Plan and test targets: https://claude.ai/artifact/ECTPztJrHqG8URZLwiHn6H
 

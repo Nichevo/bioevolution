@@ -17,3 +17,4 @@ The owner wants to be able to go back to older versions. Each release has an id 
 - `const APP_VERSION` in `src/app.html` names the release being worked on.
 - When a release is done: add it to the top of `versions/list.js`, run `scripts/snapshot.sh <id>`, add a section to `CHANGELOG.md`, and commit. (Pushing git tags is blocked from Claude's cloud sessions, so the `versions/` folder is the record.)
 - Never edit an existing `versions/<id>.html` except to fix it being unplayable.
+- The owner may ask to prune versions that didn't add much: remove them from `versions/list.js`, delete the file, and note it in `CHANGELOG.md` (they stay in git history). Only prune when the owner asks.

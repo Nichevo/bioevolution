@@ -2,9 +2,24 @@
 
 Every release stays playable. Pick one from the menu next to the title in the app, or open the file directly. The newest is always `index.html`.
 
+## v9.1: Vents, heat & immunity (2026-10-27)
+
+`versions/v9.1.html` (also the current `index.html`). Replaces v9.
+
+Plan: https://claude.ai/artifact/Q7GeHv1HqjFe1zK7hFWERo
+
+- **Bigger vents.** Each vent's warm area now reaches up to 120px (66px in v9), and food bits appear anywhere in its inner half. Same output, spread wider.
+- **Grazers know where the vents are.** A grazer under half full with no food in sight heads for a vent; a clever one picks the vent with fewer hunters and more food.
+- **Summer heat.** Near a vent in summer, warm-blooded creatures pay up to 50% more upkeep; cold-blooded ones don't. Clever creatures move out to the cooler edge.
+- **Inherited immunity.** A creature that recovers from disease is immune for life. Its young are 75% resistant, halving each generation unless they come through it themselves.
+- **Happenings report** in the left panel: pick a season, event or disease outbreak to see its key facts (population before and after, deaths by cause, species hit hardest, and more).
+- **Faster.** Touching pairs are found with a grid instead of checking every creature against every other, and drawing is batched. Per creature, a sim step and a frame now cost about the same as in v8.1 (v9 was about twice as slow).
+- **Version menu pruned** to v1, v3, v5, v6, v8 and v9.1.
+- **Tested** over 8 dishes of 20 minutes: the full chain held in 7 of 8 (same as v9). Plants fell to a median of about 47% of creatures (v9: 62%) because grazers do better. With and without the vent instinct, grazers spent about half as much time drifting with nothing to eat (15% vs 29%). In random dishes grazer starvation fell from about 58% to 31% of grazer deaths; in three-type dishes it didn't improve.
+
 ## v9: Seasons, senses & instincts (2026-10-27)
 
-`versions/v9.html` (also the current `index.html`)
+Removed from the version menu in v9.1 (it didn't add much on its own); still in the git history.
 
 Brainstorm and plan: https://claude.ai/artifact/SBZeSz45zVdbwSyu6bkqKe
 
@@ -20,7 +35,7 @@ Brainstorm and plan: https://claude.ai/artifact/SBZeSz45zVdbwSyu6bkqKe
 
 ## v8.1: Gene pool graph fix (2026-10-27)
 
-`versions/v8.1.html`
+Removed from the version menu in v9.1 (it didn't add much on its own); still in the git history.
 
 - Fix: the small gene pool graph in the left panel went blank if the panel was hidden when the window resized, or when the page opened on a phone. It now resizes itself whenever it draws.
 
@@ -39,7 +54,7 @@ Plan and test targets: https://claude.ai/artifact/ECTPztJrHqG8URZLwiHn6H
 
 ## v7: Shared kills & picky eaters (2026-10-27)
 
-`versions/v7.html`
+Removed from the version menu in v9.1 (it didn't add much on its own); still in the git history.
 
 - **Packs share food.** A clever pack hunter (brain 0.5+) with food to spare takes some to a starving packmate. The old aren't fed. The graphs and species pages count food shared.
 - **Mixed diets cost.** Each way of feeding is digested worse the less of the body is built for it, and the main diet suffers a little too. A brain halves the waste, so omnivores do better with one. New Mixed diet cost slider in Balance; the inspector shows how well a mixed feeder digests each food.
@@ -77,7 +92,7 @@ Plan and test targets: https://claude.ai/artifact/ECTPztJrHqG8URZLwiHn6H
 
 ## v4: Easy prey & stampedes (2026-10-26)
 
-`versions/v4.html`
+Removed from the version menu in v9.1 (it didn't add much on its own); still in the git history.
 
 - **The young and old are easy prey.** Newborns and creatures near the end of their lifespan take more damage, their armour counts for less, and hunters go for them first. Starving creatures and stragglers at the edge of a herd are also singled out. The inspector marks a creature as "young, easy prey" or "old, easy prey".
 - **Herds flee.** Social creatures move away from any hunter they can see that could hurt them, and when one bolts its relatives bolt with it.
@@ -94,7 +109,7 @@ Plan and test targets: https://claude.ai/artifact/ECTPztJrHqG8URZLwiHn6H
 
 ## v2: Stronger parts (2026-10-26)
 
-`versions/v2.html`
+Removed from the version menu in v9.1 (it didn't add much on its own); still in the git history.
 
 - Every line has a thickness and every organ a size, both inherited and mutated. Bigger does its job harder and costs more upkeep and weight.
 - Thick green catches more sun, thick yellow swims faster, thick cyan sweeps up food from further away.

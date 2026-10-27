@@ -3344,18 +3344,26 @@ $('eventPick').onchange = e => { if (e.target.value) triggerEvent(e.target.value
 // ---------- save and load ----------
 // A saved dish is a JSON file: the world, the settings and every creature's genes and state. Species histories start afresh.
 const r1 = v => Math.round(v * 10) / 10;
-$('bSave').onclick = () => {
+$('bSave').onclick = async () => {
   const data = {
     kind: 'bioevolution-dish', app: APP_VERSION, W, H, simTime: r1(simTime), seasonMode, dayNight, eventsMode, bal: { ...bal }, light, foodRate, mutRate,
     rockLevel, walled, coverLevel, rocks: rocks.map(c => [r1(c.x), r1(c.y), r1(c.r)]), cover: cover.map(c => [r1(c.x), r1(c.y), r1(c.r)]), vents: vents.map(v => [r1(v.x), r1(v.y)]),
     creatures: creatures.map(c => ({ g: { ...c.g, absorbed: c.g.absorbed }, x: r1(c.x), y: r1(c.y), e: r1(c.energy), fat: r1(c.fat), age: r1(c.age), life: r1(c.lifespan), s: Math.round(c.scale * 100) / 100, gen: c.gen, caste: c.caste, id: c.id })),
   };
+  const filename = `bioevolution-dish-${Math.floor(simTime / 60)}m.json`, json = JSON.stringify(data);
+  // inside claude.ai the viewer is asked to confirm the save; opened as a plain file, the browser downloads it
+  const dl = window.claude && window.claude.use ? await window.claude.use('downloads') : null;
+  if (dl) {
+    try { await dl.save({ filename, data: json }); toast(`Saved ${data.creatures.length} creatures`); }
+    catch (err) { if (err && err.code !== 'declined') toast('Saving is not available here'); }
+    return;
+  }
   const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([JSON.stringify(data)], { type: 'application/json' }));
-  a.download = `bioevolution-dish-${Math.floor(simTime / 60)}m.json`;
+  a.href = URL.createObjectURL(new Blob([json], { type: 'application/json' }));
+  a.download = filename;
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-  toast(`Saved ${creatures.length} creatures`);
+  toast(`Saved ${data.creatures.length} creatures`);
 };
 $('bLoad').onclick = () => $('fLoad').click();
 $('fLoad').onchange = async e => {

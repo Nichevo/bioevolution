@@ -1,6 +1,7 @@
 // Every release of the simulation, newest first. The newest is index.html; older ones are versions/<id>.html.
 // Add an entry here (and run scripts/snapshot.sh <id>) whenever a new version is released.
 window.BIO_VERSIONS = [
+  { id: 'v8.1', date: '2026-10-27', title: 'Gene pool graph fix' },
   { id: 'v8', date: '2026-10-27', title: 'A full food chain' },
   { id: 'v7', date: '2026-10-27', title: 'Shared kills & picky eaters' },
   { id: 'v6', date: '2026-10-26', title: 'Food cycle & family trees' },

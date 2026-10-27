@@ -2,9 +2,25 @@
 
 Every release stays playable. Pick one from the menu next to the title in the app, or open the file directly. The newest is always `index.html`.
 
+## v9: Seasons, senses & instincts (2026-10-27)
+
+`versions/v9.html` (also the current `index.html`)
+
+Brainstorm and plan: https://claude.ai/artifact/SBZeSz45zVdbwSyu6bkqKe
+
+- **Seasons and day/night.** A year is four minutes and a day a minute and a half. Mild seasons are on by default (harsh or off in New dish). Nights are dark and a bit cold; eyes see less in the dark. Winters are shaded on the graphs.
+- **Warm vents.** Vents are three times bigger, keep the cold off nearby, puff more in winter, and each has a weed bed beside it. 50% more weed overall.
+- **Ten inherited instincts:** hibernation, warm or cold blood, day or night activity, poison mimicry (fools brainless hunters), lures, camouflage, poison tolerance, eggs that wait for spring, tough plants (shrubs) and caring for young.
+- **Nose organ.** Smells in the dark and in the weeds, but only roughly where.
+- **Behaviour.** Bite size (hunters skip much bigger prey), clever hunters stash kills, loner hunters keep their own patch, and disease spreads in crowds (Disease slider).
+- **Tactics ladder.** Aim ahead at brain 0.5, ambush 0.75, flank 1, drive 1.25, mob 1.5. Ambush suits slow or camouflaged hunters. Tactic kills bite 30% harder; middling brains cost less.
+- **Rebalance.** Grazers breed, grow and herd better. Pure meat-eaters get 20% more from meat and mixed diets cost more again. Armour covers the whole body (up to half off), hurts biters and is cheaper but heavier. New hives start with a stocked nest, four quick workers and a protected first minute.
+- **Screens.** Season and light in the panel, instincts in the inspector, age pyramid split into grass, shrubs and each animal tier, events (buttons or now and then), balance presets, and save/load a dish as a file.
+- **Tested** over 8 dishes of 20 minutes: the full food chain held in 7 of 8 (v8: 3 to 5), with plants at a median 62% of creatures (v8: about 80%), grazers 32% and predators 9%. Hunting tactics other than aiming ahead now show up (flanking, driving, ambush, mobbing), though instinct still makes most kills.
+
 ## v8.1: Gene pool graph fix (2026-10-27)
 
-`versions/v8.1.html` (also the current `index.html`)
+`versions/v8.1.html`
 
 - Fix: the small gene pool graph in the left panel went blank if the panel was hidden when the window resized, or when the page opened on a phone. It now resizes itself whenever it draws.
 

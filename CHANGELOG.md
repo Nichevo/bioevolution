@@ -2,9 +2,22 @@
 
 Every release stays playable. Pick one from the menu next to the title in the app, or open the file directly. The newest is always `index.html`.
 
+## v8: A full food chain (2026-10-27)
+
+`versions/v8.html` (also the current `index.html`)
+
+Plan and test targets: https://claude.ai/artifact/ECTPztJrHqG8URZLwiHn6H
+
+- **Food flows again.** Food bits used to pile up against rocks (83% of them after 10 minutes), which also shut the vents off. Now they slow down, slide along rock and rot away after about a minute.
+- **Grazing is a real living.** Cyan nibbles living plants without killing them, costs less upkeep, gets more from food bits, and can smell food close by without eyes. Mixed diets cost half as much as in v7.
+- **Steadier predators.** Plant tissue is poor meat and weapon-heavy prey is rich. Hunters rest after a kill, prefer common prey, breed half as often and hold territories.
+- **Longer lives:** 50% longer by default, with a Lifespan slider.
+- **Migrants** (New dish option, off by default): a few simple grazers or hunters arrive if that tier has been gone for two minutes.
+- **New graphs:** food pyramid (by number or energy) and how it changed over time, an age pyramid, and average age and age at death.
+
 ## v7: Shared kills & picky eaters (2026-10-27)
 
-`versions/v7.html` (also the current `index.html`)
+`versions/v7.html`
 
 - **Packs share food.** A clever pack hunter (brain 0.5+) with food to spare takes some to a starving packmate. The old aren't fed. The graphs and species pages count food shared.
 - **Mixed diets cost.** Each way of feeding is digested worse the less of the body is built for it, and the main diet suffers a little too. A brain halves the waste, so omnivores do better with one. New Mixed diet cost slider in Balance; the inspector shows how well a mixed feeder digests each food.

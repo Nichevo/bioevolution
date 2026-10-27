@@ -254,6 +254,7 @@ select { font: inherit; color: var(--ink); background: var(--panel-solid); borde
     <label class="slider">Crowding <input type="range" data-bal="crowd" min="0" max="2" step="0.05" value="1"><output>1.00</output></label>
     <label class="slider">Brain cost <input type="range" data-bal="brainCost" min="0" max="2" step="0.05" value="1"><output>1.00</output></label>
     <label class="slider">Hive tendency <input type="range" data-bal="hive" min="0" max="2" step="0.05" value="1"><output>1.00</output></label>
+    <label class="slider">Mixed diet cost <input type="range" data-bal="mix" min="0" max="1.5" step="0.05" value="1"><output>1.00</output></label>
     <button class="ctl" id="balReset">Reset balance</button>
   </details>
 
@@ -342,7 +343,7 @@ select { font: inherit; color: var(--ink); background: var(--panel-solid); borde
 'use strict';
 
 // Which release this file is. versions/list.js lists every release, newest first.
-const APP_VERSION = 'v6';
+const APP_VERSION = 'v7';
 
 // ---------- constants ----------
 const TYPE = { GREEN: 0, RED: 1, BLUE: 2, YELLOW: 3, CYAN: 4, PURPLE: 5, WHITE: 6 };
@@ -390,7 +391,7 @@ let simTime = 0;
 let paused = false, speed = 1, trails = true;
 let light = 1, foodRate = 1, mutRate = 1;
 // Balance sliders (all 1 = the standard dish). foodRate is the vents' output.
-const BAL_DEFAULTS = { shed: 1, bits: 1, meat: 1, fat: 1, crowd: 1, brainCost: 1, hive: 1 };
+const BAL_DEFAULTS = { shed: 1, bits: 1, meat: 1, fat: 1, crowd: 1, brainCost: 1, hive: 1, mix: 1 };
 const bal = { ...BAL_DEFAULTS };
 let vents = [], ventLevel = 2;
 let tool = 'kill';
@@ -406,7 +407,7 @@ let reseedTimer = 0;
 let grid = null, gcols = 0, grows = 0;
 let walled = false;
 
-function newStats() { return { births: 0, eaten: 0, starved: 0, poison: 0, old: 0, smited: 0, delivered: 0, tactics: Object.fromEntries(TACTICS.map(t => [t.key, 0])) }; }
+function newStats() { return { births: 0, eaten: 0, starved: 0, poison: 0, old: 0, smited: 0, delivered: 0, shared: 0, tactics: Object.fromEntries(TACTICS.map(t => [t.key, 0])) }; }
 
 // ---------- helpers ----------
 const rand = (a = 1, b) => b === undefined ? Math.random() * a : a + Math.random() * (b - a);
@@ -618,6 +619,14 @@ class Creature {
     this.mass = this.totalPow + 10 + this.organPow[ORGAN.FAT] * 10 + this.organPow[ORGAN.BRAIN] * 3 * bal.brainCost;
     // intelligence: 0 is pure instinct, 3 is the most a brain can do
     this.brain = Math.min(3, this.organPow[ORGAN.BRAIN] * 0.5);
+    // A body built for one diet digests it fully. Each extra way of feeding is digested worse the less of the body
+    // is built for it, and the main diet suffers a little too. A brain halves the waste: a clever omnivore makes the most of everything.
+    const feeders = this.pow[TYPE.GREEN] + this.pow[TYPE.CYAN] + this.attack;
+    const digest = v => {
+      const raw = feeders ? 0.35 + 0.65 * v / feeders : 1;
+      return 1 - (1 - raw) * bal.mix * (1 - 0.5 * Math.min(1, this.brain));
+    };
+    this.digSun = digest(this.pow[TYPE.GREEN]); this.digBits = digest(this.pow[TYPE.CYAN]); this.digMeat = digest(this.attack);
     // a brain makes more of what the eyes see: it spots things further off
     this.sight *= 1 + this.brain * 0.12;
     // Upkeep grows faster than the part count, so complexity has to pay for itself.
@@ -631,6 +640,8 @@ class Creature {
   // queens grow big, workers stay small
   get maxScale() { return this.caste === 'queen' ? 1.35 : this.caste === 'worker' ? 0.85 : 1; }
   get fullness() { return this.energy / (this.maxEnergy * this.scale); }
+  // energy it can give away and still be well fed, counting its fat
+  get spare() { return this.energy + this.fat - this.maxEnergy * this.scale * 0.6; }
   // how much meat it can bank above its normal maximum; fat stores make room for more
   get fatCap() { return this.maxEnergy * this.scale * (0.5 + this.organPow[ORGAN.FAT] * 0.25) * bal.fat; }
   // 0 in the prime of life, up to 1 for a newborn or a creature near the end of its lifespan
@@ -692,6 +703,10 @@ class Creature {
         if (canBreed(this) && canBreed(o)) consider(dx, dy, 1.2 / d, false, 'courting');
         // only close family hunt or herd together; more distant relatives are just left alone
         if (!isFamily(this, o)) continue;
+        // a clever pack hunter with food to spare takes some to a starving packmate, so the pack stays together.
+        // The old are left to fend for themselves: they won't be around long anyway.
+        if (B >= 0.5 && this.attack > 0 && social > 0.4 && !this.caste && this.spare > 0 && o.fullness < 0.25 && o.age < o.lifespan * 0.75 && !o.caste)
+          consider(dx, dy, 1.5 * social / d, false, 'sharing', o);
         // pack hunters join a relative's chase
         const t = o.goal && o.goal.target;
         if (hunter && social > 0.4 && HUNT_MOODS.has(o.mood) && t && !t.dead && !(t.hidden && d > 25)) {
@@ -914,7 +929,7 @@ class Creature {
     this.hidden = inCover(this.x, this.y);
     // weed beds shade out half the sun
     // close green neighbours shade each other, so a dense clump gets less sun each
-    let sun = this.pow[TYPE.GREEN] * this.scale * 0.15 * light * sunShare * dt * (this.hidden ? 0.5 : 1) / (1 + this.shadeN * 0.1 * bal.crowd);
+    let sun = this.digSun * this.pow[TYPE.GREEN] * this.scale * 0.15 * light * sunShare * dt * (this.hidden ? 0.5 : 1) / (1 + this.shadeN * 0.1 * bal.crowd);
     // plants shed part of what they gather as food bits, which drift off for the grazers
     if (sun > 0 && bal.shed > 0) {
       const shed = sun * Math.min(0.6, 0.15 * bal.shed);
@@ -1003,6 +1018,24 @@ class Creature {
           this.energy -= give; q.energy += give * 0.8; stats.delivered += give * 0.8;
           const sp = speciesDB.get(q.species);
           if (sp) sp.delivered = (sp.delivered || 0) + give * 0.8;
+        }
+        this.goal = null; this.mood = 'drifting';
+      }
+    }
+
+    // a pack hunter hands food to the starving packmate it came to feed
+    if (m === 'sharing' && this.goal && this.goal.target) {
+      const o = this.goal.target, dx = wrapD(o.x - this.x, W), dy = wrapD(o.y - this.y, H), r = this.radius + o.radius + 8;
+      if (o.dead || o.fullness > 0.5) { this.goal = null; this.mood = 'drifting'; }
+      else if (dx * dx + dy * dy < r * r) {
+        const give = Math.min(this.spare, o.maxEnergy * o.scale * 0.4 - o.energy);
+        if (give > 0) {
+          const fromFat = Math.min(this.fat, give);
+          this.fat -= fromFat; this.energy -= give - fromFat;
+          o.energy += give * 0.9; o.flash = 0.5;
+          stats.shared += give * 0.9;
+          const sp = speciesDB.get(this.species);
+          if (sp) sp.shared = (sp.shared || 0) + give * 0.9;
         }
         this.goal = null; this.mood = 'drifting';
       }
@@ -1153,7 +1186,7 @@ function graze(c) {
         }
         if (got) {
           f.eaten = true;
-          const gain = f.e * bal.bits * (hasCyan ? 1 : 0.5);
+          const gain = f.e * bal.bits * (hasCyan ? 1 : 0.5) * c.digBits;
           c.energy += gain; c.ateFood += gain;
           if (c.brain >= 1) c.lastFood = { x: f.x, y: f.y };
         }
@@ -1696,7 +1729,7 @@ function step(dt) {
       const dmg = Math.min(c.energy + 0.01, b.power / (1 + c.pow[TYPE.BLUE] / 25) * groupFactor(b.owner, c));
       c.energy -= dmg; c.flash = 1;
       c.remember(b.owner.species, 'danger');
-      if (!b.owner.dead) { gainMeat(b.owner, dmg * 0.9 * bal.meat); b.owner.ateMeat += dmg * 0.9 * bal.meat; }
+      if (!b.owner.dead) b.owner.ateMeat += gainMeat(b.owner, dmg * 0.9 * bal.meat);
       if (c.energy <= 0) killedBy(b.owner, c);
       b.life = 0;
       break;
@@ -1728,7 +1761,7 @@ function scavenge(a, dt) {
     }
     if (bites) {
       const amount = Math.min(k.energy, bites * 30 * a.scale * dt);
-      k.energy -= amount; gainMeat(a, amount * 0.85 * bal.meat); a.ateCarrion += amount * 0.85 * bal.meat;
+      k.energy -= amount; a.ateCarrion += gainMeat(a, amount * 0.85 * bal.meat);
     }
   }
 }
@@ -1804,15 +1837,16 @@ function groupFactor(attacker, victim) {
 
 // Meat is the richest food, and what doesn't fit is banked as fat.
 function gainMeat(c, x) {
+  x *= c.digMeat;
   const cap = c.maxEnergy * c.scale, room = cap - c.energy;
   if (x <= room) c.energy += x;
   else { c.energy = Math.max(c.energy, cap); c.fat = Math.min(c.fatCap, c.fat + x - Math.max(0, room)); }
+  return x;
 }
 function feed(eater, prey, bites, dt) {
   const amount = Math.min(prey.energy + 0.01, bites * 45 * eater.scale * dt * groupFactor(eater, prey));
   prey.energy -= amount;
-  gainMeat(eater, amount * 1.25 * bal.meat);
-  eater.ateMeat += amount * 1.25 * bal.meat;
+  eater.ateMeat += gainMeat(eater, amount * 1.25 * bal.meat);
   prey.flash = 1;
   if (prey.energy <= 0) killedBy(eater, prey);
 }
@@ -1821,8 +1855,7 @@ function sting(stinger, victim, n, dt) {
   victim.paralysed = Math.max(victim.paralysed, 1.5);
   const amount = Math.min(victim.energy + 0.01, n * 15 * stinger.scale * dt * groupFactor(stinger, victim));
   victim.energy -= amount;
-  gainMeat(stinger, amount * 0.75 * bal.meat);
-  stinger.ateMeat += amount * 0.75 * bal.meat;
+  stinger.ateMeat += gainMeat(stinger, amount * 0.75 * bal.meat);
   victim.flash = 1;
   if (victim.energy <= 0) killedBy(stinger, victim);
 }
@@ -2045,7 +2078,7 @@ function drawPortrait(cv, c) {
 function lifestyle(social, hunter, hive = false) {
   return hive ? 'in a hive' : social < 0.3 ? 'alone' : hunter ? (social > 0.4 ? 'in a pack' : 'loosely in groups') : 'in a herd';
 }
-const MOOD_TEXT = { laying: 'laying eggs in the nest', nesting: 'looking for a nest', returning: 'bringing food home', defending: 'guarding the queen', lurking: 'heading for cover to lie in wait', ambushing: 'lying in wait', clumping: 'bunching up with the herd', guarding: 'shielding the herd with poison', mobbing: 'mobbing a hunter', flanking: 'flanking', driving: 'driving prey into a trap', foraging: 'going back to where it found food' };
+const MOOD_TEXT = { laying: 'laying eggs in the nest', nesting: 'looking for a nest', returning: 'bringing food home', defending: 'guarding the queen', lurking: 'heading for cover to lie in wait', ambushing: 'lying in wait', clumping: 'bunching up with the herd', guarding: 'shielding the herd with poison', mobbing: 'mobbing a hunter', sharing: 'taking food to a starving packmate', flanking: 'flanking', driving: 'driving prey into a trap', foraging: 'going back to where it found food' };
 function casteText(c) {
   if (c.caste === 'queen') { let n = 0; for (const o of creatures) if (o.queen === c && !o.dead) n++; return `queen of a hive · ${n} worker${n === 1 ? '' : 's'}`; }
   if (c.caste === 'worker') return c.queen && !c.queen.dead ? (c.attack > 0 ? 'soldier in a hive' : 'worker in a hive') : 'worker whose queen died';
@@ -2090,6 +2123,7 @@ function updatePanel() {
     `<div><span class="k">brain</span> ${brainLevel(c.brain)}${c.brain ? ` (${c.brain.toFixed(1)})` : ''}${c.memory && c.memory.size ? ` · <span class="k">avoids</span> ${[...c.memory.keys()].join(', ')}` : ''}</div>` +
     `<div><span class="k">complexity</span> ${c.parts} parts · <span class="k">now</span> ${MOOD_TEXT[c.mood] || c.mood}${c.hidden && c.mood !== 'hiding' ? ' · in cover' : ''}${c.poison > 0 ? ' · poisoned' : ''}${c.paralysed > 0 ? ' · stunned' : ''}</div>` +
     `<div><span class="k">diet</span> ${pct(c.ateSun)}% sun · ${pct(c.ateFood)}% bits · ${pct(c.ateMeat)}% meat · ${pct(c.ateCarrion)}% carrion</div>` +
+    ([c.digSun, c.digBits, c.digMeat].some(v => v < 0.99) ? `<div><span class="k">mixed diet, digests</span> ${[['sun', c.digSun, c.pow[TYPE.GREEN]], ['bits', c.digBits, c.pow[TYPE.CYAN]], ['meat', c.digMeat, c.attack]].filter(d => d[2] > 0).map(([n, v]) => `${n} ${Math.round(v * 100)}%`).join(' · ')}</div>` : '') +
     `<div><span class="k">lives</span> ${casteText(c) || lifestyle(c.g.social ?? 0, c.attack > 0)}${c.kinNear ? ` · ${c.kinNear} relative${c.kinNear > 1 ? 's' : ''} close` : ''}</div>` +
     `<div><span class="k">kills</span> ${c.kills} · <span class="k">children</span> ${c.kids}</div>` +
     `<div>${parts}</div>` +
@@ -2294,6 +2328,7 @@ function renderGraphs(full) {
     tile('Births', stats.births) + tile('Deaths', stats.eaten + stats.starved + stats.poison + stats.old + stats.smited) +
     tile('Smartest alive', (() => { let b = null; for (const c of creatures) if (!b || c.brain > b.brain) b = c; return b && b.brain ? `${spLink(b.species)} <small>${brainLevel(b.brain)}</small>` : '—'; })()) +
     tile('Hives', (() => { let q = 0; for (const c of creatures) if (c.caste === 'queen') q++; return q ? `${q} <small>${Math.round(stats.delivered)} food brought home</small>` : '—'; })()) +
+    tile('Food shared in packs', stats.shared ? Math.round(stats.shared) : '—') +
     tile('Top hunter', topKiller && topKiller.kills ? `${spLink(topKiller.name)} <small>${topKiller.kills} kills</small>` : '—') +
     tile('Longest running', longest ? `${spLink(longest.name)} <small>${fmtTime(lifeOf(longest))}</small>` : '—');
 
@@ -2487,7 +2522,7 @@ function renderDetail(full) {
     (() => {
       let q = 0, w = 0;
       for (const c of creatures) if (c.species === s.name) { if (c.caste === 'queen') q++; else if (c.caste === 'worker') w++; }
-      return q || w || s.delivered ? tile('Hive', `${q} queen${q === 1 ? '' : 's'} <small>${w} workers</small>`) + tile('Food brought home', Math.round(s.delivered || 0)) : '';
+      return (s.shared ? tile('Food shared with the pack', Math.round(s.shared)) : '') + (q || w || s.delivered ? tile('Hive', `${q} queen${q === 1 ? '' : 's'} <small>${w} workers</small>`) + tile('Food brought home', Math.round(s.delivered || 0)) : '');
     })();
   lineChart($('dChart'), s.hist.map(h => h[0]), [{ label: 'alive', color: `hsl(${s.hue} 70% 62%)`, values: s.hist.map(h => h[1]) }]);
   $('dDiet').innerHTML = stackBar([
@@ -2784,7 +2819,7 @@ function rebuildAll() { for (const c of creatures) c.build(); }
 for (const el of balInputs) el.oninput = () => {
   bal[el.dataset.bal] = +el.value;
   el.nextElementSibling.textContent = (+el.value).toFixed(2);
-  if (el.dataset.bal === 'brainCost') rebuildAll();
+  if (el.dataset.bal === 'brainCost' || el.dataset.bal === 'mix') rebuildAll();
   saveBal();
 };
 $('balReset').onclick = () => { Object.assign(bal, BAL_DEFAULTS); showBal(); rebuildAll(); saveBal(); toast('Balance reset'); };

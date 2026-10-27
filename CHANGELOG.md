@@ -2,9 +2,16 @@
 
 Every release stays playable. Pick one from the menu next to the title in the app, or open the file directly. The newest is always `index.html`.
 
+## v7: Shared kills & picky eaters (2026-10-27)
+
+`versions/v7.html` (also the current `index.html`)
+
+- **Packs share food.** A clever pack hunter (brain 0.5+) with food to spare takes some to a starving packmate. The old aren't fed. The graphs and species pages count food shared.
+- **Mixed diets cost.** Each way of feeding is digested worse the less of the body is built for it, and the main diet suffers a little too. A brain halves the waste, so omnivores do better with one. New Mixed diet cost slider in Balance; the inspector shows how well a mixed feeder digests each food.
+
 ## v6: Food cycle & family trees (2026-10-26)
 
-`versions/v6.html` (also the current `index.html`)
+`versions/v6.html`
 
 - **Food has a source.** Food bits no longer appear from nowhere. Plants shed them from their arm tips, glowing vents puff them out (New dish: none, 2 or 4 vents), and corpses rot into them. Seedlings land further from their parent.
 - **Food values:** sunlight gives about 25% less, food bits are worth 10, meat 1.25× and carrion 85%. Meat and carrion can overfill a creature into a **fat reserve** (up to half its normal energy, more with fat stores) that pays upkeep first.

@@ -94,6 +94,33 @@ details.balance .ctl { margin-top: 8px; justify-self: start; }
 .gbrow { display: grid; grid-template-columns: 82px minmax(0, 1fr); gap: 8px; align-items: center; }
 .gbrow .bar { height: 8px; }
 .gbline small { display: block; }
+.genelg { gap: 4px; }
+.lgb { font: inherit; color: inherit; background: none; border: 1px solid var(--panel-line); border-radius: 6px; padding: 1px 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; }
+.lgb i { width: 8px; height: 8px; border-radius: 2px; display: inline-block; }
+.lgb[aria-pressed="false"] { opacity: 0.35; }
+.gtable { overflow-x: auto; }
+.gtable table { width: 100%; border-collapse: collapse; font-size: 11px; }
+.gtable th, .gtable td { text-align: left; padding: 3px 4px; border-bottom: 1px solid var(--panel-line); white-space: nowrap; }
+.gtable th .link { font-size: 11px; }
+.gtable td i { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 4px; }
+.gtable small { color: var(--ink-dim); }
+.gtable small.up { color: var(--green); } .gtable small.down { color: var(--red); }
+.gspark { width: 40px; height: 12px; vertical-align: middle; margin-right: 4px; }
+.lgrid { display: grid; gap: 2px; margin-top: 10px; font-size: 10px; align-items: center; }
+.lgrid .gc { aspect-ratio: 1; border-radius: 2px; background: rgba(255, 255, 255, 0.03); }
+.lgrid .gc.self { background: none; }
+.lgrid .gh { text-align: center; }
+.lgrid .gl { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--ink-dim); }
+.lgrid i { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 3px; }
+.inh { display: grid; gap: 8px; }
+.inhrow { display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 8px; align-items: start; }
+.inhrow canvas { width: 34px; height: 34px; border-radius: 6px; background: rgba(255, 255, 255, 0.03); }
+.inhrow .chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 3px; align-items: center; }
+.gchip { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; padding: 1px 6px; border-radius: 6px; border: 1px solid var(--panel-line); }
+.gchip i { width: 7px; height: 7px; border-radius: 2px; display: inline-block; }
+.gchip.gain { border-color: rgba(74, 222, 128, 0.6); color: #bbf7d0; }
+.gchip.lose { border-color: rgba(248, 113, 113, 0.6); color: #fecaca; }
+.gchip.change { border-color: rgba(251, 191, 36, 0.6); color: #fde68a; }
 .gbline i { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 3px; vertical-align: baseline; }
 .crown { color: #c084fc; }
 .pill.warn { color: #fbbf24; border-color: rgba(251, 191, 36, 0.45); }
@@ -117,7 +144,6 @@ input[type=range] { width: 100%; accent-color: var(--accent); }
 .legend span { color: var(--ink-dim); }
 .legend .label { grid-column: 1 / -1; display: block; }
 .label { text-transform: uppercase; letter-spacing: 0.1em; font-size: 10px; color: var(--ink-dim); }
-#graph { width: 100%; height: 70px; display: block; border-radius: 6px; background: rgba(255,255,255,0.02); }
 .hint { color: var(--ink-dim); line-height: 1.5; margin: 0; }
 .hint b { color: var(--ink); font-weight: 600; }
 #speciesList { display: grid; gap: 4px; }
@@ -172,7 +198,8 @@ button.ctl.danger.armed { background: rgba(248, 113, 113, 0.2); border-color: #f
 /* graphs & species drawer */
 #drawer { right: max(16px, env(safe-area-inset-right, 0px)); width: min(480px, calc(100vw - 32px)); bottom: calc(12px + env(safe-area-inset-bottom, 0px)); background: var(--panel-solid); z-index: 4; gap: 14px; }
 #drawer > header { position: sticky; top: -12px; margin-top: -12px; padding-top: 12px; padding-bottom: 6px; background: var(--panel-solid); z-index: 1; }
-.tabs { display: flex; gap: 6px; }
+.tabs { display: flex; gap: 6px; flex-wrap: wrap; min-width: 0; }
+@media (max-width: 480px) { .tabs .ctl { padding-left: 7px; padding-right: 7px; } }
 #drawerBody { display: grid; gap: 20px; min-width: 0; }
 #drawerBody h3 { margin: 0; font-family: var(--font-display); font-weight: 800; font-size: 14px; color: var(--ink); text-wrap: balance; }
 .note { margin: 0; color: var(--ink-dim); line-height: 1.5; }
@@ -205,6 +232,9 @@ select { font: inherit; color: var(--ink); background: var(--panel-solid); borde
 .sprow .cnt.dead { color: var(--ink-dim); }
 .dhead { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 14px; align-items: center; }
 .dhead canvas { width: 120px; height: 120px; border-radius: 10px; background: rgba(255, 255, 255, 0.03); }
+.dpics { display: flex; flex-direction: column; gap: 4px; }
+.dpics small { color: var(--ink-dim); font-size: 10px; line-height: 1.3; }
+.dhead canvas#dFirst { width: 36px; height: 36px; border-radius: 6px; }
 .dmeta { display: grid; gap: 6px; justify-items: start; min-width: 0; }
 #drawerBody .dname { font-size: 20px; letter-spacing: -0.01em; }
 .pill { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; border: 1px solid var(--panel-line); }
@@ -268,6 +298,7 @@ select { font: inherit; color: var(--ink); background: var(--panel-solid); borde
     <button class="ctl" id="bGraphs">Graphs &amp; stats</button>
     <button class="ctl" id="bSpeciesAll">All species</button>
     <button class="ctl" id="bHappen">Happenings</button>
+    <button class="ctl" id="bGenes">Genes</button>
   </div>
 
   <div class="row">
@@ -296,12 +327,6 @@ select { font: inherit; color: var(--ink); background: var(--panel-solid); borde
     <label class="slider">Lifespan <input type="range" data-bal="life" min="0.5" max="2" step="0.05" value="1"><output>1.00</output></label>
     <label class="slider">Disease <input type="range" data-bal="disease" min="0" max="2" step="0.05" value="1"><output>1.00</output></label>
     <button class="ctl" id="balReset">Reset balance</button>
-  </details>
-
-  <details class="fold" id="fGenes" open>
-    <summary>Gene pool</summary>
-    <canvas id="graph" aria-label="Gene pool over time"></canvas>
-    <div id="geneBreak" class="gb"></div>
   </details>
 
   <details class="fold" id="fKey">
@@ -366,12 +391,13 @@ select { font: inherit; color: var(--ink); background: var(--panel-solid); borde
   <button class="ctl" id="zIn" aria-label="Zoom in">+</button>
 </div>
 
-<aside id="drawer" class="card" hidden aria-label="Graphs, species and happenings">
+<aside id="drawer" class="card" hidden aria-label="Graphs, species, happenings and genes">
   <header>
     <div class="tabs">
       <button class="ctl" data-tab="graphs" aria-pressed="true">Graphs</button>
       <button class="ctl" data-tab="species" aria-pressed="false">Species</button>
       <button class="ctl" data-tab="happen" aria-pressed="false">Happenings</button>
+      <button class="ctl" data-tab="genes" aria-pressed="false">Genes</button>
     </div>
     <button class="toggle" data-act="close">close</button>
   </header>
@@ -407,7 +433,7 @@ select { font: inherit; color: var(--ink); background: var(--panel-solid); borde
 'use strict';
 
 // Which release this file is. versions/list.js lists every release, newest first.
-const APP_VERSION = 'v10';
+const APP_VERSION = 'v11';
 
 // ---------- constants ----------
 const TYPE = { GREEN: 0, RED: 1, BLUE: 2, YELLOW: 3, CYAN: 4, PURPLE: 5, WHITE: 6 };
@@ -423,7 +449,7 @@ const ORGAN_UPKEEP = [0, 0.14, 0.05, 0.1, 0.15, 0.12, 0.08]; // energy per secon
 // warm: warm-blooded (0.5 is in between); night: 0 active by day, 1 by night, 0.5 either
 // thorns: a plant's thorns hurt grazers that nibble it; mouth: a grazer's tough mouth that thorns can't hurt
 const TRAIT_DEFAULTS = { torpor: 0, warm: 0.5, night: 0.5, mimic: 0, lure: 0, camo: 0, tol: 0, eggs: 0, tough: 0, care: 0, thorns: 0, mouth: 0 };
-const TRAIT_COST = { torpor: 0.05, warm: 0, night: 0, mimic: 0.15, lure: 0.1, camo: 0.12, tol: 0.1, eggs: 0.03, tough: 0, care: 0.05, thorns: 0.08, mouth: 0.04 };
+const TRAIT_COST = { torpor: 0.05, warm: 0, night: 0, mimic: 0.15, lure: 0.1, camo: 0.12, tol: 0.1, eggs: 0.03, tough: 0, care: 0.05, thorns: 0.08, mouth: 0.02 };
 // seasons and the day: a year is four minutes, a day a minute and a half
 const YEAR = 240, DAY = 90;
 // moods where a creature is going in for the kill
@@ -450,8 +476,6 @@ const CELL = 40;
 // ---------- state ----------
 const canvas = document.getElementById('world');
 const ctx = canvas.getContext('2d');
-const graph = document.getElementById('graph');
-const gctx = graph.getContext('2d');
 let W = 0, H = 0, dpr = 1;
 let creatures = [];
 let corpses = [];
@@ -481,6 +505,8 @@ const env = { sun: 1, cold: 0, heat: 0, night: 0, season: 'spring', snap: 0, blo
 let events = [], hazards = [], eggs = [], nextEventT = 0;
 let happenings = [], hapId = 0; // seasons, events, outbreaks, arms races, migrations and bounce-backs, for the Happenings tab
 let rebound = { until: 0, start: -999 }; // after a die-off the survivors mutate faster for a while
+let grazerShare = 0.3; // grazers as a share of all creatures; when it runs low their young come cheaper
+let alarms = []; // warnings clever grazers have called out in the last couple of seconds
 let areas = []; // the dish split into a 4 by 3 grid, with what's in each part, for animals deciding where to migrate
 let migrants = false, migrantT = { grazer: 0, pred: 0 }; // optional safety net: newcomers drift in when a whole tier is gone
 let meanSpAlive = 10; // creatures per living species, for "hunt what's common"
@@ -795,10 +821,11 @@ class Creature {
     // A body built for one diet digests it fully. Each extra way of feeding is digested worse the less of the body
     // is built for it, and the main diet suffers a little too. A brain halves the waste: a clever omnivore makes the most of everything.
     const feeders = this.pow[TYPE.GREEN] + this.pow[TYPE.CYAN] + this.attack;
-    // A hunter that eats only meat (90% of its feeding body) gets a fifth more out of it.
+    // A hunter that eats only meat (90% of its feeding body) gets a fifth more out of it; a grazer that only grazes, a tenth more.
     const digest = v => {
       const raw = feeders ? 0.35 + 0.65 * v / feeders : 1;
-      return (1 - (1 - raw) * 0.75 * bal.mix * (1 - 0.5 * Math.min(1, this.brain))) * (v && v >= feeders * 0.9 && v === this.attack ? 1.2 : 1);
+      return (1 - (1 - raw) * 0.75 * bal.mix * (1 - 0.5 * Math.min(1, this.brain))) * (v && v >= feeders * 0.9 && v === this.attack ? 1.2 : 1)
+        * (v && v >= feeders * 0.9 && v === this.pow[TYPE.CYAN] ? 1.1 : 1);
     };
     this.digSun = digest(this.pow[TYPE.GREEN]); this.digBits = digest(this.pow[TYPE.CYAN]); this.digMeat = digest(this.attack);
     // as food for a meat-eater: plant tissue is poor, and a body full of weapons is rich
@@ -884,7 +911,8 @@ class Creature {
     let best = null, bestScore = 0, mood = 'drifting';
     const hungry = this.fullness < 0.75;
     // predators are almost always on the prowl, except while they digest a fresh kill
-    const hunter = this.attack > 0 && this.fullness < 0.95 && !(this.digesting > 0 && this.fullness > 0.4);
+    // a dim one stops once it's 60% full; a clever one keeps hunting to build up a surplus
+    const hunter = this.attack > 0 && this.fullness < (B >= 1 ? 0.95 : 0.6) && !(this.digesting > 0 && this.fullness > 0.4);
     let plant = null; // the leafiest plant in sight, for a grazer to nibble
     let predNear = 0;
     const consider = (dx, dy, score, flee, m, target = null) => { if (score > bestScore) { bestScore = score; best = { dx, dy, flee, target }; mood = m; } };
@@ -951,6 +979,7 @@ class Creature {
       } else if (hunter && (mem !== 'poison' || this.tr.tol > 0.7) && mem !== 'spiky' && !(this.shyT > 0 && this.shy === o.species)) {
         // bite size: a hunter only goes for prey up to a bit bigger than itself (a pack can take bigger)
         if (o.radius > this.radius * 1.3 * pack) continue;
+        if (this.lostId === o.id && simTime < this.lostT) continue; // lost in the herd for now
         // without a brain, a hunter that has been poisoned shies away from anything with the poison look, mimics included
         const looksPoison = o.pow[TYPE.PURPLE] > 0 || o.tr.mimic > 0.5;
         if (looksPoison && this.wary > 0 && B < 1) continue;
@@ -967,6 +996,28 @@ class Creature {
         const jx = smelt ? gauss() * d * 0.3 : 0, jy = smelt ? gauss() * d * 0.3 : 0;
         if (theirArmor < myBite * pack) { consider(dx + jx, dy + jy, (myBite * pack - theirArmor) * (1 + 4 * frail + weak) * o.meatQ * common / (d * 5) / (1 + o.pow[TYPE.PURPLE] / 8 * (1 - this.tr.tol)) / herd / fake, false, 'hunting', o); if (best && best.target === o) best.smell = smelt; }
       }
+    }
+    // a clever grazer that sees a hunter calls out, and its herd runs even if they can't see it themselves
+    if (!this.attack && social > 0.3) {
+      if (threats.length && B >= 0.5 && roleOf(this) === 1 && simTime - (this.alarmT ?? -9) > 1) {
+        this.alarmT = simTime;
+        alarms.push({ x: this.x, y: this.y, o: threats.reduce((a, b) => b.d < a.d ? b : a).o, sp: this.species, t: simTime });
+      }
+      for (const al of alarms) {
+        if (al.sp !== this.species || al.o.dead || threats.some(t => t.o === al.o)) continue;
+        if (Math.hypot(wrapD(al.x - this.x, W), wrapD(al.y - this.y, H)) > 150) continue;
+        const dx = wrapD(al.o.x - this.x, W), dy = wrapD(al.o.y - this.y, H), d = Math.hypot(dx, dy) + 1;
+        if (d > 250) continue;
+        threats.push({ o: al.o, dx, dy, d, bite: 4 });
+        consider(dx, dy, 0.3 * 4 * (1 + social) * 0.7 / d, true, 'fleeing');
+      }
+    }
+    // a hunter chasing one of a herd of five or more can lose track of it in the crowd
+    const ct = best && best.target;
+    if (ct && mood === 'hunting' && roleOf(ct) === 1 && ct.kinNear >= 4 && (ct.g.social ?? 0) > 0.3 && ct.frailty < 0.3 && ct.fullness > 0.3
+      && Math.random() < 0.12 * (1 - 0.25 * Math.min(2, B))) {
+      this.lostId = ct.id; this.lostT = simTime + 2;
+      best = null; bestScore = 0; mood = 'drifting';
     }
     this.predNear = predNear;
     if (mood === 'fleeing' && threats.length) [best, mood] = this.escape(best, threats, range, social, hx, hy, hn);
@@ -1057,7 +1108,8 @@ class Creature {
     this.migT = simTime + 15;
     const role = roleOf(this);
     if (role !== 1) return; // hunters chasing prey across the dish wiped out grazers in tests, so only grazers move
-    const B = this.brain, here = areaOf(this.x, this.y), q = role === 1 ? 'qG' : 'qP', cur = areas[here][q];
+    const B = this.brain, here = areaOf(this.x, this.y), q = role === 1 ? 'qG' : 'qP', h = areas[here];
+    const cur = h[q] * (role === 1 && B >= 1.5 ? (1 + 0.5 * h.preds) / (1 + h.preds) : 1);
     const hc = here % AREA_C, hr = (here / AREA_C) | 0;
     const steps = k => {
       const dc = Math.abs(k % AREA_C - hc), dr = Math.abs(((k / AREA_C) | 0) - hr);
@@ -1067,7 +1119,9 @@ class Creature {
     for (let k = 0; k < areas.length; k++) {
       const n = steps(k);
       if (k === here || (B < 2.5 && n > 1)) continue;
-      const score = areas[k][q] / (1 + 0.25 * (n - 1)); // a long trip costs energy
+      // a cunning grazer steers well clear of parts with hunters in them
+      const a = areas[k], safe = role === 1 && B >= 1.5 ? (1 + 0.5 * a.preds) / (1 + a.preds) : 1;
+      const score = a[q] * safe / (1 + 0.25 * (n - 1)); // a long trip costs energy
       if (score > cur * 1.6 + 0.2) options.push({ k, score });
     }
     if (!options.length) return;
@@ -1172,7 +1226,7 @@ class Creature {
 
   // ---------- hives ----------
   canFoundHive() {
-    if ((this.g.hive ?? 0) <= 0.5 || this.brain < 0.5 || this.age < MATURE_AGE || this.scale < 1 || this.fullness < 0.75 || Math.random() > 0.1 * bal.hive) return false;
+    if ((this.g.hive ?? 0) <= 0.5 || this.brain < (roleOf(this) === 0 ? 1 : 0.5) || this.age < MATURE_AGE || this.scale < 1 || this.fullness < 0.75 || Math.random() > 0.1 * bal.hive) return false;
     for (const o of creatures) {
       if (o.caste !== 'queen' || o.dead || o.species !== this.species) continue;
       const dx = wrapD(o.x - this.x, W), dy = wrapD(o.y - this.y, H);
@@ -1280,7 +1334,9 @@ class Creature {
       * (1 - 0.3 * this.toughF) * (this.torpid ? 0.4 : 1);
     // plants shed part of what they gather as food bits, which drift off for the grazers
     if (sun > 0 && bal.shed > 0) {
-      const shed = sun * Math.min(0.6, 0.15 * bal.shed);
+      // old plants drop more: past a third of their life they shed up to twice as much as leaf litter
+      const old = roleOf(this) === 0 ? clamp((this.age / this.lifespan - 0.33) / 0.67, 0, 1) : 0;
+      const shed = sun * Math.min(0.6, 0.15 * bal.shed * (1 + old));
       sun -= shed;
       this.shedAcc += shed;
       if (this.shedAcc >= FOOD_ENERGY) {
@@ -1296,7 +1352,7 @@ class Creature {
     this.ateSun += sun;
 
     const s = this.scale, off = this.offHours;
-    let upkeep = this.baseUpkeep * s * (this.caste === 'worker' ? 0.8 : 1) * this.warmCost * (1 + 0.4 * w * cold) * (1 - 0.5 * this.toughF * cold)
+    let upkeep = this.baseUpkeep * s * (this.caste === 'worker' ? (roleOf(this) === 0 ? 1 : 0.9) : 1) * this.warmCost * (1 + 0.4 * w * cold) * (1 - 0.5 * this.toughF * cold)
       * (this.sick > 0 ? 1.4 : 1) * (this.torpid ? 0.2 : 1) * (1 - 0.3 * off) * (1 + 0.5 * this.overheat);
 
     // a hunter keeps tracking its chosen prey between looks
@@ -1368,9 +1424,11 @@ class Creature {
           const take = Math.min(-give + this.maxEnergy * s * 0.2, q.energy - q.maxEnergy * q.scale * 0.35);
           if (take > 0) { q.energy -= take; this.energy += take * 0.9; }
         } else if (give > 0) {
-          this.energy -= give; q.energy += give * 0.8; stats.delivered += give * 0.8;
+          // sunlight doesn't carry well: a producer hive's workers lose more than half of it on the way home
+          const kept = give * (roleOf(this) === 0 ? 0.45 : 0.8);
+          this.energy -= give; q.energy += kept; stats.delivered += kept;
           const sp = speciesDB.get(q.species);
-          if (sp) sp.delivered = (sp.delivered || 0) + give * 0.8;
+          if (sp) sp.delivered = (sp.delivered || 0) + kept;
         }
         this.goal = null; this.mood = 'drifting';
       }
@@ -1642,7 +1700,7 @@ function foodCap() { return Math.round(W * H / 2400 * Math.max(0.3, foodRate)); 
 const defaultCount = () => Math.round(clamp(W * H / 14000, 30, 110));
 function reset(n = defaultCount()) {
   creatures = []; corpses = []; food = []; particles = []; samples = [];
-  events = []; hazards = []; eggs = []; nextEventT = 0; env.snap = env.bloom = 0; happenings = []; rebound = { until: 0, start: -999 }; areas = [];
+  events = []; hazards = []; eggs = []; nextEventT = 0; env.snap = env.bloom = 0; happenings = []; rebound = { until: 0, start: -999 }; areas = []; alarms = []; grazerShare = 0.3; sweepT = {};
   speciesDB = new Map(); openSpecies = null;
   stats = newStats();
   globs = [];
@@ -1978,19 +2036,20 @@ function hapTick() {
 // Both make the young of that species mutate more, and ease off as soon as things calm down.
 function pressureTick() {
   const mem = new Map();
+  // its own kind nibbling or eating it isn't an arms race, so that doesn't count
   for (const c of creatures) {
     let m = mem.get(c.species);
     if (!m) mem.set(c.species, m = { n: 0, nib: 0, by: {}, roles: [0, 0, 0, 0] });
     m.n++; m.roles[roleOf(c)]++;
-    if (simTime - (c.nibT ?? -99) < 60) { m.nib++; m.by[c.nibBy] = (m.by[c.nibBy] || 0) + 1; }
+    if (simTime - (c.nibT ?? -99) < 60 && c.nibBy !== c.species) { m.nib++; m.by[c.nibBy] = (m.by[c.nibBy] || 0) + 1; }
   }
   for (const sp of speciesDB.values()) {
     if (sp.hits) sp.hits = sp.hits.filter(h => simTime - h.t < 60);
     if (sp.starves) sp.starves = sp.starves.filter(t => simTime - t < 60);
     const m = mem.get(sp.name);
     if (!m) { sp.pressure = 0; sp.hunger = 0; continue; }
-    const eaten = sp.hits ? sp.hits.length : 0, by = m.by;
-    for (const h of sp.hits || []) by[h.by] = (by[h.by] || 0) + 1;
+    const hits = (sp.hits || []).filter(h => h.by !== sp.name), eaten = hits.length, by = m.by;
+    for (const h of hits) by[h.by] = (by[h.by] || 0) + 1;
     let top = null, topN = 0, all = 0;
     for (const k in by) { all += by[k]; if (by[k] > topN) { topN = by[k]; top = k; } }
     const n = m.n + eaten, dom = all >= 3 ? topN / all : 0;
@@ -2051,6 +2110,10 @@ function areaTick() {
   areas = Array.from({ length: AREA_C * AREA_R }, () => ({ food: 0, plants: 0, grazers: 0, preds: 0 }));
   for (const f of food) areas[areaOf(f.x, f.y)].food++;
   for (const c of creatures) { const a = areas[areaOf(c.x, c.y)], r = roleOf(c); if (r === 0) a.plants++; else if (r === 1) a.grazers++; else if (r === 2) a.preds++; }
+  let all = 0, gz = 0;
+  for (const a of areas) { all += a.plants + a.grazers + a.preds; gz += a.grazers; }
+  grazerShare = all ? gz / all : 0.3;
+  alarms = alarms.filter(a => simTime - a.t < 2 && !a.o.dead);
   for (const a of areas) { a.qG = (a.food + 2 * a.plants) / (a.grazers + 2) / (1 + 0.5 * a.preds); a.qP = (a.grazers + 0.3 * a.plants) / (a.preds + 1); }
 }
 // how many hunters and food bits are around each vent, for grazers choosing where to go
@@ -2151,8 +2214,6 @@ function resize() {
   ctx.fillStyle = '#04070c'; ctx.fillRect(0, 0, W, H);
   if (cam.z === 1) { cam.x = W / 2; cam.y = H / 2; }
   clampCam();
-  const r = graph.getBoundingClientRect();
-  graph.width = Math.max(1, r.width * dpr); graph.height = Math.max(1, r.height * dpr);
   for (const c of creatures) { c.x = c.x % W; c.y = c.y % H; }
   for (const f of food) { f.x = f.x % W; f.y = f.y % H; }
   if (rockGrid) buildRocks();
@@ -2289,6 +2350,9 @@ function takeSample() {
   const ages = Object.fromEntries(AGES.map(a => [a.key, Object.fromEntries(AGE_KINDS.map(k => [k.key, 0]))]));
   const agesT = Object.fromEntries(AGES_T.map(a => [a.key, Object.fromEntries(AGE_KINDS.map(k => [k.key, 0]))]));
   const arms = { plant: 0, graze: 0, hunt: 0 }, armsN = [0, 0, 0];
+  const genesBy = { prod: new Array(NT + NO - 1).fill(0), graze: new Array(NT + NO - 1).fill(0), pred: new Array(NT + NO - 1).fill(0) };
+  const brainLv = [0, 0, 0, 0], inst = Object.fromEntries(INSTINCTS.map(t => [t.key, 0]));
+  let armsSum = 0, lenSum = 0, thickSum = 0;
   let ageSum = 0;
   for (const c of creatures) {
     const tr = tierOf(c);
@@ -2303,6 +2367,11 @@ function takeSample() {
     life[lifeKey(c)]++;
     for (let t = 0; t < NT; t++) genes[t] += c.pow[t];
     for (let o = 1; o < NO; o++) genes[NT + o - 1] += c.organPow[o] * 12; // an organ counts like ~12px of line
+    const gb = genesBy[tr === 'top' || tr === 'scav' ? 'pred' : tr];
+    if (gb) { const v = geneVec(c); for (let i = 0; i < v.length; i++) gb[i] += v[i]; }
+    brainLv[c.brain >= 2.5 ? 3 : c.brain >= 1.5 ? 2 : c.brain >= 0.5 ? 1 : 0]++;
+    for (const t of INSTINCTS) if (t.live(c)) inst[t.key]++;
+    armsSum += c.g.arms; lenSum += c.total; thickSum += c.thick;
   }
   let alive = 0;
   for (const sp of speciesDB.values()) {
@@ -2317,9 +2386,11 @@ function takeSample() {
     t: simTime, pop: creatures.length, roles, genes, parts: creatures.length ? parts / creatures.length : 0, social: creatures.length ? social / creatures.length : 0,
     brain: creatures.length ? brain / creatures.length : 0, brainMax, traits, life, tactics: { ...stats.tactics },
     species: alive, food: food.length, corpses: corpses.length, deaths: { ...stats },
-    tiers, tierEnergy, ages, agesT, cold: env.cold, arms: armsScores(arms, armsN), age: creatures.length ? ageSum / creatures.length : 0, deathAge: stats.deathAge, deathN: stats.deathN,
+    tiers, tierEnergy, ages, agesT, cold: env.cold, genesBy, brainLv, inst,
+    body: { arms: creatures.length ? armsSum / creatures.length : 0, len: creatures.length ? lenSum / creatures.length : 0, thick: creatures.length ? thickSum / creatures.length : 0 }, arms: armsScores(arms, armsN), age: creatures.length ? ageSum / creatures.length : 0, deathAge: stats.deathAge, deathN: stats.deathN,
   });
   if (samples.length > 600) samples = decimate(samples);
+  checkSweeps();
 }
 
 function birth(child, parents) {
@@ -2532,8 +2603,10 @@ function breed(a, b) {
   // grazers often have twins
   const twins = Math.random() < (a.organPow[ORGAN.BROOD] + b.organPow[ORGAN.BROOD]) * 0.15 + (roleOf(a) === 1 && roleOf(b) === 1 ? 0.2 : 0) ? 2 : 1;
   const e = (a.energy * 0.3 + b.energy * 0.3) / twins;
-  a.energy *= 0.7; b.energy *= 0.7;
-  a.cooldown = BREED_COOLDOWN * litterGap(a); b.cooldown = BREED_COOLDOWN * litterGap(b);
+  // when grazers are scarce there is room for them: their young cost the parents less and come sooner
+  const niche = roleOf(a) === 1 && roleOf(b) === 1 ? clamp((0.2 - grazerShare) / 0.1, 0, 1) : 0;
+  a.energy *= 0.7 + 0.15 * niche; b.energy *= 0.7 + 0.15 * niche;
+  a.cooldown = BREED_COOLDOWN * litterGap(a) * (1 - 0.4 * niche); b.cooldown = BREED_COOLDOWN * litterGap(b) * (1 - 0.4 * niche);
   for (let i = 0; i < twins; i++) {
     const g = mutate(crossover(a.g, b.g), Math.random() < 0.5 ? a.g.absorbed : b.g.absorbed, pushFor(a));
     const child = new Creature(g, (a.x + rand(-5, 5) + W) % W, (a.y + rand(-5, 5) + H) % H, e, Math.max(a.gen, b.gen) + 1);
@@ -2645,7 +2718,7 @@ function nibble(grazer, plant, n, dt) {
   plant.energy -= amount;
   plant.nibT = simTime; plant.nibBy = grazer.species;
   const gain = amount * 1.5 * bal.bits * grazer.digBits;
-  grazer.energy = Math.min(grazer.maxEnergy * grazer.scale, grazer.energy + gain) - amount * 1.8 * prick;
+  grazer.energy = Math.min(grazer.maxEnergy * grazer.scale, grazer.energy + gain) - amount * 0.9 * prick;
   grazer.ateFood += gain;
   if (prick > 0.3) { grazer.flash = Math.max(grazer.flash, 0.4); grazer.remember(plant.species, 'spiky'); }
 }
@@ -2811,69 +2884,134 @@ function draw() {
 }
 
 const GRAPH_COLORS = [...TYPE_COLOR, ...ORGAN_COLOR.slice(1)];
-function drawGraph() {
-  // the panel may have been hidden when the window last resized, so size the canvas to how it shows now
-  const r = graph.getBoundingClientRect();
-  if (!r.width) return;
-  const cw = Math.round(r.width * dpr), ch = Math.round(r.height * dpr);
-  if (graph.width !== cw || graph.height !== ch) { graph.width = cw; graph.height = ch; }
-  const w = graph.width, h = graph.height;
-  gctx.clearRect(0, 0, w, h);
-  if (samples.length < 2) return;
-  let max = 1;
-  for (const s of samples) for (const v of s.genes) max = Math.max(max, v);
-  gctx.lineWidth = 1.5 * dpr;
-  for (let t = 0; t < GRAPH_COLORS.length; t++) {
-    gctx.strokeStyle = GRAPH_COLORS[t];
-    gctx.setLineDash(t >= NT ? [3 * dpr, 3 * dpr] : []);
-    gctx.beginPath();
-    samples.forEach((s, i) => {
-      const x = (i / (samples.length - 1)) * w;
-      const y = h - (s.genes[t] / max) * (h - 4 * dpr) - 2 * dpr;
-      i ? gctx.lineTo(x, y) : gctx.moveTo(x, y);
-    });
-    gctx.stroke();
+// ---------- what a species inherited ----------
+// Each species is remembered by its first member. Comparing those down a line of descent shows which genes were
+// passed on unchanged and which were new mutations at each split.
+let inhView = 'line';
+// a body's genes: each line colour (how much), each organ (how many, brains included), arms, instincts and way of life
+function genesOfBody(b) {
+  const out = new Map(), g = b.genome || b.g || {}, arms = g.arms || b.arms || 1, tr = traitsOf(g);
+  const len = new Array(NT).fill(0), org = new Array(NO).fill(0);
+  for (const l of b.local) { len[l.type] += Math.hypot(l.x2 - l.x1, l.y2 - l.y1); org[l.organ]++; }
+  out.set('arms', { label: 'arms', v: arms, color: '#cbd5e1', count: true });
+  for (let t = 0; t < NT; t++) if (len[t] > 0) out.set('t' + t, { label: TYPE_NAME[t], v: Math.round(len[t]), unit: 'px', color: TYPE_COLOR[t] });
+  for (let o = 1; o < NO; o++) if (org[o] > 0) out.set('o' + o, { label: GENE_LABELS[NT + o - 1], v: org[o], color: ORGAN_COLOR[o], count: true });
+  for (const t of INSTINCTS) if (tr[t.key] > 0.5) out.set('i' + t.key, { label: t.label, color: t.color });
+  if ((g.social ?? 0) > 0.3) out.set('social', { label: 'herd or pack', color: '#fda4af' });
+  if ((g.hive ?? 0) > 0.5) out.set('hive', { label: 'hive', color: '#f472b6' });
+  return out;
+}
+// what changed from one body to the next
+function geneDiff(a, b) {
+  const gained = [], lost = [], changed = [];
+  let kept = 0;
+  for (const [k, x] of b) {
+    const y = a.get(k);
+    if (!y) { gained.push(x); continue; }
+    if (x.v === undefined || (x.count ? x.v === y.v : Math.abs(x.v - y.v) < Math.max(4, y.v * 0.25))) { kept++; continue; }
+    changed.push({ ...x, text: x.count ? `${y.v} → ${x.v} ${x.label}` : `${x.v > y.v ? 'more' : 'less'} ${x.label} (${y.v} → ${x.v}px)` });
   }
-  gctx.setLineDash([]);
+  for (const [k, y] of a) if (!b.has(k)) lost.push(y);
+  return { gained, lost, changed, kept };
+}
+const chip = (x, kind) => `<span class="gchip ${kind}"><i style="background:${x.color}"></i>${kind === 'gain' ? '+' : kind === 'lose' ? '−' : kind === 'change' ? '↕' : ''} ${x.text || x.label}</span>`;
+const diffChips = d => [...d.gained.map(x => chip(x, 'gain')), ...d.lost.map(x => chip(x, 'lose')), ...d.changed.map(x => chip(x, 'change'))].join('') +
+  (d.kept ? `<span class="k">${d.kept} kept</span>` : '') || '<span class="k">no change in its genes</span>';
+function renderInherit(s, chain) {
+  $('dInhCtl').innerHTML = [['line', 'Line to here'], ['kids', 'Its offspring']].map(([k, l]) =>
+    `<button class="ctl" data-inh="${k}" aria-pressed="${inhView === k}">${l}</button>`).join('');
+  const el = $('dInherit'), pics = [];
+  const row = (sp, label, body) => { pics.push(sp); return `<div class="inhrow"><canvas width="56" height="56"></canvas><div><div>${label}</div><div class="chips">${body}</div></div></div>`; };
+  let html = '';
+  if (inhView === 'line') {
+    const line = [...chain, s.name].map(n => speciesDB.get(n)).filter(Boolean);
+    const sets = line.map(x => genesOfBody(x.specimen));
+    // where each of this species' genes first turned up along the line
+    const mine = sets[sets.length - 1], from = new Map();
+    for (const k of mine.keys()) {
+      let i = sets.length - 1;
+      while (i > 0 && sets[i - 1].has(k)) i--;
+      from.set(k, i);
+    }
+    const fromFounder = [...from.values()].filter(i => i === 0).length, newer = [...from].filter(([, i]) => i > 0);
+    html += `<p class="note">Of its ${mine.size} genes, ${fromFounder} came down from ${line.length > 1 ? `the founder, ${spLink(line[0].name)}` : 'the first of its kind'}` +
+      (newer.length ? `, and ${newer.length} ${newer.length === 1 ? 'was a new mutation' : 'were new mutations'} along the way: ${newer.map(([k, i]) => `${mine.get(k).label} <small>(${spLink(line[i].name)}, gen ${line[i].firstGen})</small>`).join(', ')}.` : '.') + '</p>';
+    html += row(line[0].specimen, `<b>${line.length > 1 ? spLink(line[0].name) : line[0].name}</b> <small>founder · gen ${line[0].firstGen}</small>`, [...sets[0].values()].map(x => chip({ ...x, text: x.v !== undefined ? `${x.v}${x.unit || ''} ${x.label}` : x.label }, '')).join(''));
+    for (let i = 1; i < line.length; i++)
+      html += row(line[i].specimen, `<b>${i === line.length - 1 ? line[i].name : spLink(line[i].name)}</b> <small>split off at gen ${line[i].firstGen}</small>`, diffChips(geneDiff(sets[i - 1], sets[i])));
+    // a living species keeps changing after it is named
+    const tm = s.alive ? typicalMembers().get(s.name) : null;
+    if (tm) {
+      const d = geneDiff(mine, genesOfBody(portraitOf(tm)));
+      if (d.gained.length || d.lost.length || d.changed.length) html += row(portraitOf(tm), `<b>Typical member now</b> <small>since it was named</small>`, diffChips(d));
+    }
+  } else {
+    const mine = genesOfBody(s.specimen), kids = s.children.map(n => speciesDB.get(n)).filter(Boolean);
+    html += kids.length ? `<p class="note">What each species that split off from ${s.name} gained, lost or changed. That change is what made it a new species.</p>` +
+      kids.map(k => row(k.specimen, `<b>${spLink(k.name)}</b> <small>gen ${k.firstGen}${k.alive ? ` · ${k.alive} alive` : ' · extinct'}</small>`, diffChips(geneDiff(mine, genesOfBody(k.specimen))))).join('')
+      : '<p class="note">No species has split off from this one yet.</p>';
+  }
+  el.innerHTML = html;
+  el.querySelectorAll('canvas').forEach((cv, i) => pics[i] && drawPortrait(cv, pics[i]));
 }
 
-// ---------- gene breakdown ----------
-// Under the gene pool graph: which colours and organs each type carries, which go together in one body more (or less)
-// often than chance, and which are rising or falling.
+// ---------- the Genes tab ----------
+// The gene pool over time, a table of every gene, instincts, brains, which genes go together, and body plans.
 const GENE_LABELS = [...TYPE_NAME, 'eyes', 'fat', 'brood', 'spitters', 'brains', 'noses'];
-let geneT = 0;
+// inherited instincts, for the graph of how common each one is
+const INSTINCTS = [
+  { key: 'torpor', label: 'hibernates', color: '#bfdbfe' }, { key: 'warm', label: 'warm-blooded', color: '#fb923c' }, { key: 'night', label: 'out at night', color: '#818cf8' },
+  { key: 'mimic', label: 'mimics poison', color: '#c4b5fd' }, { key: 'lure', label: 'lure', color: '#fde68a' }, { key: 'camo', label: 'camouflaged', color: '#94a3b8' },
+  { key: 'tol', label: 'poison tolerant', color: '#a78bfa' }, { key: 'eggs', label: 'eggs for spring', color: '#f9a8d4' }, { key: 'tough', label: 'tough (shrub)', color: '#a16207' },
+  { key: 'care', label: 'cares for young', color: '#fda4af' }, { key: 'thorns', label: 'thorny', color: '#d9f99d' }, { key: 'mouth', label: 'tough mouth', color: '#22d3ee' },
+].map(t => ({ ...t, live: c => c.tr[t.key] > 0.5 }));
+const BRAIN_LV = [['instinct', '#64748b'], ['clever', '#fde68a'], ['cunning', '#fb923c'], ['brilliant', '#f472b6']];
 function geneVec(c) { const v = c.pow.slice(); for (let o = 1; o < NO; o++) v.push(c.organPow[o] * 12); return v; }
-function renderGeneBreak() {
-  const el = $('geneBreak'), N = creatures.length;
-  if (!N) { el.innerHTML = ''; return; }
-  const G = GRAPH_COLORS.length, kinds = [['prod', 'plants'], ['graze', 'grazers'], ['pred', 'predators'], ['scav', 'scavengers']];
+let geneView = 'all', geneSort = 'share';
+const geneHidden = new Set();
+const geneShare = g => { const t = g.reduce((a, b) => a + b, 0) || 1; return g.map(x => x / t); };
+const genesOf = (s, view) => view === 'all' ? s.genes : s.genesBy ? s.genesBy[view] : s.genes;
+
+// A gene sweep: a gene that goes from rare (under 5% of the pool) to common (over 25%) within two minutes.
+let sweepT = {};
+function checkSweeps() {
+  const now = samples[samples.length - 1], then = samples.find(x => x.t >= simTime - 120);
+  if (!now || !then || now === then || simTime < 120) return;
+  const a = geneShare(then.genes), b = geneShare(now.genes);
+  for (let i = 0; i < b.length; i++) {
+    if (!(a[i] < 0.05 && b[i] > 0.25) || simTime - (sweepT[i] ?? -999) < 300) continue;
+    sweepT[i] = simTime;
+    const by = new Map();
+    for (const c of creatures) { const v = geneVec(c)[i]; if (v > 0) by.set(c.species, (by.get(c.species) || 0) + v); }
+    const carriers = [...by].sort((x, y) => y[1] - x[1]).slice(0, 3).map(x => x[0]);
+    const also = happenings.filter(h => h.kind !== 'sweep' && h.kind !== 'season' && (h.t1 === null || h.t1 > simTime - 120)).map(h => h.label);
+    const h = hapOpen('sweep', `Gene sweep: ${GENE_LABELS[i]} ${Math.round(a[i] * 100)}% → ${Math.round(b[i] * 100)}%`, { gene: i, from: a[i], to: b[i], carriers, also });
+    h.t0 = then.t; hapClose(h);
+  }
+}
+
+// everything the tab shows about the living, worked out in one pass
+function geneStats() {
+  const N = creatures.length, G = GRAPH_COLORS.length, kinds = [['prod', 'plants'], ['graze', 'grazers'], ['pred', 'predators'], ['scav', 'scavengers']];
   const sums = Object.fromEntries(kinds.map(([k]) => [k, { n: 0, v: new Array(G).fill(0) }]));
-  const has = new Array(G).fill(0), both = Array.from({ length: G }, () => new Array(G).fill(0)), carriers = Array.from({ length: G }, () => Array.from({ length: G }, () => null));
-  const vecs = [];
+  const has = new Array(G).fill(0), both = Array.from({ length: G }, () => new Array(G).fill(0));
+  const spBy = Array.from({ length: G }, () => new Map()), vecs = [];
   for (const c of creatures) {
     const v = geneVec(c), t = tierOf(c), k = t === 'top' ? 'pred' : t;
     if (k && sums[k]) { sums[k].n++; for (let i = 0; i < G; i++) sums[k].v[i] += v[i]; }
     const on = [];
-    for (let i = 0; i < G; i++) if (v[i] > 0) { on.push(i); has[i]++; }
+    for (let i = 0; i < G; i++) if (v[i] > 0) { on.push(i); has[i]++; spBy[i].set(c.species, (spBy[i].get(c.species) || 0) + v[i]); }
     for (let a = 0; a < on.length; a++) for (let b = a + 1; b < on.length; b++) both[on[a]][on[b]]++;
     vecs.push([c, on]);
   }
-  const sw = i => `<i style="background:${GRAPH_COLORS[i]}"></i>`;
-  let out = '<div class="label">By type</div>' + kinds.filter(([k]) => sums[k].n).map(([k, l]) => {
-    const v = sums[k].v, tot = v.reduce((a, b) => a + b, 0) || 1, top2 = v.map((x, i) => [x, i]).sort((a, b) => b[0] - a[0]).slice(0, 2).filter(x => x[0] > 0);
-    return `<div class="gbrow"><span>${l} <small>${sums[k].n}</small></span><span><span class="bar">${v.map((x, i) => x > 0 ? `<i style="flex:${x};background:${GRAPH_COLORS[i]}" title="${GENE_LABELS[i]} ${Math.round(x / tot * 100)}%"></i>` : '').join('')}</span>` +
-      `<small>mostly ${top2.map(([, i]) => GENE_LABELS[i]).join(' and ')}</small></span></div>`;
-  }).join('');
   // lift: how much more often two genes share a body than if they were spread at random
-  const pairs = [];
+  const lift = Array.from({ length: G }, () => new Array(G).fill(null)), pairs = [];
   for (let a = 0; a < G; a++) for (let b = a + 1; b < G; b++) {
     if (has[a] < 5 || has[b] < 5) continue;
-    const expect = has[a] * has[b] / N, lift = both[a][b] / expect;
-    pairs.push({ a, b, lift, n: both[a][b], expect });
+    const expect = has[a] * has[b] / N, l = both[a][b] / expect;
+    lift[a][b] = lift[b][a] = { l, sure: Math.min(1, Math.max(expect, both[a][b]) / 8) }; // few carriers: a faint colour
+    pairs.push({ a, b, lift: l, n: both[a][b], expect });
   }
-  const together = pairs.filter(p => p.n >= Math.max(5, N * 0.03) && p.lift >= 1.3).sort((x, y) => y.lift - x.lift).slice(0, 3);
-  const apart = pairs.filter(p => p.expect >= 5 && p.lift < 0.5).sort((x, y) => x.lift - y.lift).slice(0, 3);
-  // which species carries a pair the most
   const mostIn = p => {
     const by = new Map();
     for (const [c, on] of vecs) if (on.includes(p.a) && on.includes(p.b)) by.set(c.species, (by.get(c.species) || 0) + 1);
@@ -2881,24 +3019,97 @@ function renderGeneBreak() {
     for (const [k, n] of by) if (n > bn) { bn = n; best = k; }
     return best;
   };
-  out += '<div class="label">Often together</div>' + (together.length ? together.map(p => { const sp = mostIn(p);
-    return `<div class="gbline">${sw(p.a)}${GENE_LABELS[p.a]} + ${sw(p.b)}${GENE_LABELS[p.b]} <b>${p.lift.toFixed(1)}×</b> <span class="k">chance</span>` +
-      `<small>${p.n} carry both${sp ? `, most in <button class="link" data-sp="${sp}">${sp}</button>` : ''}</small></div>`; }).join('') : '<div class="k">No strong pairings yet.</div>');
-  out += '<div class="label">Rarely together</div>' + (apart.length ? apart.map(p =>
-    `<div class="gbline">${sw(p.a)}${GENE_LABELS[p.a]} + ${sw(p.b)}${GENE_LABELS[p.b]} <b>${p.lift.toFixed(1)}×</b> <span class="k">chance</span>` +
-    `<small>${p.n} carry both, ${Math.round(p.expect)} if they were spread at random</small></div>`).join('') : '<div class="k">Nothing clearly kept apart yet.</div>');
-  // rising and falling: share of the whole gene pool now against two minutes ago
-  const now = samples[samples.length - 1], then = samples.find(s => s.t >= simTime - 120);
-  if (now && then && now !== then) {
-    const share = s => { const t = s.genes.reduce((a, b) => a + b, 0) || 1; return s.genes.map(x => x / t); };
-    const a = share(then), b = share(now), d = b.map((x, i) => x - a[i]);
-    const up = d.indexOf(Math.max(...d)), down = d.indexOf(Math.min(...d));
-    out += '<div class="label">Last two minutes</div>' +
-      (d[up] > 0.005 ? `<div class="gbline">${sw(up)}${GENE_LABELS[up]} rising: <b>${Math.round(a[up] * 100)}% → ${Math.round(b[up] * 100)}%</b> <span class="k">of the gene pool</span></div>` : '') +
-      (d[down] < -0.005 ? `<div class="gbline">${sw(down)}${GENE_LABELS[down]} falling: <b>${Math.round(a[down] * 100)}% → ${Math.round(b[down] * 100)}%</b></div>` : '') +
-      (d[up] <= 0.005 && d[down] >= -0.005 ? '<div class="k">Steady.</div>' : '');
+  return { N, G, kinds, sums, has, spBy, lift, pairs, mostIn };
+}
+
+function renderGenes(full) {
+  if (full) {
+    drawerBody.innerHTML = `<section class="chart"><h3>Gene pool</h3>
+        <p class="note">Total strength of each line colour (length × thickness) and organ (each counted as 12px), over time. Click a gene below the switch to hide or show it.</p>
+        <div class="seg wrap">${[['all', 'Everyone'], ['prod', 'Plants'], ['graze', 'Grazers'], ['pred', 'Predators']].map(([k, l]) => `<button class="ctl" data-gview="${k}" aria-pressed="${geneView === k}">${l}</button>`).join('')}</div>
+        <div class="lg genelg" id="nPoolLg"></div><canvas id="nPool" class="tall"></canvas></section>
+      <section><h3>Every gene</h3><p class="note">Share of the gene pool now and over the last two minutes, how many species carry it, and who has the most. Click a heading to sort.</p><div class="gtable" id="nTable"></div></section>
+      <section class="chart"><h3>Instincts</h3><p class="note">Share of all creatures with each inherited instinct.</p><div class="lg" id="nInstLg"></div><canvas id="nInst"></canvas></section>
+      <section class="chart"><h3>Brains</h3><p class="note">Instinct is no brain to speak of; clever from brain 0.5, cunning from 1.5, brilliant from 2.5.</p><div class="tiles" id="nBrainTiles"></div><div class="lg" id="nBrainLg"></div><canvas id="nBrain"></canvas></section>
+      <section><h3>By type</h3><p class="note">The gene mix of each part of the food chain.</p><div class="gb" id="nByType"></div></section>
+      <section><h3>Genes that go together</h3><p class="note">How much more (green) or less (red) often two genes share one body than if they were spread at random. Pale squares are pairs with too few carriers to be sure.</p><div class="gb" id="nPairs"></div><div class="lgrid" id="nGrid"></div></section>
+      <section class="chart"><h3>Body plans</h3><div class="tiles" id="nBodyTiles"></div><div class="lg" id="nBodyLg"></div><canvas id="nBody"></canvas></section>`;
   }
-  el.innerHTML = out;
+  const times = samples.map(x => x.t), last = samples[samples.length - 1];
+  // the gene pool graph and its legend, which doubles as the show/hide switch
+  const shown = GRAPH_COLORS.map((color, k) => ({ k, label: GENE_LABELS[k], color, dash: k >= NT, values: samples.map(x => genesOf(x, geneView)[k]) }));
+  const cv = $('nPool');
+  lineChart(cv, times, shown.filter(x => !geneHidden.has(x.k)), fmtInt);
+  $('nPoolLg').innerHTML = shown.map(x => `<button class="lgb" data-gene="${x.k}" aria-pressed="${!geneHidden.has(x.k)}"><i style="background:${x.color}"></i>${x.label} <b>${fmtInt(x.values.length ? x.values[x.values.length - 1] : 0)}</b></button>`).join('');
+
+  const st = geneStats(), { N, G } = st;
+  // the gene table
+  const then = samples.find(x => x.t >= simTime - 120);
+  const shareNow = last ? geneShare(last.genes) : new Array(G).fill(0), shareThen = then ? geneShare(then.genes) : shareNow;
+  const first = GENE_LABELS.map((_, i) => { const f = samples.find(x => x.genes[i] > 0); return f ? f.t : null; });
+  const rows = GENE_LABELS.map((label, i) => {
+    const top = [...st.spBy[i]].sort((a, b) => b[1] - a[1])[0];
+    return { i, label, share: shareNow[i], change: shareNow[i] - shareThen[i], species: st.spBy[i].size, carriers: st.has[i], top: top ? top[0] : null, first: first[i] };
+  });
+  const key = geneSort.replace('-', ''), dir = geneSort.startsWith('-') ? -1 : 1;
+  const val = r => key === 'label' ? r.label : key === 'top' ? r.top || '' : key === 'first' ? (r.first ?? 1e9) : -r[key];
+  rows.sort((a, b) => { const x = val(a), y = val(b); return (x < y ? -1 : x > y ? 1 : 0) * dir; });
+  const spark = i => {
+    const pts = samples.filter(x => x.t >= simTime - 120).map(x => geneShare(x.genes)[i]);
+    if (pts.length < 2) return '';
+    const mx = Math.max(...pts, 0.01);
+    return `<svg viewBox="0 0 40 12" class="gspark"><polyline fill="none" stroke="${GRAPH_COLORS[i]}" stroke-width="1.2" points="${pts.map((v, k) => `${(k / (pts.length - 1) * 40).toFixed(1)},${(11 - v / mx * 10).toFixed(1)}`).join(' ')}"/></svg>`;
+  };
+  const th = (k, l) => `<button class="link" data-gsort="${k}">${l}${key === k ? (dir > 0 ? ' ↓' : ' ↑') : ''}</button>`;
+  $('nTable').innerHTML = `<table><thead><tr><th>${th('label', 'gene')}</th><th>${th('share', 'share')}</th><th>${th('change', '2 min')}</th><th>${th('species', 'species')}</th><th>${th('top', 'most in')}</th><th>${th('first', 'first seen')}</th></tr></thead><tbody>` +
+    rows.map(r => `<tr><td><i style="background:${GRAPH_COLORS[r.i]}"></i>${r.label}</td><td>${(r.share * 100).toFixed(r.share < 0.1 ? 1 : 0)}%</td>` +
+      `<td>${spark(r.i)}<small class="${r.change > 0.005 ? 'up' : r.change < -0.005 ? 'down' : ''}">${r.change > 0 ? '+' : ''}${(r.change * 100).toFixed(1)}</small></td>` +
+      `<td>${r.species}<small> · ${r.carriers}</small></td><td>${r.top ? spLink(r.top) : '—'}</td><td>${r.first === null ? '—' : fmtTime(r.first)}</td></tr>`).join('') + '</tbody></table>';
+
+  // instincts and brains
+  drawChart('nInst', times, INSTINCTS.map(t => ({ label: t.label, color: t.color, values: samples.map(x => x.inst && x.pop ? x.inst[t.key] / x.pop * 100 : 0) })), v => Math.round(v) + '%');
+  const bl = last && last.brainLv ? last.brainLv : [0, 0, 0, 0];
+  $('nBrainTiles').innerHTML = BRAIN_LV.map(([l], k) => tile(l, `${bl[k]} <small>${N ? Math.round(bl[k] / N * 100) : 0}%</small>`)).join('');
+  drawChart('nBrain', times, [
+    ...BRAIN_LV.slice(1).map(([l, color], k) => ({ label: l, color, values: samples.map(x => x.brainLv ? x.brainLv[k + 1] : 0) })),
+    { label: 'average brain ×100', color: '#8fe3d0', dash: true, values: samples.map(x => (x.brain ?? 0) * 100) },
+  ]);
+
+  // by type
+  const sw = i => `<i style="background:${GRAPH_COLORS[i]}"></i>`;
+  $('nByType').innerHTML = st.kinds.filter(([k]) => st.sums[k].n).map(([k, l]) => {
+    const v = st.sums[k].v, tot = v.reduce((a, b) => a + b, 0) || 1, top3 = v.map((x, i) => [x, i]).sort((a, b) => b[0] - a[0]).slice(0, 3).filter(x => x[0] > 0);
+    return `<div class="gbrow"><span>${l} <small>${st.sums[k].n}</small></span><span><span class="bar">${v.map((x, i) => x > 0 ? `<i style="flex:${x};background:${GRAPH_COLORS[i]}" title="${GENE_LABELS[i]} ${Math.round(x / tot * 100)}%"></i>` : '').join('')}</span>` +
+      `<small>${top3.map(([x, i]) => `${GENE_LABELS[i]} ${Math.round(x / tot * 100)}%`).join(' · ')}</small></span></div>`;
+  }).join('') || '<div class="k">Nobody alive.</div>';
+
+  // pairs, then the whole grid
+  const together = st.pairs.filter(p => p.n >= Math.max(5, N * 0.03) && p.lift >= 1.3).sort((x, y) => y.lift - x.lift).slice(0, 5);
+  const apart = st.pairs.filter(p => p.expect >= 5 && p.lift < 0.6).sort((x, y) => x.lift - y.lift).slice(0, 5);
+  $('nPairs').innerHTML = '<div class="label">Often together</div>' + (together.length ? together.map(p => { const sp = st.mostIn(p);
+    return `<div class="gbline">${sw(p.a)}${GENE_LABELS[p.a]} + ${sw(p.b)}${GENE_LABELS[p.b]} <b>${p.lift.toFixed(1)}×</b> <span class="k">chance</span>` +
+      `<small>${p.n} carry both${sp ? `, most in ${spLink(sp)}` : ''}</small></div>`; }).join('') : '<div class="k">No strong pairings yet.</div>') +
+    '<div class="label">Rarely together</div>' + (apart.length ? apart.map(p =>
+      `<div class="gbline">${sw(p.a)}${GENE_LABELS[p.a]} + ${sw(p.b)}${GENE_LABELS[p.b]} <b>${p.lift.toFixed(1)}×</b> <span class="k">chance</span>` +
+      `<small>${p.n} carry both, ${Math.round(p.expect)} if they were spread at random</small></div>`).join('') : '<div class="k">Nothing clearly kept apart yet.</div>');
+  const live = GENE_LABELS.map((_, i) => i).filter(i => st.has[i] >= 5);
+  const cell = x => {
+    if (x === null) return '<span class="gc"></span>';
+    const v = Math.max(-1, Math.min(1, Math.log2(Math.max(x.l, 0.01)) / 2)) * x.sure;
+    return `<span class="gc" style="background:${v >= 0 ? `rgba(74,222,128,${(v * 0.9).toFixed(2)})` : `rgba(248,113,113,${(-v * 0.9).toFixed(2)})`}" title="${x.l.toFixed(1)}× chance"></span>`;
+  };
+  $('nGrid').style.gridTemplateColumns = `56px repeat(${live.length}, minmax(0, 1fr))`;
+  $('nGrid').innerHTML = live.length > 1 ? '<span></span>' + live.map(i => `<span class="gh" title="${GENE_LABELS[i]}">${sw(i)}</span>`).join('') +
+    live.map(a => `<span class="gl">${sw(a)}${GENE_LABELS[a]}</span>` + live.map(b => a === b ? '<span class="gc self"></span>' : cell(st.lift[a][b])).join('')).join('') : '';
+
+  // body plans
+  const b = last && last.body ? last.body : { arms: 0, len: 0, thick: 0 };
+  $('nBodyTiles').innerHTML = tile('Arms', b.arms.toFixed(1)) + tile('Parts', (last ? last.parts : 0).toFixed(1)) + tile('Line length', `${Math.round(b.len)}px <small>per creature</small>`) + tile('Thickness', `×${b.thick.toFixed(2)}`);
+  drawChart('nBody', times, [
+    { label: 'parts', color: '#8fe3d0', values: samples.map(x => x.parts) },
+    { label: 'arms', color: '#fda4af', values: samples.map(x => x.body ? x.body.arms : 0) },
+    { label: 'line length ÷10', color: '#93c5fd', values: samples.map(x => x.body ? x.body.len / 10 : 0) },
+  ], v => v.toFixed(1));
 }
 
 // ---------- UI ----------
@@ -2948,7 +3159,8 @@ function topSpecies() {
   }
   return { size: groups.size, top: [...groups.values()].sort((a, b) => b.count - a.count).slice(0, 5) };
 }
-// c is a type specimen: { local, reach, hue }
+// c is a type specimen or a creature's portrait: { local, reach, hue, genome }
+// Drawn the way the dish draws a full-grown creature: same line thickness, organs, body and rims.
 function drawPortrait(cv, c) {
   const g = cv.getContext('2d');
   g.setTransform(1, 0, 0, 1, 0, 0);
@@ -2958,10 +3170,35 @@ function drawPortrait(cv, c) {
   g.translate(cv.width / 2, cv.height / 2);
   g.scale(k, k);
   g.lineCap = 'round';
-  for (const w of c.local) { g.lineWidth = 3 / k * (w.th || 1); g.strokeStyle = TYPE_COLOR[w.type]; g.beginPath(); g.moveTo(w.x1, w.y1); g.lineTo(w.x2, w.y2); g.stroke(); }
+  for (const w of c.local) { g.lineWidth = Math.max(2.4 * (w.th || 1), 1.5 / k); g.strokeStyle = TYPE_COLOR[w.type]; g.beginPath(); g.moveTo(w.x1, w.y1); g.lineTo(w.x2, w.y2); g.stroke(); }
   drawOrgans(g, c.local, 0, 0, 1, 0);
   g.fillStyle = `hsl(${c.hue} 85% 60%)`;
-  g.beginPath(); g.arc(0, 0, 3.5, 0, Math.PI * 2); g.fill();
+  g.beginPath(); g.arc(0, 0, 3.8, 0, Math.PI * 2); g.fill();
+  // the same rims as in the dish: armour, the poison look, shrub bark, thorns
+  const pow = new Array(NT).fill(0);
+  for (const w of c.local) pow[w.type] += Math.hypot(w.x2 - w.x1, w.y2 - w.y1) * (w.th || 1);
+  const tp = pow.reduce((a, b) => a + b, 0) || 1, tr = traitsOf(c.genome || {});
+  const rim = (color, r, dash) => { g.strokeStyle = color; g.lineWidth = 1.2; g.setLineDash(dash || []); g.beginPath(); g.arc(0, 0, r, 0, Math.PI * 2); g.stroke(); g.setLineDash([]); };
+  if (Math.min(0.5, pow[TYPE.BLUE] / tp) > 0.2) rim('rgba(96,165,250,0.8)', 5.8);
+  if (tr.mimic > 0.5 || pow[TYPE.PURPLE] > tp * 0.25) rim('#a78bfa', 7.3, [2, 2]);
+  if (tr.tough * pow[TYPE.GREEN] / tp > 0.5) rim('#a16207', 5);
+  if (tr.thorns > 0.5 && pow[TYPE.GREEN] > 0) rim('#d9f99d', 6.4, [1, 2.2]);
+}
+const portraitOf = c => ({ local: c.local, reach: c.reach, hue: c.g.hue, genome: c.g });
+const bodyPlan = local => local.map(l => l.type + ':' + l.organ).join(',');
+// For each living species, a member with its most common body plan: a species can drift a long way from its first member.
+function typicalMembers() {
+  const plans = new Map();
+  for (const c of creatures) {
+    if (c.dead) continue;
+    let m = plans.get(c.species);
+    if (!m) plans.set(c.species, m = new Map());
+    const k = bodyPlan(c.local) + '|' + c.g.arms, e = m.get(k);
+    if (!e) m.set(k, { n: 1, c }); else { e.n++; if (c.scale > e.c.scale) e.c = c; }
+  }
+  const out = new Map();
+  for (const [name, m] of plans) out.set(name, [...m.values()].reduce((a, b) => b.n > a.n ? b : a).c);
+  return out;
 }
 
 function lifestyle(social, hunter, hive = false) {
@@ -2975,6 +3212,7 @@ const hapShown = new Set();
 const HAP_KINDS = {
   season: { label: 'Seasons', color: '#60a5fa' }, event: { label: 'Events', color: '#fbbf24' }, outbreak: { label: 'Disease', color: '#cbd5e1' },
   arms: { label: 'Arms races', color: '#f87171' }, migration: { label: 'Migrations', color: '#22d3ee' }, rebound: { label: 'Bounce-backs', color: '#4ade80' },
+  sweep: { label: 'Gene sweeps', color: '#e879f9' },
 };
 const hapDeaths = h => Object.values(h.deaths).reduce((a, b) => a + b, 0);
 // how a defence (or attack) score moved during an arms race, as a short phrase
@@ -3003,6 +3241,10 @@ function hapReport(h) {
       + row('the hunter', armsChange(h.a0, live ? attackOf(h.hunter) : h.a1, ATT_KEYS))
       + row('new species branched off', h.branches);
     return out;
+  }
+  if (h.kind === 'sweep') {
+    return row('over', `${fmtTime(h.t0)} to ${fmtTime(h.t1)}`) + row('gene', `${GENE_LABELS[h.gene]}, ${Math.round(h.from * 100)}% → ${Math.round(h.to * 100)}% of the gene pool`)
+      + row('carried most by', h.carriers.length ? h.carriers.map(spLink).join(', ') : '—') + row('at the same time', h.also.length ? h.also.join('; ') : 'nothing else unusual');
   }
   if (h.kind === 'migration') {
     return out + row('who', `${h.n} ${spLink(h.species)}`) + row('from', `the ${h.from}`) + row('to', `the ${h.to}`)
@@ -3094,14 +3336,12 @@ function updatePanel() {
   $('sFood').textContent = food.length;
   $('sSeason').textContent = (env.season || 'none') + (env.snap > 0 ? ', cold snap' : env.bloom > 0 ? ', bloom' : '');
   $('sDay').textContent = !dayNight ? 'always day' : env.night > 0.6 ? 'night' : env.night > 0 ? 'dusk' : 'day';
-  drawGraph();
-  if ($('fGenes').open && (geneT += 1) % 12 === 1) renderGeneBreak();
 
   spRows.forEach((r, i) => {
     const s = sp.top[i];
     r.row.hidden = !s;
     if (!s) return;
-    drawPortrait(r.cv, { local: s.rep.local, reach: s.rep.reach, hue: s.rep.g.hue });
+    drawPortrait(r.cv, portraitOf(s.rep));
     r.row.dataset.name = s.name;
     const rec = speciesDB.get(s.name), top = rec && groupOf(rec) === 'top';
     r.n.innerHTML = (top ? '<span class="crown" title="Top predator">♛</span> ' : '') + s.name;
@@ -3306,11 +3546,12 @@ function openSpeciesDetail(name) { openDrawer('species', name); }
 
 function renderDrawer(full) {
   if (drawer.hidden) return;
-  const view = drawerTab === 'graphs' ? 'graphs' : drawerTab === 'happen' ? 'happen' : openSpecies ? 'detail:' + openSpecies : 'list';
+  const view = drawerTab === 'graphs' || drawerTab === 'happen' || drawerTab === 'genes' ? drawerTab : openSpecies ? 'detail:' + openSpecies : 'list';
   full = full || view !== drawerView;
   drawerView = view;
   if (drawerTab === 'graphs') renderGraphs(full);
   else if (drawerTab === 'happen') renderHappen(full);
+  else if (drawerTab === 'genes') renderGenes(full);
   else if (openSpecies) renderDetail(full);
   else renderSpeciesList(full);
 }
@@ -3326,14 +3567,10 @@ const GRAPHS = [
   { id: 'gAgePyr', kind: 'ages', title: 'Ages', note: 'Plants on the left (grass and shrubs), animals on the right by place in the food chain. By share of life: newborn is the first 10% of a creature\'s own lifespan, young to 25%, then early prime, prime and late prime to 75%, ageing to 90% and very old after that. Or switch to actual age.' },
   { id: 'gAge', title: 'Age over time', note: 'Average age of the living, and average age at death over the previous 20 seconds.' },
   { id: 'gDeaths', title: 'Deaths per minute', note: 'Averaged over the previous 20 seconds.' },
-  { id: 'gGenes', title: 'Gene pool', note: 'Total strength of each line colour across all creatures (length × thickness). Dashed lines are organs, each counted as 12px at normal size.' },
-  { id: 'gParts', title: 'Average complexity', note: 'Parts per creature; organs count double.' },
   { id: 'gSocial', title: 'Average sociality', note: '0 means every creature is a loner; 1 means everyone sticks with relatives, in herds or hunting packs.' },
-  { id: 'gBrain', title: 'Intelligence', note: 'Brain size from 0 (instinct) to 3. Clever from 0.5, cunning from 1.5, brilliant from 2.5.' },
   { id: 'gArms', title: 'Arms race', note: 'How well defended plants and grazers are, against how well armed the hunters are, each from 0 to 100. Plants count thorns, tough stems, poison and armour; grazers armour, speed, camouflage and poison; hunters bite, speed, eyes and brains.' },
   { id: 'gTactics', title: 'Kills by tactic per minute', note: 'How each kill was made, averaged over the previous 20 seconds. Instinct means a plain chase.' },
   { id: 'gLife', title: 'Ways of living', note: 'Creatures living alone, hunting in packs, grazing in herds, or working in a hive.' },
-  { id: 'gTraits', title: 'Traits in the population', note: 'Share of all creatures that have each trait.' },
   { id: 'gSpecies', title: 'Species alive' },
   { id: 'gFood', title: 'Food in the dish' },
 ];
@@ -3454,14 +3691,7 @@ function renderGraphs(full) {
       return span > 0 ? (s.deaths[d.key] - samples[j].deaths[d.key]) / span * 60 : 0;
     }),
   })), v => v.toFixed(v < 10 ? 1 : 0));
-  const geneLabels = [...TYPE_NAME, 'eyes', 'fat', 'brood', 'spitters', 'brains', 'noses'];
-  drawChart('gGenes', times, GRAPH_COLORS.map((color, k) => ({ label: geneLabels[k], color, dash: k >= NT, values: samples.map(s => s.genes[k]) })));
-  drawChart('gParts', times, [{ label: 'parts', color: '#8fe3d0', values: samples.map(s => s.parts) }], v => v.toFixed(1));
   drawChart('gSocial', times, [{ label: 'sociality', color: '#fda4af', values: samples.map(s => s.social ?? 0) }], v => v.toFixed(2));
-  drawChart('gBrain', times, [
-    { label: 'average brain', color: '#fde68a', values: samples.map(s => s.brain ?? 0) },
-    { label: 'biggest brain', color: '#fb923c', dash: true, values: samples.map(s => s.brainMax ?? 0) },
-  ], v => v.toFixed(2));
   // per-minute rate of a running total, over the previous 20 seconds
   function rate(i, get) {
     let j = i;
@@ -3476,7 +3706,6 @@ function renderGraphs(full) {
   ]);
   drawChart('gTactics', times, TACTICS.map(tc => ({ label: tc.label, color: tc.color, values: samples.map((s, i) => rate(i, x => x.tactics ? x.tactics[tc.key] : 0)) })), v => v.toFixed(v < 10 ? 1 : 0));
   drawChart('gLife', times, LIFE.map(l => ({ label: l.label, color: l.color, values: samples.map(s => s.life ? s.life[l.key] : 0) })));
-  drawChart('gTraits', times, TRAITS.map(t => ({ label: t.label.toLowerCase(), color: t.color, values: samples.map(s => s.traits && s.pop ? s.traits[t.key] / s.pop * 100 : 0) })), v => Math.round(v) + '%');
   drawChart('gSpecies', times, [{ label: 'species', color: '#c4b5fd', values: samples.map(s => s.species) }]);
   drawChart('gFood', times, [
     { label: 'food bits', color: FOOD_COLOR, values: samples.map(s => s.food) },
@@ -3597,8 +3826,10 @@ function renderSpeciesList(full) {
   }
   $('spList').innerHTML = html.join('');
   const rows = $('spList').querySelectorAll('.sprow');
+  const typical = typicalMembers();
   drawn.forEach((s, i) => {
-    drawPortrait(rows[i].querySelector('.pt'), s.specimen);
+    const t = typical.get(s.name);
+    drawPortrait(rows[i].querySelector('.pt'), t ? portraitOf(t) : s.specimen);
     sparkline(rows[i].querySelector('.spark'), s.hist, `hsl(${s.hue} 70% 62%)`);
   });
 }
@@ -3615,7 +3846,7 @@ function renderDetail(full) {
   if (!s) { openSpecies = null; renderDrawer(true); return; }
   if (full) {
     drawerBody.innerHTML = `<div><button class="link" data-act="back">← All species</button></div>
-      <div class="dhead"><canvas id="dPortrait" width="240" height="240"></canvas>
+      <div class="dhead"><div class="dpics"><canvas id="dPortrait" width="240" height="240"></canvas><small id="dPicNote"></small><canvas id="dFirst" width="72" height="72" hidden></canvas></div>
         <div class="dmeta"><h3 class="dname">${s.name}</h3><div id="dStatus"></div><p class="note" id="dBody"></p>
         <div class="row" id="dActions"></div></div></div>
       <div class="tiles" id="dFacts"></div>
@@ -3625,11 +3856,18 @@ function renderDetail(full) {
       <section><h3>How they hunt</h3><div id="dTactics"></div></section>
       <section><h3>Food chain</h3><div id="dChain" class="note"></div></section>
       <section class="tree"><h3>Family tree</h3><div class="seg" id="dTreeCtl"></div><canvas id="dTree"></canvas><div id="dLineage" class="note"></div></section>
+      <section><h3>What it inherited</h3><div class="seg" id="dInhCtl"></div><div id="dInherit" class="inh"></div></section>
       <section><h3>History</h3><ol id="dEvents" class="events"></ol></section>`;
-    drawPortrait($('dPortrait'), s.specimen);
   }
+  // the picture is a typical member alive now; if that has drifted from the first member, the first is shown small beside it
+  const tm = s.alive ? typicalMembers().get(s.name) : null, drift = tm && (bodyPlan(tm.local) !== bodyPlan(s.specimen.local) || tm.g.arms !== s.specimen.arms);
+  drawPortrait($('dPortrait'), tm ? portraitOf(tm) : s.specimen);
+  $('dPicNote').textContent = !tm ? 'first member (none alive)' : drift ? 'typical member now · first member:' : 'typical member now';
+  $('dFirst').hidden = !drift;
+  if (drift) drawPortrait($('dFirst'), s.specimen);
   const diet = dietOf(s);
-  const sp = s.specimen, grp = groupInfo(groupOf(s, diet));
+  let sp = s.specimen;
+  const grp = groupInfo(groupOf(s, diet));
   $('dStatus').innerHTML = (s.alive ? `<span class="pill live">${s.alive} alive</span>` : `<span class="pill dead">Extinct at ${fmtTime(s.extinctAt)}</span>`) +
     ` <span class="pill" style="color:${grp.color}">${grp.key === 'top' ? '♛ ' : ''}${grp.one} · ${levelText(grp.key)}</span>` +
     (s.alive && (s.pressure || 0) > 0.3 ? ` <span class="pill warn">under pressure${s.hunter && s.hunter !== s.name ? ` from ${s.hunter}` : ''}, evolving faster</span>` : '') +
@@ -3637,7 +3875,9 @@ function renderDetail(full) {
   $('dActions').innerHTML = s.alive
     ? `<button class="ctl" data-act="highlight">Show in dish</button><button class="ctl" data-act="add">Add 10</button>` + confirmBtn('species:' + s.name, 'Wipe out', `Tap again to kill ${s.alive}`)
     : `<button class="ctl primary" data-act="add">Bring back 10</button>`;
-  $('dBody').textContent = `Type specimen: ${sp.arms} arm${sp.arms > 1 ? 's' : ''}, ${sp.parts} part${sp.parts === 1 ? '' : 's'}, lines ×${(sp.thick ?? 1).toFixed(1)} thick, lives ${lifestyle(sp.genome.social ?? 0, sp.len[TYPE.RED] + sp.len[TYPE.WHITE] + sp.organs[ORGAN.SPIT] > 0, TRAITS[7].spec(sp))}, ${brainLevel(specBrain(sp))}${specBrain(sp) ? ` (brain ${specBrain(sp).toFixed(1)})` : ''}. ` +
+  // describe the body in the picture: a typical living member, or the first member once none are left
+  if (tm) sp = { arms: tm.g.arms, parts: tm.parts, thick: tm.thick, len: tm.len, organs: tm.organs, genome: tm.g, local: tm.local };
+  $('dBody').textContent = `${tm ? 'Typical member' : 'First member'}: ${sp.arms} arm${sp.arms > 1 ? 's' : ''}, ${sp.parts} part${sp.parts === 1 ? '' : 's'}, lines ×${(sp.thick ?? 1).toFixed(1)} thick, lives ${lifestyle(sp.genome.social ?? 0, sp.len[TYPE.RED] + sp.len[TYPE.WHITE] + sp.organs[ORGAN.SPIT] > 0, TRAITS[7].spec(sp))}, ${brainLevel(specBrain(sp))}${specBrain(sp) ? ` (brain ${specBrain(sp).toFixed(1)})` : ''}. ` +
     [...sp.len.map((v, i) => v ? `${Math.round(v)}px ${TYPE_NAME[i]}` : ''), ...sp.organs.map((n, o) => o && n ? `${n} ${ORGAN_NAME[o]}` : '')].filter(Boolean).join(', ') + '.';
   $('dFacts').innerHTML =
     tile('First seen', `${fmtTime(s.firstSeen)} <small>gen ${s.firstGen}</small>`) + tile('Peak', `${s.peak} <small>at ${fmtTime(s.peakAt)}</small>`) +
@@ -3676,6 +3916,7 @@ function renderDetail(full) {
     `<div><span class="k">Origin</span> ${root.origin || '—'}</div>` +
     `<div class="chainrow"><span class="k">Line of descent</span> ${[...chain.map(spLink), `<b>${s.name}</b>`].join(' <span class="k">›</span> ')}</div>` +
     `<div><span class="k">Branched into</span> ${s.children.length ? s.children.map(n => spLink(n) + (speciesDB.get(n).alive ? '' : ' <small>†</small>')).join(', ') : 'no new species yet'}</div>`;
+  if (full) renderInherit(s, chain);
   $('dEvents').innerHTML = s.events.slice().reverse().map(e =>
     `<li><span class="k">${fmtTime(e.t)}</span> ${e.ref ? e.text.replace('{}', spLink(e.ref)) : e.text}</li>`).join('');
 }
@@ -3784,7 +4025,7 @@ function drawTree(cv, sel) {
 }
 
 drawer.addEventListener('click', e => {
-  const t = e.target.closest('[data-sp],[data-act],[data-tree],[data-pyr],[data-agemode],[data-ev],[data-hap],[data-hfilter],[data-filter],[data-tab],[data-group],[data-confirm],[data-trait]');
+  const t = e.target.closest('[data-sp],[data-act],[data-tree],[data-pyr],[data-agemode],[data-ev],[data-hap],[data-hfilter],[data-filter],[data-tab],[data-group],[data-confirm],[data-trait],[data-gview],[data-gene],[data-gsort],[data-inh]');
   if (!t) return;
   if (t.dataset.pyr) { pyrMode = t.dataset.pyr; renderDrawer(false); return; }
   if (t.dataset.agemode) { ageMode = t.dataset.agemode; renderDrawer(false); return; }
@@ -3792,6 +4033,10 @@ drawer.addEventListener('click', e => {
   if (t.dataset.hap) { const id = +t.dataset.hap; hapShown.has(id) ? hapShown.delete(id) : hapShown.add(id); renderDrawer(false); return; }
   if (t.dataset.hfilter) { hapFilter = t.dataset.hfilter; renderDrawer(true); return; }
   if (t.dataset.act === 'randev') { setRandomEvents(!eventsMode); renderDrawer(false); return; }
+  if (t.dataset.inh) { inhView = t.dataset.inh; renderDrawer(true); return; }
+  if (t.dataset.gview) { geneView = t.dataset.gview; renderDrawer(true); return; }
+  if (t.dataset.gene) { const i = +t.dataset.gene; geneHidden.has(i) ? geneHidden.delete(i) : geneHidden.add(i); renderDrawer(false); return; }
+  if (t.dataset.gsort) { geneSort = geneSort === t.dataset.gsort ? '-' + geneSort : t.dataset.gsort; renderDrawer(false); return; }
   if (t.dataset.tree) {
     if (t.dataset.tree === 'short') treeShort = !treeShort; else treeScope = t.dataset.tree;
     renderDrawer(false);
@@ -3926,7 +4171,7 @@ function drawPresets() {
     const mode = cv.dataset.preset;
     const g = mode === 'random' ? randomGenome() : PRESETS[mode]().slice(-1)[0];
     const c = new Creature(g, 0, 0, 0);
-    drawPortrait(cv, { local: c.local, reach: c.reach, hue: g.hue });
+    drawPortrait(cv, portraitOf(c));
   }
 }
 function setupMode() { return setupEl.querySelector('input[name=start]:checked').value; }
@@ -3969,11 +4214,10 @@ $('balPreset').onchange = e => {
 for (const el of balInputs) el.addEventListener('input', () => { $('balPreset').value = ''; });
 if (Object.keys(BAL_DEFAULTS).every(k => bal[k] === BAL_DEFAULTS[k])) $('balPreset').value = 'classic';
 // the panel's folds stay as the viewer left them
-const folds = ['fSliders', 'balance', 'fGenes', 'fKey'];
+const folds = ['fSliders', 'balance', 'fKey'];
 try { const f = JSON.parse(localStorage.getItem('bio-folds') || 'null'); if (f) for (const id of folds) if (id in f) $(id).open = f[id]; } catch (_) { /* storage may be blocked */ }
 for (const id of folds) $(id).addEventListener('toggle', () => {
   try { localStorage.setItem('bio-folds', JSON.stringify(Object.fromEntries(folds.map(k => [k, $(k).open])))); } catch (_) { /* storage may be blocked */ }
-  if (id === 'fGenes' && $(id).open) { drawGraph(); renderGeneBreak(); }
 });
 $('panel').addEventListener('click', e => { const t = e.target.closest('[data-sp]'); if (t) openSpeciesDetail(t.dataset.sp); });
 
@@ -4063,6 +4307,7 @@ collapsible('collapse2', 'species');
 $('bGraphs').onclick = () => openDrawer('graphs');
 $('bSpeciesAll').onclick = () => openDrawer('species');
 $('bHappen').onclick = () => openDrawer('happen');
+$('bGenes').onclick = () => openDrawer('genes');
 $('spAll').onclick = () => openDrawer('species');
 speciesList.addEventListener('click', e => { const r = e.target.closest('.sp'); if (r && r.dataset.name) openSpeciesDetail(r.dataset.name); });
 speciesList.addEventListener('keydown', e => { const r = e.target.closest('.sp'); if (r && r.dataset.name && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); openSpeciesDetail(r.dataset.name); } });

@@ -23,7 +23,7 @@ const page_url = 'file://' + path.join(root, 'index.html');
   // let a few generations evolve at 8x before taking pictures
   for (let i = 0; i < 3; i++) await page.click('#bSpeed');
   await page.waitForTimeout(20000);
-  await page.click('#bSpeed');
+  for (let i = 0; i < 3; i++) await page.click('#bSpeed'); // past 8× the speed button goes to ¼× and ½×, then back to 1×
   await page.waitForTimeout(1500);
 
   // Find creatures by their bright, saturated colours (food bits are pale and rocks are grey, so neither counts).
@@ -124,6 +124,17 @@ const page_url = 'file://' + path.join(root, 'index.html');
   const top = pb.y - 120;
   await page.screenshot({ path: path.join(root, 'docs/balance.png'), clip: { x: pb.x - 12, y: top, width: pb.width + 24, height: pb.y + pb.height + 12 - top } });
 
+  // story mode, then the "ways of life" view
+  await page.click('#bStory');
+  await page.waitForTimeout(7000);
+  await page.screenshot({ path: path.join(root, 'docs/story.png') });
+  await page.click('#storyStop');
+  await page.click('#zReset');
+  await page.click('#bView'); await page.click('#bView');
+  await page.waitForTimeout(1200);
+  await page.screenshot({ path: path.join(root, 'docs/roles.png') });
+  await page.click('#bView');
+
   // phone layout
   await page.setViewportSize({ width: 390, height: 800 });
   await page.reload();
@@ -132,5 +143,5 @@ const page_url = 'file://' + path.join(root, 'index.html');
 
   await browser.close();
   if (errors.length) { console.error('Page errors:', errors); process.exit(1); }
-  console.log('Wrote docs/screenshot.png, new-dish.png, closeup.png, graphs.png, groups.png, species.png, tree.png, inherited.png, balance.png, happenings.png, genes.png, phone.png');
+  console.log('Wrote docs/screenshot.png, new-dish.png, closeup.png, graphs.png, groups.png, species.png, tree.png, inherited.png, balance.png, happenings.png, genes.png, story.png, roles.png, phone.png');
 })();

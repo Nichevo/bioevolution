@@ -2,6 +2,30 @@
 
 Every release stays playable. Pick one from the menu next to the title in the app, or open the file directly. The newest is always `index.html`.
 
+## v12: Gene roles & stories (2026-10-28)
+
+`versions/v12.html` (also the current `index.html`). Follows v11, which stays in the menu.
+
+Plans: https://claude.ai/artifact/S7fV33ywFmch27wiRAqmKZ (balance) and https://claude.ai/artifact/Eqrj32sWQAczsNU2eUsRTc (viewing tools)
+
+- **Scavengers.** Corpses last longer and are bigger; scavengers smell them from further, follow hunters, stash carrion and pay less upkeep while waiting.
+- **Hive raiders.** A new instinct that seeks out queens. A queen kill opens a "raid" happening and feeds the pack. Big hives lay eggs more slowly.
+- **Simple bodies** grow up sooner, cost less to raise, catch fewer chills and illnesses, and are spotted closer in. Unused parts can fade away again after an arms race.
+- **Gene roles.**
+  - Filter feeders (new instinct) sieve food bits as they drift, instead of biting.
+  - Movement parts on animals give a wriggle; darters (new instinct) put on short bursts of speed.
+  - Spit slows its target; stings paralyse longer, drain more, and teach hunters to leave the stinger alone.
+  - Eyes come in levels 1 to 3; sharper eyes than the prey help a hunter keep track and see through camouflage.
+  - Poison teaches the hunter's family, brood helps when food is thin, fat burns slower in the cold, and noses reach further at night.
+- **Genes tab** counts carriers by default (with a switch back to strength), shows plants, grazers and predators side by side or one species, and has a new "Simple and complex" section.
+- **Seeing the stories.**
+  - Stories button: the camera picks a chase, raid, birth or migration, captions it and moves on.
+  - View button: normal, calm (no trails or food) or coloured by way of life.
+  - Spotlight a species and fade the rest; follow a creature and read its life story; marks for kills, raids, migrations and births; optional pause on big moments.
+  - Slow motion at ¼× and ½×, and "Show me in the dish" on every happening.
+- **Test** (16 dishes, 25 minutes each, against 8 dishes of v11): the food chain held in all 16 (v11: 4 of 8). Plants, grazers and hunters 55/35/15. Hives average 2% of creatures (peak 12%), with raids in 3 dishes. Scavengers raise 1.61 young each (v11: 0.79). 64% of bodies are simple (6 parts or fewer) and 3% complex (16+); average parts fell from 11.4 to 8.3.
+- **Still open.** Stingers and sharp eyes still give hunters no clear edge in young raised (0.85 and 1.05 against 1.27 and 1.22 without), and yellow is now in only 9% of animals.
+
 ## v11: Stronger grazers & genes (2026-10-28)
 
 `versions/v11.html` (also the current `index.html`). Follows v10, which stays in the menu.

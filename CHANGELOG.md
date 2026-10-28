@@ -2,9 +2,33 @@
 
 Every release stays playable. Pick one from the menu next to the title in the app, or open the file directly. The newest is always `index.html`.
 
+## v10: Happenings, arms races & migration (2026-10-28)
+
+`versions/v10.html` (also the current `index.html`). Follows v9.1, which stays in the menu.
+
+Plan: https://claude.ai/artifact/VaEAHnBgK4HNfHaa8hpKM8
+
+- **Happenings tab** in the right drawer, next to Graphs and Species: what's going on now, buttons to make something happen and to switch random events on or off, a filterable timeline (seasons, events, disease, arms races, migrations, bounce-backs) whose entries open a report, and disease totals. Click a yellow mark on a graph to open that event.
+- **3 to 5 vents** by default (New dish also offers none, 2 or 6). Each puts out less, but all together give 50% more food than v9.1's two.
+- **Plants** get about 15% more sun, lose 15% less to a nibble and live three times longer, so old age is now rare for them.
+- **Scavengers**: corpses last 40s (was 25), give their full energy (was 85%) and are noticed from 1.5x further away.
+- **Arms races.** A species that is being eaten a lot evolves faster (up to 2x mutation), leaning towards defences; a hunter that is going hungry sharpens its attack. Plants can grow thorns, and grazers can evolve tough mouths to get past them. Shown on the species page, in Happenings and in a new Arms race graph.
+- **Bounce back.** After a die-off of 40% or more, life mutates faster for 90 seconds.
+- **Migration.** The dish is split into a 4x3 grid. A clever grazer in a poor part sets off with its herd for a better one; brilliant ones know the whole dish. Hunters were meant to migrate too, but in tests they followed the grazers and wiped them out, so only grazers move.
+- **Ages graph** with 7 bands, a switch between share of lifespan and actual age, a legend and tiles.
+- **Roomier left panel** (330px) split into folding sections; the colour key is hidden until you open it. Below the gene pool graph, a **gene breakdown**: genes by type, genes that turn up together (or avoid each other), and genes rising or falling.
+- **Top predators** have their own group (purple crown) in Species, with a food-chain level for every species.
+- On phones, the zoom buttons moved to the top so they no longer cover the Top species card.
+- **Tested** over 8 dishes of 20 minutes each (half single-ancestor, half random), against v9.1:
+  - The full chain held in 8 of 8 (v9.1: 8 of 8).
+  - Plants are now a median of 63% of creatures (target 55-60%; v9.1: 45%). Old age fell from 36% to 3% of plant deaths.
+  - Grazers dropped to between 15% and 33% of creatures depending on the batch (v9.1: 52%). Predators rose to 13-19% (v9.1: 11%). This is the main miss: plants and hunters both got stronger and grazers are squeezed.
+  - Arms races raise branching: 159 species over 20 minutes with them, 100 without.
+  - Migration's effect on spread is unclear. Empty parts of the dish were 24% with it and 36% without in the final batch, but an earlier batch went the other way (16% vs 11%). Grazers did worse with migration in two batches out of three.
+
 ## v9.1: Vents, heat & immunity (2026-10-27)
 
-`versions/v9.1.html` (also the current `index.html`). Replaces v9.
+`versions/v9.1.html`. Replaces v9.
 
 Plan: https://claude.ai/artifact/Q7GeHv1HqjFe1zK7hFWERo
 

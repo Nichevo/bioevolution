@@ -77,6 +77,9 @@ const page_url = 'file://' + path.join(root, 'index.html');
   await page.click('#bGraphs');
   await page.waitForTimeout(1500);
   await page.screenshot({ path: path.join(root, 'docs/graphs.png') });
+  await page.click('[data-tab=happen]');
+  await page.waitForTimeout(1200);
+  await page.screenshot({ path: path.join(root, 'docs/happenings.png') });
   await page.click('[data-tab=species]');
   await page.waitForTimeout(1200);
   await page.screenshot({ path: path.join(root, 'docs/groups.png') });
@@ -105,6 +108,12 @@ const page_url = 'file://' + path.join(root, 'index.html');
   const top = pb.y - 120;
   await page.screenshot({ path: path.join(root, 'docs/balance.png'), clip: { x: pb.x - 12, y: top, width: pb.width + 24, height: pb.y + pb.height + 12 - top } });
 
+  // the gene pool graph and its breakdown
+  await page.evaluate(() => { document.getElementById('balance').open = false; document.getElementById('fGenes').scrollIntoView(); });
+  await page.waitForTimeout(3500);
+  const gb = await (await page.$('#fGenes')).boundingBox();
+  await page.screenshot({ path: path.join(root, 'docs/genes.png'), clip: { x: gb.x - 12, y: Math.max(0, gb.y - 8), width: gb.width + 24, height: Math.min(gb.height + 16, 850 - Math.max(0, gb.y - 8)) } });
+
   // phone layout
   await page.setViewportSize({ width: 390, height: 800 });
   await page.reload();
@@ -113,5 +122,5 @@ const page_url = 'file://' + path.join(root, 'index.html');
 
   await browser.close();
   if (errors.length) { console.error('Page errors:', errors); process.exit(1); }
-  console.log('Wrote docs/screenshot.png, new-dish.png, closeup.png, graphs.png, groups.png, species.png, tree.png, balance.png, phone.png');
+  console.log('Wrote docs/screenshot.png, new-dish.png, closeup.png, graphs.png, groups.png, species.png, tree.png, balance.png, happenings.png, genes.png, phone.png');
 })();

@@ -2,9 +2,43 @@
 
 Every release stays playable. Pick one from the menu next to the title in the app, or open the file directly. The newest is always `index.html`.
 
+## v11: Stronger grazers & genes (2026-10-28)
+
+`versions/v11.html` (also the current `index.html`). Follows v10, which stays in the menu.
+
+Plan: https://claude.ai/artifact/CFEjqHPUZYBu3XdDuEJx5G
+
+- **Stronger grazers**, eight changes:
+  - When grazers fall under a fifth of all creatures, their young cost the parents less and come sooner.
+  - Thorns hurt half as much, and tough mouths cost half as much.
+  - Old plants drop extra food bits as leaf litter.
+  - A hunter chasing one of a herd of 5 or more can lose it in the crowd.
+  - A clever grazer that sees a hunter calls out, and its kind nearby run.
+  - Hunters without a brain stop hunting at 60% full; clever ones still bank a surplus.
+  - Cunning grazers steer clear of hunters when migrating.
+  - Grazing specialists digest 10% better.
+- **Hive penalty.** Workers' upkeep discount drops from 20% to 10%. Plant hives need brain 1 to found, get no discount, and their workers lose 55% of what they carry home.
+- **Genes tab** in the right drawer, replacing the left panel's gene pool:
+  - the gene pool for everyone or one part of the food chain, with genes you can hide;
+  - a sortable table of every gene;
+  - instincts and brain levels over time;
+  - the gene mix by type;
+  - genes that go together, with a grid of every pair;
+  - body plans.
+- **Gene sweeps** in Happenings, logged when a gene goes from under 5% to over 25% of the pool within two minutes.
+- **What it inherited**, a new section on species pages. Down the line of descent, it shows which genes each split passed on and which were new mutations, plus how today's typical member differs from the first. It can also flip to show what each offspring species changed.
+- **Species pictures fixed.** They showed each species' first member, but only about half of living creatures still had that body plan. They now show a typical living member, with the first member small beside it when the two differ. Lines are drawn as thick as in the dish, and the armour, poison, bark and thorn rims now show.
+- A species is no longer listed as "under pressure" from its own kind.
+- **Tested** over 16 dishes of 20 minutes against 16 of v10:
+  - Grazers averaged 32% of creatures (v10: 24%), on target for 30-40%.
+  - The full chain held in 14 of 16 (v10: 15 of 16).
+  - Predators averaged 13% (v10: 18%).
+  - Without the hive penalty, the grazer changes let plant hives grow, peaking at about 14% of creatures. With it, they peak at about 4% (v10: about 3%).
+  - Gene sweeps are rare: one in 16 dishes.
+
 ## v10: Happenings, arms races & migration (2026-10-28)
 
-`versions/v10.html` (also the current `index.html`). Follows v9.1, which stays in the menu.
+`versions/v10.html`. Follows v9.1, which stays in the menu.
 
 Plan: https://claude.ai/artifact/VaEAHnBgK4HNfHaa8hpKM8
 

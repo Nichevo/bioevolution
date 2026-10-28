@@ -80,6 +80,9 @@ const page_url = 'file://' + path.join(root, 'index.html');
   await page.click('[data-tab=happen]');
   await page.waitForTimeout(1200);
   await page.screenshot({ path: path.join(root, 'docs/happenings.png') });
+  await page.click('[data-tab=genes]');
+  await page.waitForTimeout(1500);
+  await page.screenshot({ path: path.join(root, 'docs/genes.png') });
   await page.click('[data-tab=species]');
   await page.waitForTimeout(1200);
   await page.screenshot({ path: path.join(root, 'docs/groups.png') });
@@ -100,6 +103,19 @@ const page_url = 'file://' + path.join(root, 'index.html');
   await page.waitForTimeout(300);
   const tb = await (await page.$('section.tree')).boundingBox();
   await page.screenshot({ path: path.join(root, 'docs/tree.png'), clip: { x: tb.x - 8, y: Math.max(0, tb.y - 8), width: tb.width + 16, height: Math.min(tb.height + 16, 850 - Math.max(0, tb.y - 8)) } });
+  // what it inherited, down its line of descent: open one of its offspring so there is a line to show
+  const kid = await page.$('#dLineage div:last-child [data-sp]');
+  if (kid) { await kid.click(); await page.waitForTimeout(1200); }
+  await page.evaluate(() => {
+    const t = document.getElementById('dInherit').parentElement;
+    t.scrollIntoView();
+    let p = t.parentElement;
+    while (p && p.scrollHeight <= p.clientHeight) p = p.parentElement;
+    if (p) p.scrollTop -= 70;
+  });
+  await page.waitForTimeout(300);
+  const ib = await (await page.$('#dInherit')).evaluateHandle(e => e.parentElement).then(h => h.asElement().boundingBox());
+  await page.screenshot({ path: path.join(root, 'docs/inherited.png'), clip: { x: ib.x - 8, y: Math.max(0, ib.y - 8), width: ib.width + 16, height: Math.min(ib.height + 16, 850 - Math.max(0, ib.y - 8)) } });
   await page.click('[data-act=close]');
   // the balance controls
   await page.evaluate(() => { if (document.getElementById('panel').classList.contains('min')) document.getElementById('collapse').click(); document.getElementById('balance').open = true; });
@@ -107,12 +123,6 @@ const page_url = 'file://' + path.join(root, 'index.html');
   const pb = await (await page.$('#balance')).boundingBox();
   const top = pb.y - 120;
   await page.screenshot({ path: path.join(root, 'docs/balance.png'), clip: { x: pb.x - 12, y: top, width: pb.width + 24, height: pb.y + pb.height + 12 - top } });
-
-  // the gene pool graph and its breakdown
-  await page.evaluate(() => { document.getElementById('balance').open = false; document.getElementById('fGenes').scrollIntoView(); });
-  await page.waitForTimeout(3500);
-  const gb = await (await page.$('#fGenes')).boundingBox();
-  await page.screenshot({ path: path.join(root, 'docs/genes.png'), clip: { x: gb.x - 12, y: Math.max(0, gb.y - 8), width: gb.width + 24, height: Math.min(gb.height + 16, 850 - Math.max(0, gb.y - 8)) } });
 
   // phone layout
   await page.setViewportSize({ width: 390, height: 800 });
@@ -122,5 +132,5 @@ const page_url = 'file://' + path.join(root, 'index.html');
 
   await browser.close();
   if (errors.length) { console.error('Page errors:', errors); process.exit(1); }
-  console.log('Wrote docs/screenshot.png, new-dish.png, closeup.png, graphs.png, groups.png, species.png, tree.png, balance.png, happenings.png, genes.png, phone.png');
+  console.log('Wrote docs/screenshot.png, new-dish.png, closeup.png, graphs.png, groups.png, species.png, tree.png, inherited.png, balance.png, happenings.png, genes.png, phone.png');
 })();

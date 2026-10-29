@@ -2,6 +2,18 @@
 
 Every release stays playable. Pick one from the menu next to the title in the app, or open the file directly. The newest is always `index.html`.
 
+## v13.1: New life, leaner hunters & milder disease (2026-10-29)
+
+`versions/v13.1.html` (also the current `index.html`). Follows v13, which stays in the menu.
+
+- **Food pyramid** has a third option, **Energy per creature**: the average energy each member of a level holds.
+- **New life** (a New dish option, on by default): every minute or two a few tiny, very simple plants, grazers or, rarely, biters spring up, usually by a vent.
+- **Hunters hoard less.** Hunters' fat store is half the size, and only 60% of a meat surplus is banked as fat.
+- **Milder disease.** Illness lasts 15 s (was 20). Crowds start it less often. Each sick creature passes it to at most one other, and 60% pass it to none. An outbreak needs 8 sick at once and ends when one or none is left.
+- **Gentler arms races.** A hunted species' young mutate up to 40% more (was up to twice as much). Their changes still lean to defence.
+- **Full screen** folds both panels down to their headers instead of hiding them, so they can still be opened.
+- **Test** (8 dishes, 15 minutes each, against 8 of v13): food chain held in 8 of 8. Hunters fell from 26% to 17% of creatures, and their share of all energy from 26% to 16% (fat from 16% to 6% of it); each hunter holds about the same. Sick at any moment fell from 13 to 3.5, and outbreaks from 5.4 to 4.6 per dish, with 18% more creatures alive. Minutes with an arms race running fell from about two thirds to 46%. Deaths still run about twice as high during arms races as outside them, because a race starts when a species is being eaten heavily.
+
 ## v13: Stings, complex bodies & clearer views (2026-10-29)
 
 `versions/v13.html` (also the current `index.html`). Follows v12, which stays in the menu.

@@ -74,7 +74,6 @@ h2 { margin: 0; font-family: var(--font-display); font-weight: 800; font-size: 1
 .card.min > :not(header):not(.quick) { display: none !important; }
 .card.min > .quick { margin-top: 8px; }
 .quick .ctl { padding-left: 8px; padding-right: 8px; }
-body.fs #species, body.fs #drawer { display: none !important; }
 .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 12px; font-variant-numeric: tabular-nums; }
 .stats div { display: flex; justify-content: space-between; gap: 6px; }
 .stats span { color: var(--ink-dim); }
@@ -467,6 +466,7 @@ select { font: inherit; color: var(--ink); background: var(--panel-solid); borde
     <label class="slider" for="sDayNight">Day &amp; night <select id="sDayNight"><option value="1" selected>On</option><option value="0">Off</option></select><span></span></label>
     <label class="slider" for="sEvents">Events <select id="sEvents"><option value="0" selected>Off</option><option value="1">Now and then</option></select><span></span></label>
     <label class="slider" for="sMigrants">Migrants <select id="sMigrants"><option value="0" selected>Off</option><option value="1">On: grazers or hunters arrive if they all die</option></select><span></span></label>
+    <label class="slider" for="sFresh">New life <select id="sFresh"><option value="1" selected>Now and then: very simple life appears</option><option value="0">Off</option></select><span></span></label>
     <label class="slider" for="sCover">Weed beds <select id="sCover"><option value="0">None</option><option value="1" selected>Some</option><option value="2">Lots</option></select><span></span></label>
     <label class="slider" for="rStart">Creatures <input type="range" id="rStart" min="1" max="150" step="1" value="20"><output id="oStart">20</output></label>
     <div class="row"><button class="ctl primary" id="setupGo">Start</button><button class="ctl" id="setupCancel">Cancel</button></div>
@@ -479,7 +479,7 @@ select { font: inherit; color: var(--ink); background: var(--panel-solid); borde
 'use strict';
 
 // Which release this file is. versions/list.js lists every release, newest first.
-const APP_VERSION = 'v13';
+const APP_VERSION = 'v13.1';
 
 // ---------- constants ----------
 const TYPE = { GREEN: 0, RED: 1, BLUE: 2, YELLOW: 3, CYAN: 4, PURPLE: 5, WHITE: 6 };
@@ -556,6 +556,7 @@ let grazerShare = 0.3; // grazers as a share of all creatures; when it runs low 
 let hiveShare = 0; // hive members as a share of all creatures; raiders turn up more often while hives are common
 let alarms = []; // warnings clever grazers have called out in the last couple of seconds
 let areas = []; // the dish split into a 4 by 3 grid, with what's in each part, for animals deciding where to migrate
+let freshLife = true, freshNext = 60; // now and then very simple new life appears, usually near a vent
 let migrants = false, migrantT = { grazer: 0, pred: 0 }; // optional safety net: newcomers drift in when a whole tier is gone
 let meanSpAlive = 10; // creatures per living species, for "hunt what's common"
 let tool = 'kill';
@@ -750,7 +751,7 @@ function pushFor(c) {
   const sp = speciesDB.get(c.species);
   const p = sp ? sp.pressure || 0 : 0, h = sp ? sp.hunger || 0 : 0;
   if (p < 0.05 && h < 0.05) return null;
-  return { k: 1 + Math.max(p, h), def: 0.4 * p, att: 0.4 * h, role: roleOf(c) };
+  return { k: 1 + 0.4 * Math.max(p, h), def: 0.4 * p, att: 0.4 * h, role: roleOf(c) };
 }
 // a species left alone for three minutes starts to lose parts it no longer needs
 function fadeFor(c) {
@@ -929,7 +930,8 @@ class Creature {
   // energy it can give away and still be well fed, counting its fat
   get spare() { return this.energy + this.fat - this.maxEnergy * this.scale * 0.6; }
   // how much meat it can bank above its normal maximum; fat stores make room for more
-  get fatCap() { return this.maxEnergy * this.scale * (0.5 + this.organPow[ORGAN.FAT] * 0.25) * bal.fat; }
+  // hunters bank half as much fat: a full hunter can wait out a lean spell, but not for ages
+  get fatCap() { return this.maxEnergy * this.scale * (0.5 + this.organPow[ORGAN.FAT] * 0.25) * bal.fat * (this.attack > 0 && roleOf(this) === 2 ? 0.5 : 1); }
   // 0 in the prime of life, up to 1 for a newborn or a creature near the end of its lifespan
   get frailty() {
     const young = this.scale < this.maxScale ? (this.maxScale - this.scale) / 0.45 : 0;
@@ -959,7 +961,7 @@ class Creature {
     this.kinNear = kin;
     this.shadeN = shade;
     // crowds breed disease: a creature packed in with many relatives can fall ill
-    if (this.sick <= 0 && this.immune <= 0 && kin >= 6 && Math.random() < 0.001 * (kin - 5) * bal.disease * (1 - this.resist) * (1 - 0.27 * this.simpleF)) infect(this);
+    if (this.sick <= 0 && this.immune <= 0 && kin >= 6 && Math.random() < 0.00015 * (kin - 5) * bal.disease * (1 - this.resist) * (1 - 0.27 * this.simpleF)) infect(this);
     // Hibernation: in the cold, a creature with the instinct sleeps it off, unless it is well fed
     if (this.tr.torpor > 0.5 && !this.caste) {
       const c = this.coldHere();
@@ -1815,6 +1817,29 @@ function checkMigrants() {
     toast(`Six ${label} migrated in`);
   }
 }
+// Fresh life: every minute or two a few tiny, very simple creatures of a brand-new kind appear, usually by a vent.
+// Most are plants or grazers with one or two short lines; now and then a tiny biter. They have to make it on their own.
+function freshSpawn() {
+  freshNext = simTime + rand(60, 150);
+  if (creatures.length > defaultCount() * 6) return;
+  const g = randomGenome(), r = Math.random(), kind = r < 0.5 ? 'plant' : r < 0.9 ? 'grazer' : 'biter';
+  g.arms = randi(2, 3); g.hive = 0; g.social = rand(0, 0.3); g.absorbed = [];
+  const seg = type => ({ len: rand(5, 9), ang: rand(-0.6, 0.6), type, organ: ORGAN.NONE, th: rand(0.7, 1), os: 1 });
+  g.segs = kind === 'plant' ? [seg(TYPE.GREEN)] : kind === 'grazer' ? [seg(TYPE.CYAN), ...(Math.random() < 0.5 ? [seg(TYPE.YELLOW)] : [])] : [seg(TYPE.RED), seg(TYPE.YELLOW)];
+  const v = vents.length && Math.random() < 0.75 ? vents[randi(0, vents.length - 1)] : null, p = v ? null : freeSpot();
+  let made = null;
+  for (let i = 0; i < 3; i++) {
+    const a = rand(Math.PI * 2), d = rand(20, VENT_R * 0.6), x = v ? (v.x + Math.cos(a) * d + W) % W : p.x + rand(-20, 20), y = v ? (v.y + Math.sin(a) * d + H) % H : p.y + rand(-20, 20);
+    if (inRock(x, y)) continue;
+    const c = new Creature(cloneGenome(g), x, y, 0, 0);
+    c.scale = 0.7; c.energy = c.maxEnergy * c.scale * 0.8;
+    creatures.push(c);
+    registerBirth(c, null, v ? 'sprang up near a vent' : 'sprang up in open water');
+    addMark('birth', x, y);
+    made = c;
+  }
+  if (made) { note(made, 'sprang up as new, very simple life'); stats.fresh = (stats.fresh || 0) + 1; }
+}
 function spawnRandom(n, origin = 'seeded at the start') {
   for (let i = 0; i < n; i++) {
     const p = freeSpot(), c = new Creature(randomGenome(), p.x, p.y, 0, 0);
@@ -2100,7 +2125,7 @@ function drawVents(g, t) {
 // ---------- seasons, day and night, events ----------
 // Illness: a crowd can start it, touch spreads it. Survivors are immune for life, and their young inherit
 // resistance that halves each generation unless they come through it themselves.
-function infect(c) { c.sick = 20; hapCount('cases'); note(c, 'fell ill'); }
+function infect(c) { c.sick = 15; c.spread = Math.random() < 0.6 ? 0 : 1; hapCount('cases'); note(c, 'fell ill'); }
 function inheritResist(child, parents) { child.resist = Math.max(0, ...parents.map(p => p.survivor ? 0.75 : (p.resist || 0) / 2)); }
 
 // ---------- happenings ----------
@@ -2146,8 +2171,9 @@ function hapTick() {
   let sick = 0;
   for (const c of creatures) if (c.sick > 0) sick++;
   const ob = open.find(h => h.kind === 'outbreak');
-  if (!ob && sick >= 5) { hapOpen('outbreak', 'Disease outbreak'); stats.outbreaks++; }
-  else if (ob && !sick) hapClose(ob);
+  // an outbreak is 8 or more sick at once, and it's over once only a straggler is left
+  if (!ob && sick >= 8) { hapOpen('outbreak', 'Disease outbreak'); stats.outbreaks++; }
+  else if (ob && sick <= 1) hapClose(ob);
   for (const h of open) if ((h.kind === 'migration' || h.kind === 'rebound' || h.kind === 'raid') && simTime >= h.until) hapClose(h);
   // Bounce back: if an event or outbreak (or the half minute after it) cuts the dish by 40%, the survivors mutate faster for a while
   if (simTime - rebound.start > 180) for (const h of happenings) {
@@ -2325,7 +2351,7 @@ const PRESETS = {
   ],
 };
 function startDish(mode, n, coverAmount = coverLevel, rockAmount = rockLevel, ventAmount = ventLevel, migrate = migrants) {
-  migrants = migrate; migrantT = { grazer: 0, pred: 0 };
+  migrants = migrate; migrantT = { grazer: 0, pred: 0 }; freshNext = rand(60, 120);
   makeRocks(rockAmount);
   makeVents(ventAmount);
   makeCover(coverAmount);
@@ -2563,6 +2589,7 @@ function step(dt) {
   simTime += dt;
   const newSecond = Math.floor(simTime) !== Math.floor(simTime - dt);
   if (migrants && newSecond) checkMigrants();
+  if (freshLife && newSecond && simTime >= freshNext) freshSpawn();
   updateEnv(dt);
   if (newSecond) { ventStats(); areaTick(); hapTick(); if (Math.floor(simTime) % 10 === 0) pressureTick(); }
 
@@ -2632,8 +2659,9 @@ function step(dt) {
       if (!crowded && canBreed(a) && canBreed(b)) breed(a, b);
       // illness spreads by touch in a crowd
       if ((a.sick > 0) !== (b.sick > 0)) {
-        const w = a.sick > 0 ? b : a;
-        if (w.immune <= 0 && w.kinNear >= 4 && Math.random() < dt * 1.5 * bal.disease * (1 - w.resist)) infect(w);
+        // each sick creature passes it on to at most one other (and some to none), so an outbreak burns out instead of sweeping the herd
+        const w = a.sick > 0 ? b : a, src = w === a ? b : a;
+        if ((src.spread || 0) < 1 && w.immune <= 0 && w.kinNear >= 5 && Math.random() < dt * 0.4 * bal.disease * (1 - w.resist)) { src.spread = (src.spread || 0) + 1; infect(w); }
       }
       return;
     }
@@ -2866,7 +2894,7 @@ function gainMeat(c, x) {
   x *= c.digMeat;
   const cap = c.maxEnergy * c.scale, room = cap - c.energy;
   if (x <= room) c.energy += x;
-  else { c.energy = Math.max(c.energy, cap); c.fat = Math.min(c.fatCap, c.fat + x - Math.max(0, room)); }
+  else { c.energy = Math.max(c.energy, cap); c.fat = Math.min(c.fatCap, c.fat + (x - Math.max(0, room)) * 0.6); } // only part of a surplus is banked
   return x;
 }
 function feed(eater, prey, bites, dt) {
@@ -3878,6 +3906,7 @@ function seasonLeft() {
 function setRandomEvents(on) {
   eventsMode = on ? 1 : 0; nextEventT = 0;
   $('sEvents').value = String(eventsMode);
+  $('sFresh').value = freshLife ? '1' : '0';
   toast(on ? 'Random events on: something will happen every few minutes' : 'Random events off');
 }
 function showHappening(id) {
@@ -4185,7 +4214,7 @@ const spLink = name => `<button class="link" data-sp="${name}">${name}</button>`
 const GRAPHS = [
   { id: 'gPop', title: 'Population by way of life', note: 'Each creature is counted by its body: mostly green lines make a plant, cyan a grazer, and red, white or spitters a predator. Winters are shaded blue; yellow marks are events.' },
   { id: 'gBody', title: 'Simple and complex bodies', note: 'Share of creatures by body: simple is 6 parts or fewer, middle 7 to 15, complex 16 or more. Simple bodies are cheap and quick to raise; a complex body with many jobs runs cheaper and stores more.' },
-  { id: 'gPyramid', kind: 'pyramid', title: 'Food pyramid', note: 'Who is alive at each level of the food chain right now. Predators that mostly eat other predators are top predators; those that mostly eat corpses are scavengers.' },
+  { id: 'gPyramid', kind: 'pyramid', title: 'Food pyramid', note: 'Who is alive at each level of the food chain right now: how many, how much energy they hold between them, or how much each one holds on average. Predators that mostly eat other predators are top predators; those that mostly eat corpses are scavengers.' },
   { id: 'gTiers', title: 'Food chain over time' },
   { id: 'gAgePyr', kind: 'ages', title: 'Ages', note: 'Plants on the left (grass and shrubs), animals on the right by place in the food chain. By share of life: newborn is the first 10% of a creature\'s own lifespan, young to 25%, then early prime, prime and late prime to 75%, ageing to 90% and very old after that. Or switch to actual age.' },
   { id: 'gAge', title: 'Age over time', note: 'Average age of the living, and average age at death over the previous 20 seconds.' },
@@ -4286,9 +4315,11 @@ function renderGraphs(full) {
   const times = samples.map(s => s.t);
   drawChart('gPop', times, ROLE.map((r, k) => ({ label: r.label, color: r.color, values: samples.map(s => s.roles[k]) })));
   const last = samples[samples.length - 1];
-  $('gPyramidLg').innerHTML = [['count', 'Number alive'], ['energy', 'Energy held']].map(([k, l]) =>
+  $('gPyramidLg').innerHTML = [['count', 'Number alive'], ['energy', 'Energy held'], ['each', 'Energy per creature']].map(([k, l]) =>
     `<button class="ctl" data-pyr="${k}" aria-pressed="${pyrMode === k}">${l}</button>`).join('');
-  drawPyramid($('gPyramid'), last && (pyrMode === 'energy' ? last.tierEnergy : last.tiers));
+  // energy per creature: how much each member of a level holds on average
+  const perOne = s => s.tierEnergy && Object.fromEntries(Object.keys(s.tiers).map(k => [k, s.tiers[k] ? s.tierEnergy[k] / s.tiers[k] : 0]));
+  drawPyramid($('gPyramid'), last && (pyrMode === 'energy' ? last.tierEnergy : pyrMode === 'each' ? perOne(last) : last.tiers));
   drawChart('gTiers', times, TIERS.map(t => ({ label: t.label, color: t.color, values: samples.map(s => s.tiers ? s.tiers[t.key] : 0) })));
   drawAges($('gAgePyr'), last && (ageMode === 'time' ? last.agesT : last.ages), ageMode === 'time' ? AGES_T : AGES);
   $('gAgePyrLg').innerHTML = [['share', 'Share of life'], ['time', 'Actual age']].map(([k, l]) =>
@@ -4733,7 +4764,8 @@ function setFull(on) {
   document.body.classList.toggle('fs', on);
   $('bFull').setAttribute('aria-pressed', on); $('bFull').textContent = on ? 'Exit full screen' : 'Full screen';
   const p = $('panel');
-  if (on) { p.classList.add('min'); $('collapse').textContent = 'show'; $('collapse').setAttribute('aria-expanded', false); if (!drawer.hidden) closeDrawer(); }
+  // fold both cards down to their headers (they can still be opened) and close the drawer
+  if (on) { for (const [b, c] of [['collapse', 'panel'], ['collapse2', 'species']]) { $(c).classList.add('min'); $(b).textContent = 'show'; $(b).setAttribute('aria-expanded', false); } if (!drawer.hidden) closeDrawer(); }
   const el = document.documentElement;
   try {
     if (on && !document.fullscreenElement && el.requestFullscreen) el.requestFullscreen().catch(() => {});
@@ -4865,7 +4897,7 @@ setupEl.addEventListener('click', e => { if (e.target === setupEl) setupEl.hidde
 $('setupGo').onclick = () => {
   const mode = setupMode(), n = +$('rStart').value, coverAmount = +$('sCover').value, rockAmount = +$('sRocks').value;
   setupEl.hidden = true;
-  seasonMode = +$('sSeasons').value; dayNight = $('sDayNight').value === '1'; eventsMode = +$('sEvents').value;
+  seasonMode = +$('sSeasons').value; dayNight = $('sDayNight').value === '1'; eventsMode = +$('sEvents').value; freshLife = $('sFresh').value === '1';
   startDish(mode, n, coverAmount, rockAmount, +$('sVents').value, $('sMigrants').value === '1');
   renderDrawer(true);
   toast(mode === 'single' ? `New dish: ${n} copies of one simple ancestor` : mode === 'few' ? `New dish: three simple types, ${n} creatures` : mode === 'clever' ? `New dish: ${n} clever creatures` : `New dish: ${n} random creatures`);

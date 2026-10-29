@@ -2,9 +2,17 @@
 
 Every release stays playable. Pick one from the menu next to the title in the app, or open the file directly. The newest is always `index.html`.
 
+## v13.4: Omnivore young specialise & carrion disease (2026-10-29)
+
+`versions/v13.4.html` (also the current `index.html`). Follows v13.3, which stays in the menu.
+
+- **Omnivore young specialise.** When a parent feeds more than one way and no way makes up 70% of its feeding parts, there is a 15% chance that one part of its smallest feeding kind becomes its main kind in the young. Over a few generations mixed feeders drift back into plants, grazers or hunters. (A 40% chance cut omnivores further but made bodies much simpler and hunters rare.)
+- **Carrion carries disease.** Eating a corpse can make a creature ill, about a 15% chance for each second spent eating (scaled by the Disease slider and any inherited resistance). Scavengers are immune, hunters take half the risk, and plants and grazers take all of it.
+- **Test** (16 dishes, 15 minutes each, against 16 of v13.3): food chain held in 16 of 16. Omnivores now raise fewer young per life than plants or grazers (1.52, against 1.58 and 1.89; v13.3: 1.60, level with plants). Hunters went up from 13% to 19% of creatures, average body size from 7.2 to 9.0 parts, and complex bodies from 5% to 7%. Misses: the omnivore share did not fall (9%, v13.3: 8%, ranging from 2% to 24% per dish), because omnivores get only about 10% of their food from carrion and the illness is mild. The dish holds fewer creatures (377 on average, v13.3: 440).
+
 ## v13.3: Dead zones refill, hunting hives & fewer omnivores (2026-10-29)
 
-`versions/v13.3.html` (also the current `index.html`). Follows v13.2, which stays in the menu.
+`versions/v13.3.html`. Follows v13.2, which stays in the menu.
 
 Plan: https://claude.ai/artifact/8X54Z6rzPXf5tmpBx4dLM8
 

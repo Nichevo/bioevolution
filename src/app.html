@@ -400,7 +400,7 @@ select { font: inherit; color: var(--ink); background: var(--panel-solid); borde
     <div><svg viewBox="0 0 12 12" aria-hidden="true"><circle cx="6" cy="6" r="4.5" fill="none" stroke="#d9f99d" stroke-width="1.4" stroke-dasharray="1 2"/></svg><span><b>Thorny</b> a plant whose thorns prick grazers that nibble it</span></div>
     <div><svg viewBox="0 0 12 12" aria-hidden="true"><circle cx="6" cy="6" r="4.5" fill="none" stroke="#a16207" stroke-width="1.4"/></svg><span><b>Shrub</b> a tough plant: grows slowly, lives long, hard to eat</span></div>
     <div><svg viewBox="0 0 12 12" aria-hidden="true"><text x="3" y="10" font-size="10" fill="#bfdbfe">z</text></svg><span><b>Hibernating</b> asleep through the cold, using almost nothing</span></div>
-    <div><svg viewBox="0 0 12 12" aria-hidden="true"><rect x="2" y="3" width="2" height="2" fill="#cbd5e1"/><rect x="8" y="2" width="2" height="2" fill="#cbd5e1"/><rect x="5" y="8" width="2" height="2" fill="#cbd5e1"/></svg><span><b>Grey specks</b> sick: catches it in crowds, slower and hungrier for a while</span></div>
+    <div><svg viewBox="0 0 12 12" aria-hidden="true"><rect x="2" y="3" width="2" height="2" fill="#cbd5e1"/><rect x="8" y="2" width="2" height="2" fill="#cbd5e1"/><rect x="5" y="8" width="2" height="2" fill="#cbd5e1"/></svg><span><b>Grey specks</b> sick: catches it in crowds or from eating carrion, slower and hungrier for a while</span></div>
     <div><svg viewBox="0 0 12 12" aria-hidden="true"><circle cx="6" cy="6" r="3" fill="none" stroke="var(--ink)" stroke-width="1"/></svg><span><b>Small ring</b> an egg waiting for spring</span></div>
     <p class="hint" style="margin: 2px 0 0">Hidden instincts too: warm or cold-blooded, active by day or night, camouflage (faint), poison tolerance, caring for young, filter feeding (sieves food bits through its whole body), darting (escape bursts) and raiding (hunters drawn to hives). Hover a creature to see them.</p>
     <span class="label" style="margin-top: 4px">The dish</span>
@@ -481,7 +481,7 @@ select { font: inherit; color: var(--ink); background: var(--panel-solid); borde
 'use strict';
 
 // Which release this file is. versions/list.js lists every release, newest first.
-const APP_VERSION = 'v13.3';
+const APP_VERSION = 'v13.4';
 
 // ---------- constants ----------
 const TYPE = { GREEN: 0, RED: 1, BLUE: 2, YELLOW: 3, CYAN: 4, PURPLE: 5, WHITE: 6 };
@@ -661,8 +661,24 @@ function crossover(a, b) {
 }
 
 // push: from a species under pressure (or going hungry), more and bigger changes, leaning to defence (or attack)
+// A mixed feeder's young tend to lose a way of feeding: when no kind of feeding line (green for sun, cyan for bits,
+// red or white for meat) makes up 70% of them, 15% of the young turn one line of the smallest kind into the main kind.
+let SPECIALISE = 0.15;
+const feedKind = s => s.type === TYPE.GREEN ? 0 : s.type === TYPE.CYAN ? 1 : s.type === TYPE.RED || s.type === TYPE.WHITE ? 2 : -1;
+function specialise(g) {
+  const fk = [0, 0, 0];
+  for (const s of g.segs) { const k = feedKind(s); if (k >= 0) fk[k] += s.len * (s.th ?? 1); }
+  const tot = fk[0] + fk[1] + fk[2], top = Math.max(...fk);
+  if (fk.filter(v => v > 0).length < 2 || top >= 0.7 * tot || Math.random() >= SPECIALISE) return;
+  const main = fk.indexOf(top);
+  let low = -1;
+  for (let k = 0; k < 3; k++) if (fk[k] > 0 && k !== main && (low < 0 || fk[k] < fk[low])) low = k;
+  const segs = g.segs.filter(s => feedKind(s) === low), weapon = g.segs.find(s => feedKind(s) === 2);
+  segs[randi(0, segs.length - 1)].type = main === 0 ? TYPE.GREEN : main === 1 ? TYPE.CYAN : weapon.type;
+}
 function mutate(g, parentAbsorbed, push = null, fade = false) {
   const m = mutRate * (push ? push.k : 1) * reboundBoost();
+  specialise(g);
   for (const s of g.segs) {
     if (Math.random() < 0.12 * m) s.len = clamp(s.len + gauss() * 2, 3, 16);
     if (Math.random() < 0.12 * m) s.ang = clamp(s.ang + gauss() * 0.3, -1.6, 1.6);
@@ -2179,7 +2195,8 @@ function drawVents(g, t) {
 // ---------- seasons, day and night, events ----------
 // Illness: a crowd can start it, touch spreads it. Survivors are immune for life, and their young inherit
 // resistance that halves each generation unless they come through it themselves.
-function infect(c) { c.sick = 15; c.spread = Math.random() < 0.6 ? 0 : 1; hapCount('cases'); note(c, 'fell ill'); }
+const CARRION_SICK = 0.15; // chance per second of eating carrion
+function infect(c, why = 'fell ill') { c.sick = 15; c.spread = Math.random() < 0.6 ? 0 : 1; hapCount('cases'); note(c, why); }
 function inheritResist(child, parents) { child.resist = Math.max(0, ...parents.map(p => p.survivor ? 0.75 : (p.resist || 0) / 2)); }
 
 // ---------- happenings ----------
@@ -2845,6 +2862,9 @@ function scavenge(a, dt) {
       // a carrion specialist digests the dead 30% better
       const amount = Math.min(k.energy, bites * 30 * a.scale * dt);
       k.energy -= amount; k.eatT = simTime; a.ateCarrion += gainMeat(a, amount * bal.meat * (a.scavenger ? 1.3 : 1));
+      // the dead carry disease: scavengers are immune, hunters half so, and plants and grazers not at all
+      const risk = a.scavenger ? 0 : roleOf(a) === 2 ? 0.5 : 1;
+      if (risk && a.sick <= 0 && a.immune <= 0 && Math.random() < dt * CARRION_SICK * risk * bal.disease * (1 - a.resist)) infect(a, 'fell ill from eating carrion');
     }
   }
 }

@@ -2,9 +2,24 @@
 
 Every release stays playable. Pick one from the menu next to the title in the app, or open the file directly. The newest is always `index.html`.
 
+## v13.3: Dead zones refill, hunting hives & fewer omnivores (2026-10-29)
+
+`versions/v13.3.html` (also the current `index.html`). Follows v13.2, which stays in the menu.
+
+Plan: https://claude.ai/artifact/8X54Z6rzPXf5tmpBx4dLM8
+
+- **Dead zones refill.** About 1 young plant in 20 drifts into a neighbouring part of the dish, the emptiest one around. When a part of the dish that was lived in has had 3 or fewer creatures for a minute, new life springs up there instead of by a vent, and more often: plants first, then simple grazers once the plants have taken hold.
+- **Hunting hives feed their queen.** While the hive is calm, a hunting hive's soldiers hunt anything that wanders within 150px of the nest, and any soldier more than 70% full takes the spare home.
+- **Fewer omnivores.** Extra diets are wasted a little more (the waste factor goes from 0.75 to 0.875), and a brain cuts the waste by 40% instead of half. (A full-strength version also cost complex bodies about a third of their share in random dishes, so the halfway version was chosen.)
+- **Top species** card opens with a row counting how many are alive of each type, then the top 5.
+- **Species list** has a **Blood** filter (warm-blooded, cold-blooded, in between), and each row shows a warm or cold tag.
+- **Dying-out stories** show the species' numbers across its whole life in the side chart, plus whoever ate most of them.
+- **Season badge** in the dish's bottom-left corner: season, a ring that fills as it goes by, day or night; hover for details.
+- **Test** (16 dishes, 15 minutes each, against 16 of v13.2): food chain held in 16 of 16 (v13.2: 14 of 16). Parts of the dish with 3 or fewer creatures fell from 1.14 to 0.25 at any moment, dead spells from 92 to 31, and their average length from 2.4 to 1.5 minutes. Omnivore species fell from 13% to 8% of creatures. Random-soup dishes kept their complexity (complex bodies 27%, v13.2 batches 24-32%). Simple bodies still starve least in every role. In 8 hive-heavy dishes (full omnivore change), hunting-hive queens starved 34% of the time (v13.2: 55%). Misses: in ordinary dishes, hunting-hive queens still starve 64% of the time (v13.2: 66%, few queens). Omnivores still raise about as many young per life as plants (1.60 against 1.59). Hunters with 7+ parts starve a little more per minute alive (0.40 against 0.37).
+
 ## v13.2: Hive castes, raider boost & clearer top predators (2026-10-29)
 
-`versions/v13.2.html` (also the current `index.html`). Follows v13.1, which stays in the menu.
+`versions/v13.2.html`. Follows v13.1, which stays in the menu.
 
 Plan: https://claude.ai/artifact/AHZsSX5u3uTUGSzm2rajCa
 

@@ -71,7 +71,10 @@ h1 { margin: 0; font-family: var(--font-display); font-weight: 800; font-size: 2
 h2 { margin: 0; font-family: var(--font-display); font-weight: 800; font-size: 15px; color: var(--ink); }
 #verPick { margin-right: auto; padding: 2px 4px; font-size: 11px; color: var(--ink-dim); }
 .toggle { background: none; border: 1px solid var(--panel-line); color: var(--ink-dim); border-radius: 6px; font: inherit; padding: 2px 8px; cursor: pointer; }
-.card.min > :not(header) { display: none !important; }
+.card.min > :not(header):not(.quick) { display: none !important; }
+.card.min > .quick { margin-top: 8px; }
+.quick .ctl { padding-left: 8px; padding-right: 8px; }
+body.fs #species, body.fs #drawer { display: none !important; }
 .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 12px; font-variant-numeric: tabular-nums; }
 .stats div { display: flex; justify-content: space-between; gap: 6px; }
 .stats span { color: var(--ink-dim); }
@@ -171,7 +174,7 @@ input[type=range] { width: 100%; accent-color: var(--accent); }
 #zoom { position: fixed; right: max(16px, env(safe-area-inset-right, 0px)); bottom: calc(12px + env(safe-area-inset-bottom, 0px)); display: flex; gap: 4px; z-index: 3; }
 #zoom button.ctl { background: var(--panel); min-width: 34px; font-variant-numeric: tabular-nums; }
 #world.grabbing { cursor: grabbing; }
-@media (max-width: 760px) { #zoom { right: auto; left: max(16px, env(safe-area-inset-left, 0px)); bottom: auto; top: calc(78px + env(safe-area-inset-top, 0px)); } /* clear of the Top species card */ }
+@media (max-width: 760px) { #zoom { right: auto; left: max(16px, env(safe-area-inset-left, 0px)); bottom: auto; top: calc(160px + env(safe-area-inset-top, 0px)); } /* clear of the Top species card and the main controls */ }
 #toast {
   position: fixed; left: 50%; transform: translateX(-50%);
   bottom: calc(18px + env(safe-area-inset-bottom, 0px));
@@ -179,6 +182,14 @@ input[type=range] { width: 100%; accent-color: var(--accent); }
 }
 /* story mode, spotlight and life diary */
 #storyBar, #lifeCard { position: fixed; top: auto; left: 50%; transform: translateX(-50%); bottom: calc(56px + env(safe-area-inset-bottom, 0px)); width: min(560px, calc(100vw - 32px)); z-index: 4; display: grid; gap: 8px; }
+#storyGraph { position: fixed; top: auto; height: auto; max-height: none; align-content: start; right: max(16px, env(safe-area-inset-right, 0px)); bottom: calc(56px + env(safe-area-inset-bottom, 0px)); width: min(340px, calc(100vw - 32px)); z-index: 4; display: grid; gap: 6px; }
+#storyGraph[hidden] { display: none; }
+#storyGraph .sghead { display: flex; gap: 10px; align-items: baseline; }
+#storyGraph .sghead b { margin-right: auto; font-size: 13px; color: var(--ink); }
+#storyGraph canvas { width: 100%; height: 120px; }
+#storyGraph .lg { font-size: 11px; }
+@media (max-width: 1240px) { #storyGraph { bottom: calc(200px + env(safe-area-inset-bottom, 0px)); } }
+@media (max-width: 760px) { #storyGraph { left: 50%; right: auto; transform: translateX(-50%); bottom: calc(220px + env(safe-area-inset-bottom, 0px)); } #storyGraph canvas { height: 90px; } }
 #storyBar p { margin: 0; color: var(--ink); font-size: 14px; line-height: 1.45; text-wrap: pretty; }
 #lifeCard .lhead { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: baseline; }
 #lifeCard .lhead button { margin-left: auto; }
@@ -187,7 +198,7 @@ input[type=range] { width: 100%; accent-color: var(--accent); }
 #spotChip { position: fixed; left: 50%; transform: translateX(-50%); top: calc(12px + env(safe-area-inset-top, 0px)); z-index: 4; display: flex; gap: 10px; align-items: center; background: var(--panel); border: 1px solid rgba(253, 230, 138, 0.5); border-radius: 999px; padding: 5px 12px; color: var(--ink); max-width: calc(100vw - 32px); }
 .hshow { padding: 0 0 6px 18px; }
 #spotText { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-@media (max-width: 760px) { #spotChip { top: calc(124px + env(safe-area-inset-top, 0px)); } #storyBar, #lifeCard { bottom: calc(84px + env(safe-area-inset-bottom, 0px)); } }
+@media (max-width: 760px) { #spotChip { top: calc(206px + env(safe-area-inset-top, 0px)); } #storyBar, #lifeCard { bottom: calc(84px + env(safe-area-inset-bottom, 0px)); } }
 /* new dish dialog */
 #setup { position: fixed; inset: 0; z-index: 8; display: grid; place-items: center; background: rgba(2, 4, 8, 0.6); padding: 16px; }
 .setupcard { width: min(520px, 100%); max-height: 100%; overflow-y: auto; background: var(--panel-solid); border: 1px solid var(--panel-line); border-radius: 12px; padding: 18px; display: grid; gap: 14px; }
@@ -255,6 +266,7 @@ select { font: inherit; color: var(--ink); background: var(--panel-solid); borde
 .dhead canvas#dFirst { width: 36px; height: 36px; border-radius: 6px; }
 .dmeta { display: grid; gap: 6px; justify-items: start; min-width: 0; }
 #drawerBody .dname { font-size: 20px; letter-spacing: -0.01em; }
+.btag { font-weight: 600; }
 .pill { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; border: 1px solid var(--panel-line); }
 .pill.live { color: var(--accent); border-color: rgba(143, 227, 208, 0.5); }
 .pill.dead { color: var(--ink-dim); }
@@ -285,6 +297,15 @@ select { font: inherit; color: var(--ink); background: var(--panel-solid); borde
     <button class="toggle" id="collapse" aria-expanded="true">hide</button>
   </header>
 
+  <div class="row quick" aria-label="Main controls">
+    <button class="ctl" id="bPause" aria-pressed="false">Pause</button>
+    <button class="ctl" id="bSpeed">Speed 1×</button>
+    <button class="ctl" id="bStory" aria-pressed="false">Stories</button>
+    <button class="ctl" id="bView">View: normal</button>
+    <button class="ctl" id="bWhole" title="Show the whole dish (Esc)">Whole dish</button>
+    <button class="ctl" id="bFull" aria-pressed="false" title="Hide the panels and go full screen">Full screen</button>
+  </div>
+
   <div class="stats">
     <div><span>alive</span><b id="sPop">0</b></div>
     <div><span>species</span><b id="sSpecies">0</b></div>
@@ -305,16 +326,12 @@ select { font: inherit; color: var(--ink); background: var(--panel-solid); borde
   </div>
 
   <div class="row">
-    <button class="ctl" id="bPause" aria-pressed="false">Pause</button>
-    <button class="ctl" id="bSpeed">Speed 1×</button>
     <button class="ctl" id="bTrails" aria-pressed="true">Trails</button>
     <button class="ctl" id="bAdd">+10</button>
     <button class="ctl" id="bReset">New dish…</button>
   </div>
 
   <div class="row">
-    <button class="ctl" id="bStory" aria-pressed="false">Stories</button>
-    <button class="ctl" id="bView">View: normal</button>
     <button class="ctl" id="bMarks">Marks: off</button>
     <button class="ctl" id="bBig" aria-pressed="false">Pause on big moments</button>
   </div>
@@ -411,6 +428,7 @@ select { font: inherit; color: var(--ink); background: var(--panel-solid); borde
 <div id="inspect" hidden></div>
 <div id="toast" hidden></div>
 <div id="storyBar" class="card" hidden aria-live="polite"><p id="storyText"></p><div class="row"><button class="ctl" id="storyNext">Next story</button><button class="ctl" id="storyFollow">Follow this one</button><button class="ctl" id="storyStop">Stop</button></div></div>
+<div id="storyGraph" class="card" hidden><div class="sghead"><b id="sgTitle"></b><button class="link" id="sgPin">Pin</button><button class="link" id="sgClose" aria-label="Close chart">✕</button></div><div class="lg" id="sgLg"></div><canvas id="sgChart"></canvas></div>
 <div id="spotChip" hidden><span id="spotText"></span><button class="link" id="spotClear">clear</button></div>
 <div id="lifeCard" class="card" hidden></div>
 <div id="zoom" role="group" aria-label="Zoom">
@@ -461,7 +479,7 @@ select { font: inherit; color: var(--ink); background: var(--panel-solid); borde
 'use strict';
 
 // Which release this file is. versions/list.js lists every release, newest first.
-const APP_VERSION = 'v12';
+const APP_VERSION = 'v13';
 
 // ---------- constants ----------
 const TYPE = { GREEN: 0, RED: 1, BLUE: 2, YELLOW: 3, CYAN: 4, PURPLE: 5, WHITE: 6 };
@@ -472,7 +490,7 @@ const ORGAN = { NONE: 0, EYE: 1, FAT: 2, BROOD: 3, SPIT: 4, BRAIN: 5, NOSE: 6 };
 const NO = 7;
 const ORGAN_COLOR = [null, '#e8f1ff', '#fb923c', '#f472b6', '#a3e635', '#fde68a', '#fda4af'];
 const ORGAN_NAME = [null, 'eye', 'fat', 'brood', 'spitter', 'brain', 'nose'];
-const ORGAN_UPKEEP = [0, 0.14, 0.05, 0.1, 0.15, 0.12, 0.08]; // energy per second (a brain's cost is worked out from its size)
+const ORGAN_UPKEEP = [0, 0.11, 0.05, 0.1, 0.15, 0.12, 0.08]; // energy per second (a brain's cost is worked out from its size)
 // Inherited instincts, each 0 to 1, that don't show as body parts.
 // warm: warm-blooded (0.5 is in between); night: 0 active by day, 1 by night, 0.5 either
 // thorns: a plant's thorns hurt grazers that nibble it; mouth: a grazer's tough mouth that thorns can't hurt
@@ -602,7 +620,7 @@ function randomGenome() {
   for (let i = 0, n = randi(1, 3); i < n; i++) segs.push(randomSeg());
   // social: 0 = loner, 1 = always with relatives (herds for prey, packs for hunters)
   // hive: above 0.5 (with a brain) the creature founds a hive of workers instead of breeding normally
-  return { arms: randi(2, 5), mirror: Math.random() < 0.5, segs, hue: rand(360), spin: rand(-0.6, 0.6), social: Math.random() < 0.5 ? rand(0, 0.3) : rand(0.3, 1), hive: Math.random() < 0.1 ? rand(0.5, 1) : rand(0, 0.3), absorbed: [], t: randomTraits() };
+  return { arms: randi(2, 5), mirror: Math.random() < 0.5, segs, hue: rand(360), spin: rand(-0.6, 0.6), social: Math.random() < 0.5 ? rand(0, 0.3) : rand(0.3, 1), hive: Math.random() < 0.1 ? rand(0.5, 1) : rand(0, 0.3), venom: rand(0.3, 0.7), absorbed: [], t: randomTraits() };
 }
 // most instincts start switched off; a few random creatures are born with one
 function randomTraits() {
@@ -613,7 +631,7 @@ function randomTraits() {
 const traitsOf = g => ({ ...TRAIT_DEFAULTS, ...(g.t || {}) });
 
 function cloneGenome(g) {
-  return { arms: g.arms, mirror: g.mirror, hue: g.hue, spin: g.spin, social: g.social ?? 0.2, hive: g.hive ?? 0, segs: g.segs.map(s => ({ ...s })), absorbed: [], t: traitsOf(g) };
+  return { arms: g.arms, mirror: g.mirror, hue: g.hue, spin: g.spin, social: g.social ?? 0.2, hive: g.hive ?? 0, venom: g.venom ?? 0.5, segs: g.segs.map(s => ({ ...s })), absorbed: [], t: traitsOf(g) };
 }
 
 function crossover(a, b) {
@@ -630,6 +648,7 @@ function crossover(a, b) {
   g.hue = (Math.atan2(Math.sin(ha) + Math.sin(hb), Math.cos(ha) + Math.cos(hb)) * 180 / Math.PI + 360) % 360;
   g.spin = (a.spin + b.spin) / 2;
   g.social = ((a.social ?? 0.2) + (b.social ?? 0.2)) / 2;
+  g.venom = ((a.venom ?? 0.5) + (b.venom ?? 0.5)) / 2;
   g.hive = ((a.hive ?? 0) + (b.hive ?? 0)) / 2;
   // each instinct comes from one parent or the other
   const ta = traitsOf(a), tb = traitsOf(b);
@@ -638,7 +657,7 @@ function crossover(a, b) {
 }
 
 // push: from a species under pressure (or going hungry), more and bigger changes, leaning to defence (or attack)
-function mutate(g, parentAbsorbed, push = null) {
+function mutate(g, parentAbsorbed, push = null, fade = false) {
   const m = mutRate * (push ? push.k : 1) * reboundBoost();
   for (const s of g.segs) {
     if (Math.random() < 0.12 * m) s.len = clamp(s.len + gauss() * 2, 3, 16);
@@ -658,6 +677,9 @@ function mutate(g, parentAbsorbed, push = null) {
   g.spin = clamp(g.spin + gauss() * 0.08 * m, -1.5, 1.5);
   g.social = clamp((g.social ?? 0.2) + gauss() * 0.06 * m, 0, 1);
   g.hive = clamp((g.hive ?? 0) + gauss() * 0.05 * m, 0, 1);
+  // a sting leans to a long freeze (venom near 1) or to weakening the prey for the kill (near 0)
+  g.venom = clamp((g.venom ?? 0.5) + gauss() * 0.08 * m, 0, 1);
+  if (Math.random() < 0.01 * m) g.venom = rand(1);
   // once in a while the hive instinct switches on in one step
   if (Math.random() < 0.008 * m * bal.hive) g.hive = rand(0.6, 0.9);
   // instincts drift a little, and now and then one switches on or off in one step
@@ -673,10 +695,10 @@ function mutate(g, parentAbsorbed, push = null) {
   }
   if (push && Math.random() < push.def) defend(g, push.role);
   if (push && Math.random() < push.att) sharpen(g, push.role);
-  // with no pressure on the species, the arms race fades: young now and then shed a part they no longer need
-  if (!push) {
-    if (Math.random() < 0.03 * m && g.segs.length > 1) g.segs.splice(randi(0, g.segs.length - 1), 1);
-    if (Math.random() < 0.02 * m) { const o = g.segs.filter(s => s.organ !== ORGAN.NONE && s.organ !== ORGAN.BRAIN); if (o.length) o[randi(0, o.length - 1)].organ = ORGAN.NONE; }
+  // after three calm minutes the arms race fades: young now and then shed a part they no longer need
+  if (!push && fade) {
+    if (Math.random() < 0.015 * m && g.segs.length > 1) g.segs.splice(randi(0, g.segs.length - 1), 1);
+    if (Math.random() < 0.01 * m) { const o = g.segs.filter(s => s.organ !== ORGAN.NONE && s.organ !== ORGAN.BRAIN); if (o.length) o[randi(0, o.length - 1)].organ = ORGAN.NONE; }
   }
   return g;
 }
@@ -729,6 +751,11 @@ function pushFor(c) {
   const p = sp ? sp.pressure || 0 : 0, h = sp ? sp.hunger || 0 : 0;
   if (p < 0.05 && h < 0.05) return null;
   return { k: 1 + Math.max(p, h), def: 0.4 * p, att: 0.4 * h, role: roleOf(c) };
+}
+// a species left alone for three minutes starts to lose parts it no longer needs
+function fadeFor(c) {
+  const sp = speciesDB.get(c.species);
+  return !!sp && simTime - (sp.calmT ?? simTime) > 180;
 }
 // a burst of extra mutation after a die-off, fading over a minute and a half
 const reboundBoost = () => 1 + 0.75 * clamp((rebound.until - simTime) / 90, 0, 1);
@@ -853,6 +880,7 @@ class Creature {
     this.noseR = this.organs[ORGAN.NOSE] ? Math.min(200, 70 + this.organPow[ORGAN.NOSE] * 30) : this.attack > 0 ? 45 : this.pow[TYPE.CYAN] > 0 || tr.filter > 0.5 ? 60 : this.g.social > 0.3 ? 40 : 0;
     // eye level 1 to 3 from the eyes' total size: a hunter whose eyes outrank its prey's has the edge, and the other way round
     this.eyeLv = this.organs[ORGAN.EYE] ? (this.organPow[ORGAN.EYE] < 1.2 ? 1 : this.organPow[ORGAN.EYE] < 2.4 ? 2 : 3) : 0;
+    this.eyeR *= 1 + 0.2 * this.eyeLv; // each eye level sees a fifth further
     this.sight = Math.max(this.eyeR, this.noseR);
     // armour is heavy, and spreads its toughness over the whole body: up to half off every bite
     this.mass = this.totalPow + 10 + this.organPow[ORGAN.FAT] * 10 + this.organPow[ORGAN.BRAIN] * 3 * bal.brainCost + this.pow[TYPE.BLUE] * 0.4;
@@ -878,10 +906,13 @@ class Creature {
     const bu = this.organPow[ORGAN.BRAIN] * 0.5;
     // simple bodies (6 parts or fewer) get the small-life advantages; they fade out by 10 parts
     this.simpleF = clamp((10 - this.parts) / 4, 0, 1);
-    this.baseUpkeep = 0.3 + this.totalPow * 0.032 + Math.pow(this.parts, 1.25) * 0.03
-      + this.pow[TYPE.YELLOW] * 0.05 - this.pow[TYPE.CYAN] * 0.04 + this.pow[TYPE.RED] * 0.01 + this.pow[TYPE.PURPLE] * 0.02 + this.pow[TYPE.WHITE] * 0.015 - this.pow[TYPE.BLUE] * 0.012
+    this.baseUpkeep = 0.3 + this.totalPow * 0.032 + Math.pow(this.parts, 1.18) * 0.03
+      + this.pow[TYPE.YELLOW] * 0.015 - this.pow[TYPE.CYAN] * 0.04 + this.pow[TYPE.RED] * 0.01 + this.pow[TYPE.PURPLE] * 0.02 + this.pow[TYPE.WHITE] * 0.015 - this.pow[TYPE.BLUE] * 0.012
       + this.organPow.reduce((s, n, o) => s + (o === ORGAN.BRAIN ? 0 : n * ORGAN_UPKEEP[o]), 0) + (0.16 * Math.min(bu, 1.5) + 0.3 * Math.max(0, bu - 1.5)) * bal.brainCost
       + (this.g.social ?? 0) * 0.1 + (this.g.hive ?? 0) * 0.1 + Object.keys(TRAIT_COST).reduce((s, k) => s + (tr[k] > 0.5 ? TRAIT_COST[k] * tr[k] : 0), 0);
+    // many jobs: a big body (12+ parts) using 4 or more line colours runs a tenth cheaper and stores more
+    this.manyJobs = this.parts >= 12 && this.pow.filter(p => p > 0).length >= 4;
+    if (this.manyJobs) { this.baseUpkeep *= 0.85; this.maxEnergy *= 1.15; }
     // warm-blooded bodies cost more to run (more still in the cold) but keep going when it's cold
     this.warmCost = 0.7 + 0.6 * tr.warm;
     this.ws = this.local.map(() => ({ x1: 0, y1: 0, x2: 0, y2: 0, type: 0, organ: 0 }));
@@ -928,7 +959,7 @@ class Creature {
     this.kinNear = kin;
     this.shadeN = shade;
     // crowds breed disease: a creature packed in with many relatives can fall ill
-    if (this.sick <= 0 && this.immune <= 0 && kin >= 6 && Math.random() < 0.001 * (kin - 5) * bal.disease * (1 - this.resist) * (1 - 0.4 * this.simpleF)) infect(this);
+    if (this.sick <= 0 && this.immune <= 0 && kin >= 6 && Math.random() < 0.001 * (kin - 5) * bal.disease * (1 - this.resist) * (1 - 0.27 * this.simpleF)) infect(this);
     // Hibernation: in the cold, a creature with the instinct sleeps it off, unless it is well fed
     if (this.tr.torpor > 0.5 && !this.caste) {
       const c = this.coldHere();
@@ -950,7 +981,7 @@ class Creature {
     const pack = 1 + this.kinNear * social * 0.5; // a pack can take on prey a loner couldn't
     // eyes lose most of their reach in the dark, less so for night creatures
     // ...while a nose works even better at night
-    const eyeR = this.eyeR * this.scale * (1 - 0.55 * env.night * (1 - this.tr.night)), noseR = this.noseR * this.scale * (this.organs[ORGAN.NOSE] ? 1 + 0.3 * env.night : 1);
+    const eyeR = this.eyeR * this.scale * Math.min(1, (1 - 0.55 * env.night * (1 - this.tr.night)) * (this.eyeLv === 3 ? 1 + 0.5 * env.night : 1)), noseR = this.noseR * this.scale * (this.organs[ORGAN.NOSE] ? 1 + 0.3 * env.night : 1);
     const range = Math.max(eyeR, noseR), sniff = this.organs[ORGAN.NOSE] ? 60 : 25;
     const loner = social < 0.3 && isPredator(this) && !this.caste;
     if (loner && !this.home && this.age > MATURE_AGE) this.home = { x: this.x, y: this.y };
@@ -975,7 +1006,7 @@ class Creature {
       // camouflage halves how far off eyes can pick it out (only a quarter against sharper eyes than its own), and a small,
       // simple body is noticed a quarter closer in; anything beyond that has to be smelt (up close, within 45, any creature places things exactly)
       const sharper = this.eyeLv > o.eyeLv;
-      const smelt = d > eyeR * (1 - (sharper ? 0.25 : 0.5) * o.tr.camo) * (1 - 0.25 * o.simpleF) && d > 45;
+      const smelt = d > eyeR * (1 - (sharper ? 0.25 : 0.5) * o.tr.camo) * (1 - 0.17 * o.simpleF) && d > 45;
       if (smelt && d > noseR) continue;
       const mem = this.memory && this.memory.get(o.species);
       if (d < 80 && isPredator(o)) predNear++;
@@ -1026,7 +1057,7 @@ class Creature {
         consider(dx, dy, 0.08 * B * theirBite / d, true, 'dodging');
       } else if (hunter && (mem !== 'poison' || this.tr.tol > 0.7) && mem !== 'spiky' && !(this.shyT > 0 && this.shy === o.species)) {
         // bite size: a hunter only goes for prey up to a bit bigger than itself (a pack can take bigger)
-        if (o.radius > this.radius * 1.3 * pack) continue;
+        if (o.radius > this.radius * (this.pow[TYPE.WHITE] > 0 ? 1.5 : 1.3) * pack) continue; // a stinger can pin bigger prey
         if (this.lostId === o.id && simTime < this.lostT) continue; // lost in the herd for now
         // without a brain, a hunter that has been poisoned shies away from anything with the poison look, mimics included
         const looksPoison = o.pow[TYPE.PURPLE] > 0 || o.tr.mimic > 0.5;
@@ -1403,12 +1434,12 @@ class Creature {
 
     // grazers grow up faster
     const top = this.maxScale;
-    if (this.scale < top && this.energy > this.maxEnergy * 0.4) this.scale = Math.min(top, this.scale + dt * 0.05 * (roleOf(this) === 1 ? 1.6 : 1) * (1 + 0.4 * this.simpleF));
+    if (this.scale < top && this.energy > this.maxEnergy * 0.4) this.scale = Math.min(top, this.scale + dt * 0.05 * (roleOf(this) === 1 ? 1.6 : 1) * (1 + 0.27 * this.simpleF));
 
     // the cold slows a cold-blooded body down; a warm-blooded one pays to keep going
     this.findVent();
     // simple bodies feel the cold less
-    const cold = this.coldHere() * (1 - 0.3 * this.simpleF), w = this.tr.warm, perf = 1 - (1 - w) * cold * 0.7;
+    const cold = this.coldHere() * (1 - 0.2 * this.simpleF), w = this.tr.warm, perf = 1 - (1 - w) * cold * 0.7;
     // energy in: sunlight on green segments (shared out when the dish is crowded)
     this.hidden = inCover(this.x, this.y);
     // weed beds shade out half the sun
@@ -1472,12 +1503,12 @@ class Creature {
     const running = m === 'fleeing' || m === 'clumping' || m === 'guarding' || (m === 'hiding' && !this.hidden);
     const chasing = HUNT_MOODS.has(m);
     // predators lunge: red segments add thrust while chasing
-    let thrust = (this.pow[TYPE.YELLOW] * 9 + 3 + (chasing ? this.pow[TYPE.RED] * 3 : 0)) / this.mass;
-    if (running || chasing) { thrust *= 1.6; upkeep += this.pow[TYPE.YELLOW] * 0.03 * s; }
+    let thrust = (this.pow[TYPE.YELLOW] * 10 + 3 + (chasing ? this.pow[TYPE.RED] * 3 : 0)) / this.mass;
+    if (running || chasing) { thrust *= 1.6; upkeep += this.pow[TYPE.YELLOW] * 0.02 * s; }
     else if (this.tr.filter > 0.5) { thrust *= 0.6; upkeep *= 0.8; } // a filter feeder drifts slowly and cheaply
-    if (!chasing) thrust += this.wrig * 0.5 / this.mass; // wriggling gets an animal about, but is no use for a chase
+    if (!chasing && !running) thrust += this.wrig * 0.5 / this.mass; // wriggling gets an animal about, but is no use for a chase or an escape
     if (this.slowT > 0) { this.slowT -= dt; thrust *= 0.5; } // hit by spit
-    if (this.dartT > 0) { this.dartT -= dt; thrust = Math.max(thrust * 3, 1.5); } // an escape burst
+    if (this.dartT > 0) { this.dartT -= dt; thrust = Math.max(thrust * 3 * (this.pow[TYPE.YELLOW] > 0 ? 1.5 : 1), 1.5); } // an escape burst, faster with yellow
     if (running) thrust *= this.stamina;
     if (this.pounce > 0) { this.pounce -= dt; thrust *= 2; }
     if (m === 'migrating') thrust *= 1.2;
@@ -1487,6 +1518,7 @@ class Creature {
     if (this.paralysed > 0 || (m === 'hiding' && this.hidden) || m === 'ambushing' || m === 'luring' || this.torpid) thrust = 0;
     else if (this.hidden) thrust *= 0.6; // weeds are slow going
     if (m === 'ambushing' || m === 'luring') upkeep *= 0.7; // lying still saves energy
+    if (this.organs[ORGAN.EYE] && (!this.goal || this.hidden || m === 'ambushing')) upkeep -= this.organPow[ORGAN.EYE] * ORGAN_UPKEEP[ORGAN.EYE] / 3 * s; // resting eyes cost less
     else if (!running && !chasing && this.scavenger) upkeep *= 0.8; // scavenging is a low-energy life
     // the fat reserve pays the bills first; fat stores burn half as fast in the cold
     const bill = upkeep * dt, fk = this.organs[ORGAN.FAT] ? 1 - 0.5 * cold : 1, fromFat = Math.min(this.fat, bill * fk);
@@ -1547,10 +1579,10 @@ class Creature {
       const t = this.goal && this.goal.target;
       if (this.spitT <= 0 && t && !t.dead && chasing) {
         const d = Math.hypot(this.goal.dx, this.goal.dy) || 1;
-        if (d < 160) {
+        if (d < 240) {
           this.spitT = 1.6;
           this.energy -= 1.5;
-          globs.push({ x: this.x, y: this.y, vx: this.goal.dx / d * 170, vy: this.goal.dy / d * 170, life: 1.1, owner: this, power: 8 + this.organPow[ORGAN.SPIT] * 4 });
+          globs.push({ x: this.x, y: this.y, vx: this.goal.dx / d * 170, vy: this.goal.dy / d * 170, life: 1.6, owner: this, power: 8 + this.organPow[ORGAN.SPIT] * 4 });
         }
       }
     }
@@ -2159,6 +2191,7 @@ function pressureTick() {
     const st = sp.starves ? sp.starves.length : 0;
     const hu = (sp.role === 1 || sp.role === 2) && m.n + st >= 5 ? clamp(st / (m.n + st) / 0.25, 0, 1) : 0;
     sp.hunger = 0.5 * (sp.hunger || 0) + 0.5 * hu;
+    if (sp.pressure >= 0.05 || sp.hunger >= 0.05 || sp.calmT === undefined) sp.calmT = simTime;
   }
   // a species under heavy pressure starts an arms race in the Happenings; it ends when the pressure is off
   let races = happenings.filter(h => h.kind === 'arms' && h.t1 === null).length;
@@ -2395,6 +2428,8 @@ const TRAITS = [
   { key: 'poison', label: 'Poison', color: '#a78bfa', live: c => c.len[TYPE.PURPLE] > 0, spec: sp => sp.len[TYPE.PURPLE] > 0 },
   { key: 'armour', label: 'Armour', color: '#60a5fa', live: c => c.len[TYPE.BLUE] > 0, spec: sp => sp.len[TYPE.BLUE] > 0 },
   { key: 'sting', label: 'Stinger', color: '#f1f5f9', live: c => c.len[TYPE.WHITE] > 0, spec: sp => sp.len[TYPE.WHITE] > 0 },
+  { key: 'freeze', label: 'Freeze sting', color: '#e0f2fe', live: c => c.len[TYPE.WHITE] > 0 && (c.g.venom ?? 0.5) > 0.65, spec: sp => sp.len[TYPE.WHITE] > 0 && (sp.genome.venom ?? 0.5) > 0.65 },
+  { key: 'weaken', label: 'Weakening sting', color: '#fecdd3', live: c => c.len[TYPE.WHITE] > 0 && (c.g.venom ?? 0.5) < 0.35, spec: sp => sp.len[TYPE.WHITE] > 0 && (sp.genome.venom ?? 0.5) < 0.35 },
   { key: 'spit', label: 'Spitter', color: '#a3e635', live: c => c.organs[ORGAN.SPIT] > 0, spec: sp => sp.organs[ORGAN.SPIT] > 0 },
   { key: 'social', label: 'Pack or herd', color: '#fda4af', live: c => (c.g.social ?? 0) > 0.3, spec: sp => (sp.genome.social ?? 0) > 0.3 },
   { key: 'hive', label: 'Hive', color: '#f472b6', live: c => !!c.caste, spec: sp => (sp.genome.hive ?? 0) > 0.5 && specBrain(sp) >= 0.5 },
@@ -2444,6 +2479,7 @@ const ageBand = c => AGES.find(a => c.age / c.lifespan < a.max).key;
 const ageBandT = c => AGES_T.find(a => c.age < a.max).key;
 
 // halve the resolution of a long series so the whole run still fits
+const spPartSum = new Map(); // parts summed per species while sampling
 function decimate(arr) { return arr.filter((_, i) => i % 2 === 0 || i === arr.length - 1); }
 // average arms race scores; a type with nobody alive keeps its last score rather than dropping to 0
 function armsScores(sum, n) {
@@ -2482,6 +2518,7 @@ function takeSample() {
     for (let i = 0; i < GN; i++) if (v[i] > 0) { geneN[i]++; sg[i]++; if (gb) geneNBy[gk][i]++; }
     if (gb) for (let i = 0; i < v.length; i++) gb[i] += v[i];
     if (c.parts <= 6) simple++; else if (c.parts >= 16) complex++;
+    spPartSum.set(c.species, (spPartSum.get(c.species) || 0) + c.parts);
     brainLv[c.brain >= 2.5 ? 3 : c.brain >= 1.5 ? 2 : c.brain >= 0.5 ? 1 : 0]++;
     for (const t of INSTINCTS) if (t.live(c)) inst[t.key]++;
     armsSum += c.g.arms; lenSum += c.total; thickSum += c.thick;
@@ -2490,10 +2527,11 @@ function takeSample() {
   for (const sp of speciesDB.values()) {
     if (sp.alive > 0) alive++;
     if (sp.alive > 0 || (sp.hist.length && sp.hist[sp.hist.length - 1][1] > 0)) {
-      sp.hist.push([simTime, sp.alive]);
+      sp.hist.push([simTime, sp.alive, sp.alive ? (spPartSum.get(sp.name) || 0) / sp.alive : null]);
       if (sp.hist.length > 400) sp.hist = decimate(sp.hist);
     }
   }
+  spPartSum.clear();
   meanSpAlive = Math.max(1, creatures.length / Math.max(1, alive));
   samples.push({
     t: simTime, pop: creatures.length, roles, genes, parts: creatures.length ? parts / creatures.length : 0, social: creatures.length ? social / creatures.length : 0,
@@ -2622,7 +2660,7 @@ function step(dt) {
       if (c.caste === 'queen') { if (!c.dead && c.age > MATURE_AGE && c.cooldown <= 0 && c.fullness > 0.5) layEgg(c); continue; }
       if (c.caste || crowdedOut(c)) continue; // workers can't breed
       if (!c.dead && c.age > matureAge(c) && c.cooldown <= 0 && c.scale >= 1 && c.energy > c.maxEnergy * 0.92) {
-        const g = mutate(cloneGenome(c.g), c.g.absorbed, pushFor(c)), cheap = youngCost(c);
+        const g = mutate(cloneGenome(c.g), c.g.absorbed, pushFor(c), fadeFor(c)), cheap = youngCost(c);
         const child = new Creature(g, (c.x + rand(-8, 8) + W) % W, (c.y + rand(-8, 8) + H) % H, c.energy * 0.4 * cheap, c.gen + 1);
         c.energy *= 1 - 0.5 * cheap; c.cooldown = BREED_COOLDOWN * 1.5 * litterGap(c); c.kids++;
         child.parents = [c.id]; inheritResist(child, [c]); child.scavBorn = c.scavenger; note(c, 'budded off a youngster');
@@ -2656,8 +2694,8 @@ function step(dt) {
       const dx = wrapD(c.x - b.x, W), dy = wrapD(c.y - b.y, H), r = Math.max(5, c.radius * 0.55);
       if (dx * dx + dy * dy > r * r) continue;
       if (geneticDistance(b.owner.g, c.g) < 0.3) continue;
-      const dmg = Math.min(c.energy + 0.01, b.power / (1 + c.pow[TYPE.BLUE] / 12) * groupFactor(b.owner, c, true));
-      c.energy -= dmg; c.flash = 1; c.slowT = 2; // a hit slows it down for a couple of seconds
+      const dmg = Math.min(c.energy + 0.01, b.power / (1 + c.pow[TYPE.BLUE] / 12) * groupFactor(b.owner, c, true) * stungBonus(c));
+      c.energy -= dmg; c.flash = 1; c.slowT = 2 + (c.paralysed > 0 ? 1 : 0); // a hit slows it down for a couple of seconds
       c.remember(b.owner.species, 'danger');
       if (!b.owner.dead) b.owner.ateMeat += gainMeat(b.owner, dmg * 0.9 * bal.meat * c.meatQ);
       if (c.energy <= 0) killedBy(b.owner, c);
@@ -2708,7 +2746,7 @@ function scavenge(a, dt) {
 // grazers breed on less
 // simple bodies grow up about 30% sooner and very complex ones later; their young cost less to make
 const matureAge = c => MATURE_AGE * clamp(0.7 + (c.parts - 6) * 0.03, 0.7, 1.4);
-const youngCost = c => 1 - 0.3 * c.simpleF;
+const youngCost = c => 1 - 0.2 * c.simpleF;
 function breedThreshold(c) { return Math.min(0.85, Math.max(0.3, 0.55 - c.organPow[ORGAN.BROOD] * 0.07) + c.brain * 0.03) - (roleOf(c) === 1 ? 0.1 : 0); }
 // predators take longer between litters than the creatures they eat
 const isPredator = c => c.attack > c.pow[TYPE.GREEN] && c.attack > c.pow[TYPE.CYAN];
@@ -2730,7 +2768,7 @@ function breed(a, b) {
   a.energy *= 1 - 0.3 * ca * (1 - 0.5 * niche); b.energy *= 1 - 0.3 * cb * (1 - 0.5 * niche);
   a.cooldown = BREED_COOLDOWN * litterGap(a) * (1 - 0.4 * niche); b.cooldown = BREED_COOLDOWN * litterGap(b) * (1 - 0.4 * niche);
   for (let i = 0; i < twins; i++) {
-    const g = mutate(crossover(a.g, b.g), Math.random() < 0.5 ? a.g.absorbed : b.g.absorbed, pushFor(a));
+    const g = mutate(crossover(a.g, b.g), Math.random() < 0.5 ? a.g.absorbed : b.g.absorbed, pushFor(a), fadeFor(a));
     const child = new Creature(g, (a.x + rand(-5, 5) + W) % W, (a.y + rand(-5, 5) + H) % H, e, Math.max(a.gen, b.gen) + 1);
     child.parents = [a.id, b.id]; inheritResist(child, [a, b]); child.scavBorn = a.scavenger || b.scavenger;
     a.kids++; b.kids++;
@@ -2749,7 +2787,7 @@ function layDormant(parent, child, parents) {
 // Most of a queen's eggs hatch as workers; a well-fed queen now and then lays a young queen, who leaves to start her own hive.
 // A new hive gets a head start: its first four workers come quickly, cheaply and bigger than usual.
 function layEgg(q) {
-  const g = mutate(cloneGenome(q.g), q.g.absorbed, pushFor(q)), first = (q.laid || 0) < 4;
+  const g = mutate(cloneGenome(q.g), q.g.absorbed, pushFor(q), fadeFor(q)), first = (q.laid || 0) < 4;
   const child = new Creature(g, (q.x + rand(-6, 6) + W) % W, (q.y + rand(-6, 6) + H) % H, q.energy * (first ? 0.12 : 0.18), q.gen + 1);
   child.parents = [q.id]; inheritResist(child, [q]);
   if (first || !(q.fullness > 0.85 && Math.random() < 0.12)) { child.caste = 'worker'; child.queen = q; child.lifespan *= 0.8; if (first) child.scale = 0.75; }
@@ -2818,6 +2856,8 @@ function groupFactor(attacker, victim, ranged = false) {
   return (1 + attacker.kinNear * (attacker.g.social ?? 0) * 0.3) / (1 + crowd) * (1 + victim.frailty)
     * (1 - victim.armor) * (victim.guardT > 0 ? 0.6 : 1) * (victim.caste === 'queen' && simTime - (victim.queenT ?? -99) < 60 ? 0.3 : 1);
 }
+// a stung creature is easier to hurt while the sting holds it
+const stungBonus = c => c.paralysed > 0 ? c.vuln || 1 : 1;
 // a kill set up by a tactic lands a harder bite
 const tacticBonus = (eater, prey) => eater.goal && eater.goal.target === prey && eater.goal.tactic && eater.goal.tactic !== 'plain' ? 1.3 : 1;
 
@@ -2831,7 +2871,7 @@ function gainMeat(c, x) {
 }
 function feed(eater, prey, bites, dt) {
   // eyes sharper than the prey's land the bite better
-  const amount = Math.min(prey.energy + 0.01, bites * 45 * eater.scale * dt * groupFactor(eater, prey) * tacticBonus(eater, prey) * (1 - 0.6 * prey.toughF) * (1 + 0.15 * Math.max(0, eater.eyeLv - prey.eyeLv)));
+  const amount = Math.min(prey.energy + 0.01, bites * 45 * eater.scale * dt * groupFactor(eater, prey) * tacticBonus(eater, prey) * (1 - 0.6 * prey.toughF) * (1 + 0.15 * Math.max(0, eater.eyeLv - prey.eyeLv)) * stungBonus(prey));
   prey.energy -= amount;
   eater.ateMeat += gainMeat(eater, amount * 1.25 * bal.meat * prey.meatQ);
   prey.flash = 1;
@@ -2864,13 +2904,16 @@ function teachPack(me, species) {
   }
 }
 function sting(stinger, victim, n, dt) {
-  victim.paralysed = Math.max(victim.paralysed, 2.5);
+  // venom near 1 freezes longer; near 0 freezes briefly but leaves the prey far easier to hurt; spit slowing it adds a second
+  const v = stinger.g.venom ?? 0.5, freeze = 1.5 + 2.5 * v + (victim.slowT > 0 ? 1 : 0), vuln = 1.2 + 0.6 * (1 - v);
+  victim.vuln = victim.paralysed > 0 ? Math.max(victim.vuln || 1, vuln) : vuln;
+  victim.paralysed = Math.max(victim.paralysed, freeze);
   if (victim.goal && victim.goal.target === stinger && !isPredator(stinger)) {
     victim.shy = stinger.species; victim.shyT = 20; victim.remember(stinger.species, 'spiky');
     note(stinger, `stung a ${victim.species} that went for it, and it backed off`);
     victim.goal = { dx: wrapD(stinger.x - victim.x, W), dy: wrapD(stinger.y - victim.y, H), flee: true, target: null }; victim.mood = 'fleeing';
   }
-  const amount = Math.min(victim.energy + 0.01, n * 30 * stinger.scale * dt * groupFactor(stinger, victim) * tacticBonus(stinger, victim));
+  const amount = Math.min(victim.energy + 0.01, n * 32 * stinger.scale * dt * groupFactor(stinger, victim) * tacticBonus(stinger, victim) * stungBonus(victim));
   victim.energy -= amount;
   stinger.ateMeat += gainMeat(stinger, amount * bal.meat * victim.meatQ);
   victim.flash = 1;
@@ -2977,6 +3020,16 @@ function centreOn(list, zMin = 1.5) {
   clampCam(); $('zReset').textContent = Math.round(cam.z * 100) + '%';
   return true;
 }
+// the busiest part of a spread-out group, a wider net than bestCluster
+function bestClusterWide(list) {
+  let best = null, bn = -1;
+  for (const p of list.length > 60 ? list.filter((_, i) => i % Math.ceil(list.length / 60) === 0) : list) {
+    let n = 0;
+    for (const o of list) if (Math.abs(wrapD(o.x - p.x, W)) < 300 && Math.abs(wrapD(o.y - p.y, H)) < 220) n++;
+    if (n > bn) { bn = n; best = p; }
+  }
+  return best ? list.filter(o => Math.abs(wrapD(o.x - best.x, W)) < 300 && Math.abs(wrapD(o.y - best.y, H)) < 220) : list;
+}
 // the tightest bunch in a list: the member with the most others within 160px, and those others
 function bestCluster(list) {
   let best = null, bn = -1;
@@ -3006,9 +3059,103 @@ function showHap(h) {
 }
 const canShow = h => h.t1 === null && ['arms', 'raid', 'migration', 'sweep', 'outbreak', 'event'].includes(h.kind) && (h.kind !== 'event' || h.zone);
 
+
+// ---------- happening stories ----------
+// Bigger happenings make stories too. The camera frames everyone involved and a small chart beside the caption follows the numbers.
+const HAP_STORY_SCORE = { raid: 6, outbreak: 5, arms: 4.5, migration: 4, rebound: 4, sweep: 3.5, season: 3 };
+function hapMembers(h) {
+  if (h.kind === 'arms') return creatures.filter(c => c.species === h.prey || c.species === h.hunter);
+  if (h.kind === 'raid') return creatures.filter(c => c.species === h.hive || c.species === h.raider);
+  if (h.kind === 'migration') return creatures.filter(c => c.migrate && c.migrate.hap === h);
+  if (h.kind === 'outbreak') return creatures.filter(c => c.sick > 0);
+  if (h.kind === 'sweep') return creatures.filter(c => h.carriers.includes(c.species));
+  return [];
+}
+function hapStoryCandidates(out) {
+  for (const h of happenings) {
+    if (h.t1 !== null || !HAP_STORY_SCORE[h.kind]) continue;
+    if (h.kind === 'season' && simTime - h.t0 > 25) continue;
+    const seen = story.hapSeen.get(h.id);
+    if (seen !== undefined && simTime - seen < 90) continue;
+    if (['arms', 'raid', 'migration', 'outbreak', 'sweep'].includes(h.kind) && !hapMembers(h).length) continue;
+    out.push({ kind: 'hap', h, a: null, score: HAP_STORY_SCORE[h.kind] });
+  }
+}
+function hapCaption(h) {
+  if (h.kind === 'arms') return `An arms race: ${h.prey} keep being eaten by ${h.hunter}, so their young are evolving defences faster, and the hunters are evolving to keep up.`;
+  if (h.kind === 'raid') return `A hive raid: ${h.raider} hunters killed a ${h.hive} queen. Watch whether the hive recovers.`;
+  if (h.kind === 'migration') return `A migration: ${h.n} ${h.species} are leaving the ${h.from} for the ${h.to}, looking for more food.`;
+  if (h.kind === 'outbreak') return `A disease outbreak. The sick are lit up; crowded relatives catch it from each other.`;
+  if (h.kind === 'sweep') return `A gene sweep: ${GENE_LABELS[h.gene]} is spreading fast through the dish.`;
+  if (h.kind === 'rebound') return `A bounce back after the ${h.cause.toLowerCase()}: the survivors are evolving faster for a while.`;
+  return `${h.label} begins. Watch how plants, grazers and hunters change with the season.`;
+}
+function hapOutcome(s) {
+  const h = s.h, age = simTime - s.t0;
+  if (h.t1 !== null) {
+    if (h.kind === 'outbreak') return `The outbreak is over: ${h.survivors} recovered and are now immune, ${h.sickDeaths} died while sick.`;
+    if (h.kind === 'migration') return `The migration is over: ${h.arrived} arrived.`;
+    if (h.kind === 'arms') return `The pressure is off the ${h.prey}. The arms race is over, for now.`;
+    if (h.kind === 'raid') return `The ${h.hive} hive ${hiveOf(h.hive) ? `is rebuilding, with ${hiveOf(h.hive)} workers` : 'did not recover'}.`;
+    return `${h.label} is over.`;
+  }
+  return age > 25 ? '' : null;
+}
+// the chart beside the caption: what to plot for each kind of happening
+function hapSeries(s) {
+  const h = s.h;
+  if (['season', 'rebound', 'sweep'].includes(h.kind)) {
+    const from = samples.filter(x => x.t >= h.t0 - 20), times = from.map(x => x.t);
+    if (h.kind === 'sweep') return { times, fmt: v => Math.round(v) + '%', series: [{ label: `${GENE_LABELS[h.gene]} carriers`, color: '#facc15', values: from.map(x => x.pop && x.geneN ? x.geneN[h.gene] / x.pop * 100 : 0) }] };
+    return { times, series: [{ label: 'plants', color: '#4ade80', values: from.map(x => x.roles ? x.roles[0] : 0) }, { label: 'grazers', color: '#22d3ee', values: from.map(x => x.roles ? x.roles[1] : 0) }, { label: 'hunters', color: '#f87171', values: from.map(x => x.roles ? x.roles[2] : 0) }] };
+  }
+  const b = s.buf, col = i => b.rows.map(r => r[i]);
+  if (h.kind === 'arms') return { times: b.times, fmt: v => Math.round(v), series: [{ label: `${h.prey} alive`, color: '#22d3ee', values: col(0) }, { label: `${h.hunter} alive`, color: '#f87171', values: col(1) }, { label: 'their defence', color: '#93c5fd', dash: true, values: col(2) }, { label: 'hunters\' attack', color: '#fca5a5', dash: true, values: col(3) }] };
+  if (h.kind === 'outbreak') return { times: b.times, series: [{ label: 'sick now', color: '#facc15', values: col(0) }, { label: 'recovered', color: '#4ade80', values: col(1) }, { label: 'died sick', color: '#f87171', values: col(2) }] };
+  if (h.kind === 'migration') return { times: b.times, series: [{ label: 'on the way', color: '#facc15', values: col(0) }, { label: 'arrived', color: '#4ade80', values: col(1) }, { label: 'lost', color: '#f87171', values: col(2) }] };
+  return { times: b.times, series: [{ label: `${h.hive} hive workers`, color: '#f472b6', values: col(0) }, { label: `${h.raider} alive`, color: '#fb923c', values: col(1) }] };
+}
+function hapRecord(s) {
+  const h = s.h, b = s.buf;
+  if (simTime - (b.last ?? -99) < 1) return;
+  b.last = simTime;
+  let row = null;
+  if (h.kind === 'arms') {
+    const p = creatures.filter(c => c.species === h.prey), k = creatures.filter(c => c.species === h.hunter), r = p.length ? roleOf(p[0]) : 1;
+    const avg = (l, f) => l.length ? l.reduce((a, c) => a + f(c), 0) / l.length * 100 : 0;
+    row = [p.length, k.length, avg(p, r === 0 ? plantDefence : grazerDefence), avg(k, hunterAttack)];
+  } else if (h.kind === 'outbreak') row = [creatures.reduce((n, c) => n + (c.sick > 0 ? 1 : 0), 0), h.survivors, h.sickDeaths];
+  else if (h.kind === 'migration') row = [creatures.reduce((n, c) => n + (c.migrate && c.migrate.hap === h ? 1 : 0), 0), h.arrived, h.gaveUp + h.diedOnWay];
+  else if (h.kind === 'raid') row = [hiveOf(h.hive), speciesDB.get(h.raider)?.alive || 0];
+  if (row) { b.times.push(simTime); b.rows.push(row); if (b.times.length > 240) { b.times.shift(); b.rows.shift(); } }
+}
+function drawStoryGraph() {
+  const s = story.pin || (story.on && story.cur && story.cur.kind === 'hap' && !story.cur.noGraph ? story.cur : null), el = $('storyGraph');
+  if (!s) { el.hidden = true; return; }
+  if (s.h.t1 === null) hapRecord(s);
+  el.hidden = false;
+  const now = performance.now();
+  if (now - (story.graphT || 0) < 400) return;
+  story.graphT = now;
+  $('sgTitle').textContent = s.h.label + (s.h.t1 !== null ? ' (over)' : '');
+  $('sgPin').textContent = story.pin ? 'Unpin' : 'Pin';
+  const d = hapSeries(s);
+  lineChart($('sgChart'), d.times, d.series, d.fmt || fmtInt);
+  $('sgLg').innerHTML = d.series.map(x => `<span><i style="background:${x.color}"></i>${x.label} <b>${(d.fmt || fmtInt)(x.values.length ? x.values[x.values.length - 1] : 0)}</b></span>`).join('');
+}
+// where the camera should be to frame a group, without moving it
+function frameOf(list) {
+  let sx = 0, cx = 0, sy = 0, cy = 0;
+  for (const p of list) { const ax = p.x / W * 2 * Math.PI, ay = p.y / H * 2 * Math.PI; sx += Math.sin(ax); cx += Math.cos(ax); sy += Math.sin(ay); cy += Math.cos(ay); }
+  const mx = (Math.atan2(sx, cx) / (2 * Math.PI) * W + W) % W, my = (Math.atan2(sy, cy) / (2 * Math.PI) * H + H) % H;
+  let spread = 60;
+  for (const p of list) spread = Math.max(spread, Math.abs(wrapD(p.x - mx, W)), Math.abs(wrapD(p.y - my, H)));
+  return { x: mx, y: my, z: clamp(Math.min(W, H) / (2.4 * spread + 80), 1, 3) };
+}
+
 // ---------- story mode ----------
 // Every so often the camera picks the most interesting thing going on, follows it, and a caption tells the story.
-const story = { on: false, cur: null, holdUntil: 0, seen: new Map(), nextLook: 0 };
+const story = { on: false, cur: null, holdUntil: 0, seen: new Map(), hapSeen: new Map(), nextLook: 0, pin: null };
 const ageWord = c => c.frailty > 0.3 ? (c.scale < c.maxScale ? 'young ' : 'old ') : c.fullness < 0.25 ? 'starving ' : '';
 const roleNoun = c => c.caste === 'queen' ? 'queen' : c.caste ? 'hive worker' : { prod: 'plant', graze: 'grazer', pred: 'hunter', top: 'top hunter', scav: 'scavenger' }[tierOf(c)] || 'creature';
 const who = c => `${c.species} ${roleNoun(c)}`;
@@ -3028,7 +3175,6 @@ function storyCandidates() {
       // a chase after a plant is less of a story than one after something that can run
       out.push({ kind: 'chase', a: c, b: t, score: 3 + Math.min(3, pack - 1) + (t.kinNear >= 3 ? 1 : 0) + (t.caste === 'queen' ? 2 : 0) - (roleOf(t) === 0 ? 1.5 : 0) });
     } else if (c.mood === 'scavenging' && c.scavenger) out.push({ kind: 'scav', a: c, score: 2 });
-    else if (c.migrate && c.migrate.hap && c.migrate.hap.t1 === null) out.push({ kind: 'migrate', a: c, score: 3 });
     else if (c.mood === 'following') out.push({ kind: 'follow', a: c, score: 2.5 });
   }
   // the last few of a once-common species, and brand-new species finding their feet
@@ -3041,11 +3187,22 @@ function storyCandidates() {
   }
   for (const c of lastOf.values()) out.push({ kind: 'last', a: c, score: 5 });
   for (const c of newOf.values()) out.push({ kind: 'new', a: c, score: 3 });
+  hapStoryCandidates(out);
   // don't keep showing the same species
-  for (const s of out) { const t = story.seen.get(s.a.species); if (t !== undefined && simTime - t < 60) s.score *= 0.35; s.score += Math.random() * 0.5; }
+  for (const s of out) { if (!s.a) { s.score += Math.random() * 0.5; continue; } const t = story.seen.get(s.a.species); if (t !== undefined && simTime - t < 60) s.score *= 0.35; s.score += Math.random() * 0.5; }
   return out;
 }
 function storyStart(s) {
+  if (s.kind === 'hap') {
+    story.cur = { ...s, t0: simTime, buf: { times: [], rows: [] } };
+    story.hapSeen.set(s.h.id, simTime);
+    const m = hapMembers(s.h), sp = [...new Set(m.map(c => c.species))];
+    if (s.h.kind === 'outbreak' || s.h.kind === 'migration') setSpot(s.h.kind === 'outbreak' ? 'the sick' : `${s.h.species} on the move`, [], m.map(c => c.id));
+    else if (m.length) setSpot(sp.slice(0, 2).join(' and ') + (sp.length > 2 ? ` and ${sp.length - 2} more` : ''), sp, []);
+    else clearSpot();
+    storyCaption(hapCaption(s.h));
+    return;
+  }
   story.cur = { ...s, t0: simTime, lostT: null, ate0: s.a.ateCarrion, sp0: speciesDB.get(s.a.species)?.alive || 0 };
   story.seen.set(s.a.species, simTime);
   const a = s.a, b = s.b, ids = [a.id];
@@ -3069,6 +3226,7 @@ function storyStart(s) {
 // how the current story has turned out, or null while it's still going
 function storyOutcome() {
   const s = story.cur, a = s.a, b = s.b, age = simTime - s.t0;
+  if (s.kind === 'hap') return hapOutcome(s);
   if (s.kind === 'chase' || s.kind === 'guard' || s.kind === 'raid') {
     if (b.dead) return b.killer === a.species ? (s.kind === 'raid' ? `The queen has fallen. The raiders feast on her store.` : `Caught. The ${a.species} ${chasers(a, b).length > 1 ? 'pack shares' : 'eats'} its kill.`) : `The ${b.species} died.`;
     if (a.dead) return s.kind === 'raid' ? `The hive's guards killed the raider.` : `The ${who(a)} died.`;
@@ -3095,7 +3253,7 @@ function storyOn() {
 }
 function storyOff() {
   if (!story.on) return;
-  story.on = false; story.cur = null; clearSpot();
+  story.on = false; story.cur = null; clearSpot(); drawStoryGraph();
   $('storyBar').hidden = true; $('bStory').setAttribute('aria-pressed', 'false');
 }
 function storyNext() { story.cur = null; story.holdUntil = 0; }
@@ -3114,7 +3272,10 @@ function storyTick(dt) {
   // the camera eases towards the action
   const s = story.cur;
   let tx = W / 2, ty = H / 2, tz = 1;
-  if (s && !s.a.dead) {
+  if (s && s.kind === 'hap') {
+    if (s.done) { tx = cam.x; ty = cam.y; tz = cam.z; }
+    else { if (!s.frame || simTime - s.frameT > 1) { const m = hapMembers(s.h); s.frame = m.length ? frameOf(m.length > 3 && s.h.kind !== 'migration' ? bestClusterWide(m) : m) : { x: W / 2, y: H / 2, z: 1 }; s.frameT = simTime; } tx = s.frame.x; ty = s.frame.y; tz = s.frame.z; }
+  } else if (s && !s.a.dead) {
     tx = s.a.x; ty = s.a.y; tz = 2.6;
     if (s.b && !s.b.dead) { const dx = wrapD(s.b.x - s.a.x, W), dy = wrapD(s.b.y - s.a.y, H); tx += dx / 2; ty += dy / 2; tz = clamp(Math.min(W, H) / (2.2 * Math.hypot(dx, dy) + 160), 1.6, 3.2); }
   } else if (s && s.done) { tx = cam.x; ty = cam.y; tz = cam.z; }
@@ -3761,12 +3922,19 @@ function renderHappen(full) {
   $('hDisease').innerHTML = tile('Outbreaks so far', stats.outbreaks) + tile('Sick now', sick) +
     tile('Immune survivors', `${immune} <small>alive</small>`) + tile('Inherited resistance', `${resist} <small>alive</small>`);
 }
+// body type by part count: simple 6 or fewer, complex 16 or more
+const bodyType = n => n <= 6 ? 'simple' : n >= 16 ? 'complex' : 'middle';
+const BODY_COLOR = { simple: '#4ade80', middle: '#facc15', complex: '#f87171' };
+const bodyTag = n => `<span class="btag" style="color:${BODY_COLOR[bodyType(n)]}">${bodyType(n)}</span>`;
+const stingPath = g => (g.venom ?? 0.5) > 0.65 ? 'freeze' : (g.venom ?? 0.5) < 0.35 ? 'weakening' : 'balanced';
 function traitText(c) {
   const t = c.tr, out = [t.warm > 0.65 ? 'warm-blooded' : t.warm < 0.35 ? 'cold-blooded' : 'part warm-blooded', t.night > 0.65 ? 'out at night' : t.night < 0.35 ? 'out by day' : 'out day and night'];
   const on = { torpor: 'hibernates', mimic: 'mimics poison', lure: 'lure', camo: 'camouflaged', tol: 'poison tolerant', eggs: 'lays eggs for spring', tough: 'tough', care: 'cares for young', thorns: 'thorny', mouth: 'tough mouth', filter: 'filter feeder', dart: 'darter', raid: 'hive raider' };
   for (const k in on) if (t[k] > 0.5 && (k !== 'care' || c.brain >= 1) && (k !== 'lure' && k !== 'raid' || c.attack > 0) && (k !== 'thorns' || c.pow[TYPE.GREEN] > 0) && (k !== 'mouth' || c.pow[TYPE.CYAN] > 0) && (k !== 'filter' && k !== 'dart' || roleOf(c) !== 0)) out.push(on[k]);
   if (c.eyeLv) out.push(`eyes level ${c.eyeLv}`);
+  if (c.len[TYPE.WHITE] > 0) out.push(stingPath(c.g) + ' sting');
   if (c.simpleF >= 1) out.push('simple body');
+  if (c.manyJobs) out.push('many jobs');
   if (c.scavenger) out.push('carrion specialist');
   return out.join(' · ');
 }
@@ -3799,7 +3967,7 @@ function updatePanel() {
     r.row.dataset.name = s.name;
     const rec = speciesDB.get(s.name), top = rec && groupOf(rec) === 'top';
     r.n.innerHTML = (top ? '<span class="crown" title="Top predator">♛</span> ' : '') + s.name;
-    r.m.textContent = `${s.rep.parts} part${s.rep.parts === 1 ? '' : 's'} · gen ${s.gen}`;
+    r.m.innerHTML = `${s.rep.parts} part${s.rep.parts === 1 ? '' : 's'} · ${bodyTag(s.rep.parts)} · gen ${s.gen}`;
     r.c.textContent = s.count;
   });
 
@@ -3984,7 +4152,7 @@ function sparkline(cv, hist, color) {
 
 // ---------- graphs & species drawer ----------
 const drawer = $('drawer'), drawerBody = $('drawerBody');
-let drawerTab = 'graphs', openSpecies = null, spFilter = 'alive', spSort = 'pop', drawerView = '';
+let drawerTab = 'graphs', openSpecies = null, spFilter = 'alive', spSort = 'pop', drawerView = '', spBody = 'any';
 let spTraits = new Set(), spBrain = 0; // species filters: traits a species must have, and the smallest brain
 
 function openDrawer(tab, name = null) {
@@ -4016,6 +4184,7 @@ const spLink = name => `<button class="link" data-sp="${name}">${name}</button>`
 
 const GRAPHS = [
   { id: 'gPop', title: 'Population by way of life', note: 'Each creature is counted by its body: mostly green lines make a plant, cyan a grazer, and red, white or spitters a predator. Winters are shaded blue; yellow marks are events.' },
+  { id: 'gBody', title: 'Simple and complex bodies', note: 'Share of creatures by body: simple is 6 parts or fewer, middle 7 to 15, complex 16 or more. Simple bodies are cheap and quick to raise; a complex body with many jobs runs cheaper and stores more.' },
   { id: 'gPyramid', kind: 'pyramid', title: 'Food pyramid', note: 'Who is alive at each level of the food chain right now. Predators that mostly eat other predators are top predators; those that mostly eat corpses are scavengers.' },
   { id: 'gTiers', title: 'Food chain over time' },
   { id: 'gAgePyr', kind: 'ages', title: 'Ages', note: 'Plants on the left (grass and shrubs), animals on the right by place in the food chain. By share of life: newborn is the first 10% of a creature\'s own lifespan, young to 25%, then early prime, prime and late prime to 75%, ageing to 90% and very old after that. Or switch to actual age.' },
@@ -4145,6 +4314,12 @@ function renderGraphs(full) {
       return span > 0 ? (s.deaths[d.key] - samples[j].deaths[d.key]) / span * 60 : 0;
     }),
   })), v => v.toFixed(v < 10 ? 1 : 0));
+  drawChart('gBody', times, [
+    { label: 'simple', color: '#4ade80', values: samples.map(x => x.pop && x.simple !== undefined ? x.simple / x.pop * 100 : 0) },
+    { label: 'middle', color: '#facc15', values: samples.map(x => x.pop && x.simple !== undefined ? (x.pop - x.simple - x.complex) / x.pop * 100 : 0) },
+    { label: 'complex', color: '#f87171', values: samples.map(x => x.pop && x.complex !== undefined ? x.complex / x.pop * 100 : 0) },
+  ], v => Math.round(v) + '%');
+  if ($('gBodyLg') && samples.length) $('gBodyLg').innerHTML += `<span>average <b>${(samples[samples.length - 1].parts || 0).toFixed(1)}</b> parts</span>`;
   drawChart('gSocial', times, [{ label: 'sociality', color: '#fda4af', values: samples.map(s => s.social ?? 0) }], v => v.toFixed(2));
   // per-minute rate of a running total, over the previous 20 seconds
   function rate(i, get) {
@@ -4244,24 +4419,28 @@ function renderSpeciesList(full) {
   if (full) {
     drawerBody.innerHTML = `<div class="listbar"><div class="seg">${['alive', 'extinct', 'all'].map(f =>
       `<button class="ctl" data-filter="${f}" aria-pressed="${f === spFilter}">${f[0].toUpperCase() + f.slice(1)}</button>`).join('')}</div>
-      <label class="sort" for="spSort">Sort <select id="spSort">${[['pop', 'Alive now'], ['level', 'Food chain level'], ['peak', 'Peak size'], ['kills', 'Kills'], ['brain', 'Brain size'], ['new', 'Newest'], ['old', 'Oldest']]
+      <label class="sort" for="spSort">Sort <select id="spSort">${[['pop', 'Alive now'], ['level', 'Food chain level'], ['peak', 'Peak size'], ['kills', 'Kills'], ['brain', 'Brain size'], ['parts', 'Most parts'], ['new', 'Newest'], ['old', 'Oldest']]
         .map(([v, l]) => `<option value="${v}"${v === spSort ? ' selected' : ''}>${l}</option>`).join('')}</select></label></div>
       <div class="seg wrap">${[['all', 'All groups'], ...GROUPS.map(g => [g.key, g.label])].map(([k, l]) =>
         `<button class="ctl" data-group="${k}" aria-pressed="${k === spGroup}">${l}</button>`).join('')}</div>
       <div class="filters"><span class="k">Has</span>${TRAITS.filter(t => !t.noFilter).map(t => `<button class="ctl" data-trait="${t.key}" aria-pressed="${spTraits.has(t.key)}">${t.label}</button>`).join('')}
+        <label for="spBody" class="k">Body</label><select id="spBody">${[['any', 'Any'], ['simple', 'Simple'], ['middle', 'Middle'], ['complex', 'Complex']].map(([v, l]) => `<option value="${v}"${v === spBody ? ' selected' : ''}>${l}</option>`).join('')}</select>
         <label for="spBrain" class="k">Brain</label><select id="spBrain">${[[0, 'Any'], [0.5, 'Clever or better'], [1.5, 'Cunning or better'], [2.5, 'Brilliant']].map(([v, l]) => `<option value="${v}"${v === spBrain ? ' selected' : ''}>${l}</option>`).join('')}</select></div>
       <p class="note" id="spCount"></p><div id="spList" class="splist"></div>`;
     $('spSort').onchange = e => { spSort = e.target.value; renderSpeciesList(false); };
     $('spBrain').onchange = e => { spBrain = +e.target.value; renderSpeciesList(false); };
+    $('spBody').onchange = e => { spBody = e.target.value; renderSpeciesList(false); };
   }
   let list = [...speciesDB.values()].filter(s => spFilter === 'all' || (spFilter === 'alive' ? s.alive > 0 : s.alive === 0));
   const groupBy = new Map(list.map(s => [s, groupOf(s)]));
   if (spGroup !== 'all') list = list.filter(s => groupBy.get(s) === spGroup);
   for (const k of spTraits) { const t = TRAITS.find(x => x.key === k); list = list.filter(s => t.spec(s.specimen)); }
   if (spBrain) list = list.filter(s => specBrain(s.specimen) >= spBrain);
-  const by = { pop: s => -s.alive * 1e6 - s.peak, level: s => -LEVEL[groupBy.get(s)] * 1e6 - s.alive, peak: s => -s.peak, kills: s => -s.kills, brain: s => -specBrain(s.specimen) * 1e6 - s.alive, new: s => -s.firstSeen, old: s => s.firstSeen };
+  const typical = typicalMembers(), partsOf = s => { const t = typical.get(s.name); return t ? t.parts : s.specimen.parts; };
+  if (spBody !== 'any') list = list.filter(s => bodyType(partsOf(s)) === spBody);
+  const by = { pop: s => -s.alive * 1e6 - s.peak, level: s => -LEVEL[groupBy.get(s)] * 1e6 - s.alive, peak: s => -s.peak, kills: s => -s.kills, brain: s => -specBrain(s.specimen) * 1e6 - s.alive, parts: s => -partsOf(s) * 1e6 - s.alive, new: s => -s.firstSeen, old: s => s.firstSeen };
   list.sort((a, b) => by[spSort](a) - by[spSort](b));
-  $('spCount').textContent = `${list.length} species${spTraits.size || spBrain ? ' match' : ''}, grouped by their place in the food chain (what they have actually eaten). Click one for its history.`;
+  $('spCount').textContent = `${list.length} species${spTraits.size || spBrain || spBody !== 'any' ? ' match' : ''}, grouped by their place in the food chain (what they have actually eaten). Click one for its history.`;
   const html = [], drawn = [];
   for (const g of spSort === 'level' ? GROUPS.slice().sort((a, b) => LEVEL[b.key] - LEVEL[a.key]) : GROUPS) {
     const items = list.filter(s => groupBy.get(s) === g.key);
@@ -4273,14 +4452,13 @@ function renderSpeciesList(full) {
     for (const s of items.slice(0, 80)) {
       drawn.push(s);
       html.push(`<button class="sprow" data-sp="${s.name}"><canvas class="pt" width="72" height="72"></canvas>` +
-        `<span class="nm"><b>${g.key === 'top' ? '<span class="crown" aria-label="top predator">♛</span> ' : ''}${s.name}</b><small>${levelText(g.key)} · ${s.alive ? `since ${fmtAxisTime(s.firstSeen)} · peak ${s.peak}` : `extinct · lasted ${fmtTime(lifeOf(s))}`}${s.kills ? ` · ${s.kills} kills` : ''}${specBrain(s.specimen) >= 0.5 ? ` · ${brainLevel(specBrain(s.specimen))}` : ''}${TRAITS[7].spec(s.specimen) ? ' · hive' : ''}</small></span>` +
+        `<span class="nm"><b>${g.key === 'top' ? '<span class="crown" aria-label="top predator">♛</span> ' : ''}${s.name}</b><small>${levelText(g.key)} · ${partsOf(s)} parts ${bodyTag(partsOf(s))} · ${s.alive ? `since ${fmtAxisTime(s.firstSeen)} · peak ${s.peak}` : `extinct · lasted ${fmtTime(lifeOf(s))}`}${s.kills ? ` · ${s.kills} kills` : ''}${specBrain(s.specimen) >= 0.5 ? ` · ${brainLevel(specBrain(s.specimen))}` : ''}${TRAITS.find(t => t.key === 'hive').spec(s.specimen) ? ' · hive' : ''}</small></span>` +
         `<canvas class="spark" width="140" height="44"></canvas><span class="cnt${s.alive ? '' : ' dead'}">${s.alive || '†'}</span></button>`);
     }
     if (items.length > 80) html.push(`<p class="note">…and ${items.length - 80} more. Change the sort to see others.</p>`);
   }
   $('spList').innerHTML = html.join('');
   const rows = $('spList').querySelectorAll('.sprow');
-  const typical = typicalMembers();
   drawn.forEach((s, i) => {
     const t = typical.get(s.name);
     drawPortrait(rows[i].querySelector('.pt'), t ? portraitOf(t) : s.specimen);
@@ -4305,6 +4483,7 @@ function renderDetail(full) {
         <div class="row" id="dActions"></div></div></div>
       <div class="tiles" id="dFacts"></div>
       <section class="chart"><h3>Population</h3><canvas id="dChart"></canvas></section>
+      <section class="chart"><h3>Body over time</h3><p class="note">Average parts of the living members: 6 or fewer is simple, 16 or more complex.</p><div class="lg" id="dPartsLg"></div><canvas id="dParts"></canvas></section>
       <section><h3>Diet</h3><div id="dDiet"></div></section>
       <section><h3>How they died</h3><div id="dDeaths"></div></section>
       <section><h3>How they hunt</h3><div id="dTactics"></div></section>
@@ -4331,7 +4510,7 @@ function renderDetail(full) {
     : `<button class="ctl primary" data-act="add">Bring back 10</button>`;
   // describe the body in the picture: a typical living member, or the first member once none are left
   if (tm) sp = { arms: tm.g.arms, parts: tm.parts, thick: tm.thick, len: tm.len, organs: tm.organs, genome: tm.g, local: tm.local };
-  $('dBody').textContent = `${tm ? 'Typical member' : 'First member'}: ${sp.arms} arm${sp.arms > 1 ? 's' : ''}, ${sp.parts} part${sp.parts === 1 ? '' : 's'}, lines ×${(sp.thick ?? 1).toFixed(1)} thick, lives ${lifestyle(sp.genome.social ?? 0, sp.len[TYPE.RED] + sp.len[TYPE.WHITE] + sp.organs[ORGAN.SPIT] > 0, TRAITS[7].spec(sp))}, ${brainLevel(specBrain(sp))}${specBrain(sp) ? ` (brain ${specBrain(sp).toFixed(1)})` : ''}. ` +
+  $('dBody').textContent = `${tm ? 'Typical member' : 'First member'}: ${sp.arms} arm${sp.arms > 1 ? 's' : ''}, ${sp.parts} part${sp.parts === 1 ? '' : 's'}, lines ×${(sp.thick ?? 1).toFixed(1)} thick, lives ${lifestyle(sp.genome.social ?? 0, sp.len[TYPE.RED] + sp.len[TYPE.WHITE] + sp.organs[ORGAN.SPIT] > 0, TRAITS.find(t => t.key === 'hive').spec(sp))}, ${brainLevel(specBrain(sp))}${specBrain(sp) ? ` (brain ${specBrain(sp).toFixed(1)})` : ''}. ` +
     [...sp.len.map((v, i) => v ? `${Math.round(v)}px ${TYPE_NAME[i]}` : ''), ...sp.organs.map((n, o) => o && n ? `${n} ${ORGAN_NAME[o]}` : '')].filter(Boolean).join(', ') + '.';
   $('dFacts').innerHTML =
     tile('First seen', `${fmtTime(s.firstSeen)} <small>gen ${s.firstGen}</small>`) + tile('Peak', `${s.peak} <small>at ${fmtTime(s.peakAt)}</small>`) +
@@ -4343,6 +4522,9 @@ function renderDetail(full) {
       return (s.shared ? tile('Food shared with the pack', Math.round(s.shared)) : '') + (q || w || s.delivered ? tile('Hive', `${q} queen${q === 1 ? '' : 's'} <small>${w} workers</small>`) + tile('Food brought home', Math.round(s.delivered || 0)) : '');
     })();
   lineChart($('dChart'), s.hist.map(h => h[0]), [{ label: 'alive', color: `hsl(${s.hue} 70% 62%)`, values: s.hist.map(h => h[1]) }]);
+  { const ph = s.hist.filter(h => h[2] != null), last = ph.length ? ph[ph.length - 1][2] : sp.parts;
+    lineChart($('dParts'), ph.map(h => h[0]), [{ label: 'parts', color: BODY_COLOR[bodyType(Math.round(last))], values: ph.map(h => h[2]) }], v => v.toFixed(1));
+    $('dPartsLg').innerHTML = `<span>now <b>${last.toFixed(1)}</b> parts · ${bodyTag(Math.round(last))}</span>`; }
   $('dDiet').innerHTML = stackBar([
     { label: 'sunlight', color: '#4ade80', v: diet.sun }, { label: 'food bits', color: FOOD_COLOR, v: diet.bits }, { label: 'live prey', color: '#f87171', v: diet.meat }, { label: 'carrion', color: '#d6b48a', v: diet.carrion },
   ], v => Math.round(v) + ' energy');
@@ -4535,7 +4717,30 @@ window.addEventListener('keydown', e => {
   if (e.key !== 'Escape') return;
   if (!setupEl.hidden) setupEl.hidden = true;
   else if (!drawer.hidden) closeDrawer();
+  else if (fullOn) setFull(false);
+  else wholeDish();
 });
+// Whole dish: drop whatever is steering the camera and show everything
+function wholeDish() {
+  if (story.on) storyOff();
+  cam.follow = null; clearSpot();
+  zoomAt(W / 2, H / 2, 1);
+}
+// Full screen: the panels fold away (the main controls stay) and the browser goes full screen where it can
+let fullOn = false;
+function setFull(on) {
+  fullOn = on;
+  document.body.classList.toggle('fs', on);
+  $('bFull').setAttribute('aria-pressed', on); $('bFull').textContent = on ? 'Exit full screen' : 'Full screen';
+  const p = $('panel');
+  if (on) { p.classList.add('min'); $('collapse').textContent = 'show'; $('collapse').setAttribute('aria-expanded', false); if (!drawer.hidden) closeDrawer(); }
+  const el = document.documentElement;
+  try {
+    if (on && !document.fullscreenElement && el.requestFullscreen) el.requestFullscreen().catch(() => {});
+    else if (!on && document.fullscreenElement) document.exitFullscreen().catch(() => {});
+  } catch (_) { /* not allowed here: the panels still fold away */ }
+}
+document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement && fullOn) setFull(false); });
 
 function setTool(t) {
   tool = t;
@@ -4628,12 +4833,16 @@ const speeds = [1, 2, 4, 8, 0.25, 0.5]; // after 8× it drops to slow motion
 $('bSpeed').onclick = () => { speed = speeds[(speeds.indexOf(speed) + 1) % speeds.length]; $('bSpeed').textContent = `Speed ${speed === 0.25 ? '¼' : speed === 0.5 ? '½' : speed}×`; };
 $('bTrails').onclick = () => { trails = !trails; $('bTrails').setAttribute('aria-pressed', trails); };
 $('bStory').onclick = () => story.on ? storyOff() : storyOn();
+$('bWhole').onclick = wholeDish;
+$('bFull').onclick = () => setFull(!fullOn);
 $('bView').onclick = () => { viewMode = VIEW_NEXT[viewMode]; $('bView').textContent = VIEW_LABEL[viewMode]; };
 $('bMarks').onclick = () => { markMode = (markMode + 1) % 3; if (!markMode) marks = []; $('bMarks').textContent = MARK_LABEL[markMode]; };
 $('bBig').onclick = () => { pauseBig = !pauseBig; $('bBig').setAttribute('aria-pressed', pauseBig); };
 $('storyNext').onclick = storyNext;
+$('sgPin').onclick = () => { story.pin = story.pin ? null : (story.cur && story.cur.kind === 'hap' ? story.cur : null); story.graphT = 0; drawStoryGraph(); };
+$('sgClose').onclick = () => { story.pin = null; $('storyGraph').hidden = true; if (story.cur && story.cur.kind === 'hap') story.cur.noGraph = true; };
 $('storyStop').onclick = storyOff;
-$('storyFollow').onclick = () => { const s = story.cur, c = s && !s.a.dead ? s.a : null; storyOff(); if (c) { cam.follow = c; cam.z = Math.max(cam.z, 2.5); clampCam(); toast(`Following ${c.species} #${c.id}`); } };
+$('storyFollow').onclick = () => { const s = story.cur, c = s && s.kind === 'hap' ? hapMembers(s.h)[0] || null : s && !s.a.dead ? s.a : null; storyOff(); if (c) { cam.follow = c; cam.z = Math.max(cam.z, 2.5); clampCam(); toast(`Following ${c.species} #${c.id}`); } };
 $('spotClear').onclick = clearSpot;
 $('bAdd').onclick = () => { spawnRandom(10, 'dropped in by you'); toast('Added 10 random creatures'); };
 const setupEl = $('setup');
@@ -4800,6 +5009,7 @@ function frame(now) {
     for (const c of creatures) c.computeWorld();
   }
   if (story.on) storyTick(elapsed);
+  if (story.on || story.pin) drawStoryGraph();
   refreshSpot();
   draw();
   uiTimer += elapsed;

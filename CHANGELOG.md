@@ -2,9 +2,22 @@
 
 Every release stays playable. Pick one from the menu next to the title in the app, or open the file directly. The newest is always `index.html`.
 
+## v13.2: Hive castes, raider boost & clearer top predators (2026-10-29)
+
+`versions/v13.2.html` (also the current `index.html`). Follows v13.1, which stays in the menu.
+
+Plan: https://claude.ai/artifact/AHZsSX5u3uTUGSzm2rajCa
+
+- **Species page over time.** Diet, How they died and How they hunt keep their totals, and each now has a chart underneath: the share of each food over time, deaths per minute by cause, and kills per minute by tactic.
+- **Soldiers and collectors.** A queen's eggs hatch as collectors (dark dot), whose weapons are switched off and who forage and bring food home, or soldiers (red dot), who keep their weapons, stay by the queen to see off intruders, are fed from her store and live 40% as long. She lays about 1 soldier in 6 while calm and up to 1 in 2 when hunters come near or her hive is hurt (the alarm fades over a minute). Soldiers cost her more, and she never lays faster. A hive whose body has no weapons lays only collectors.
+- **Raider boost.** A hive raider hits a big hive's members 5% harder for each member past 8, up to 50%, and only that hive's members, so the boost fades as the hive shrinks. Kept mild because the queen changed in the same release.
+- **Top predators** follow one rule for the whole species, from the last 3 minutes: at least 5 kills of real hunters (not scavengers or hive members) making up at least 40% of its kills. Every member counts as top in the food pyramid and graphs. A species keeps the crown down to 3 and 30%, then loses it, and its history notes both.
+- **Simple bodies starve less.** The flat part of the running cost scales with size: half for a 3-part body, all of it from 8 parts.
+- **Test.** Hive-heavy dishes (8 random dishes each, 15 minutes, with the hive gene common at the start): hive members fell from 9% of creatures on v13.1 to 5% with castes and 4% with the raider boost, and the biggest hive from 6.5 to 4.2 members on average. Hives still formed in most minutes. After the alarm was made to count only hunters, soldiers were 19% of workers in calm hives and 45% under attack. Ordinary dishes (16 dishes against 16 of v13.1): food chain held in 16 of 16 for both, plants/grazers/hunters 47/43/17 against 44/36/21, hives 1% against 2% (largest peak 12% against 16%). Simple bodies now starve least in every role: plants with 6 parts or fewer 23% (v13.1 29%) against 28-31% for bigger plants, grazers 13% against 34% for complex ones, hunters 29% against 46%. Simple bodies rose from 58% to 66% of creatures and average parts fell from 9.1 to 8.5. A species was crowned in 9 of 16 dishes. Misses: mid-size and complex hunters starve more than on v13.1 (40-46% against 34-36%), and queens starve more often (49% of queen deaths against 36%). Solo and pack hunters were left as they were, and stayed even (1.21 against 1.19 young per life).
+
 ## v13.1: New life, leaner hunters & milder disease (2026-10-29)
 
-`versions/v13.1.html` (also the current `index.html`). Follows v13, which stays in the menu.
+`versions/v13.1.html`. Follows v13, which stays in the menu.
 
 - **Food pyramid** has a third option, **Energy per creature**: the average energy each member of a level holds.
 - **New life** (a New dish option, on by default): every minute or two a few tiny, very simple plants, grazers or, rarely, biters spring up, usually by a vent.
@@ -16,7 +29,7 @@ Every release stays playable. Pick one from the menu next to the title in the ap
 
 ## v13: Stings, complex bodies & clearer views (2026-10-29)
 
-`versions/v13.html` (also the current `index.html`). Follows v12, which stays in the menu.
+`versions/v13.html`. Follows v12, which stays in the menu.
 
 Plan: https://claude.ai/artifact/J79UEfrMS1a52aihZxmDtJ
 

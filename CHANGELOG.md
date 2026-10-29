@@ -2,6 +2,25 @@
 
 Every release stays playable. Pick one from the menu next to the title in the app, or open the file directly. The newest is always `index.html`.
 
+## v13: Stings, complex bodies & clearer views (2026-10-29)
+
+`versions/v13.html` (also the current `index.html`). Follows v12, which stays in the menu.
+
+Plan: https://claude.ai/artifact/J79UEfrMS1a52aihZxmDtJ
+
+- **Two sting paths.** A new inherited venom gene lets each lineage lean to a freeze sting (prey held up to 4 s) or a weakening sting (1.5 s, but the frozen prey takes up to 80% more damage from every attacker). Stingers can take prey half again their own size.
+- **Eyes** see a fifth further per level, level 3 sees well at night, eyes cost less to run (0.11 instead of 0.14 per unit) and less again while resting.
+- **Complex bodies.** Simple-body perks are a third smaller. Parts cost less as they add up. A body of 12+ parts with 4+ line colours runs 15% cheaper and stores 15% more. Parts only fade after three calm minutes, half as often.
+- **Yellow** is the real sprint: wriggling no longer helps an escape, yellow costs less (0.015 per unit instead of 0.05, 0.02 while running) and pushes a little harder, and a darter with yellow darts 50% faster.
+- **Spitters** reach 240px (was 160), and spit and stings stack: a slowed creature stays frozen a second longer, a frozen one stays slowed a second longer.
+- **Controls.** Pause, Speed, Stories, View, **Whole dish** and **Full screen** sit in a row under the title that stays when the panel is hidden. Whole dish (or Esc) stops stories and following, clears the spotlight and shows the whole dish. Full screen hides the panels and goes full screen where the browser allows.
+- **Simple and complex, made clear.** A Graphs chart of simple, middle and complex bodies over time with the average part count; body-type tags in the species list and Top species, a body filter and a part-count sort; a part-count chart on each species page.
+- **Happenings in Stories.** Arms races, outbreaks, migrations, raids, gene sweeps, bounce backs and new seasons become stories. The camera frames everyone involved and a small live chart sits beside the caption (pin it to keep it).
+- **Versions pruned.** v3, v5, v6, v9.1 and v10 are removed from the menu and `versions/` (still in git history). The menu keeps v1, v8, v11, v12 and v13.
+- **Test** (16 dishes, 15 minutes each, against v12's 16; four tuning rounds): food chain held in 15 of 16 (v12: 16). Plants, grazers and hunters 40/41/20 (v12: 55/35/15). Average parts 9.5 (v12: 8.3); complex bodies 13% (v12: 3%). Yellow in 16% of animals (v12: 9%).
+- **Knockouts** (each change switched off in 8 dishes): without the sting paths stingers fall from 10% to 4% of animals and complex bodies to 7%; without the complex-body changes average parts fall to 7.7 and complex bodies to 7%; without the yellow changes yellow falls to 8%. The eye and spit changes made no clear difference.
+- **Still open.** Hunters at 20% are a little above the 12 to 18% target. Hunters with stings or eyes still raise fewer young per lifetime than those without (0.85 and 0.88 against about 1.25), even though the sting paths make stingers more common.
+
 ## v12: Gene roles & stories (2026-10-28)
 
 `versions/v12.html` (also the current `index.html`). Follows v11, which stays in the menu.
@@ -23,7 +42,7 @@ Plans: https://claude.ai/artifact/S7fV33ywFmch27wiRAqmKZ (balance) and https://c
   - View button: normal, calm (no trails or food) or coloured by way of life.
   - Spotlight a species and fade the rest; follow a creature and read its life story; marks for kills, raids, migrations and births; optional pause on big moments.
   - Slow motion at ¼× and ½×, and "Show me in the dish" on every happening.
-- **Test** (16 dishes, 25 minutes each, against 8 dishes of v11): the food chain held in all 16 (v11: 4 of 8). Plants, grazers and hunters 55/35/15. Hives average 2% of creatures (peak 12%), with raids in 3 dishes. Scavengers raise 1.61 young each (v11: 0.79). 64% of bodies are simple (6 parts or fewer) and 3% complex (16+); average parts fell from 11.4 to 8.3.
+- **Test** (16 dishes, 15 minutes each, against 8 dishes of v11): the food chain held in all 16 (v11: 4 of 8). Plants, grazers and hunters 55/35/15. Hives average 2% of creatures (peak 12%), with raids in 3 dishes. Scavengers raise 1.61 young each (v11: 0.79). 64% of bodies are simple (6 parts or fewer) and 3% complex (16+); average parts fell from 11.4 to 8.3.
 - **Still open.** Stingers and sharp eyes still give hunters no clear edge in young raised (0.85 and 1.05 against 1.27 and 1.22 without), and yellow is now in only 9% of animals.
 
 ## v11: Stronger grazers & genes (2026-10-28)

@@ -133,6 +133,13 @@ const page_url = 'file://' + path.join(root, 'index.html');
   await page.click('#bView'); await page.click('#bView');
   await page.waitForTimeout(1200);
   await page.screenshot({ path: path.join(root, 'docs/roles.png') });
+  // the zones view with the Zones tab open
+  await page.click('#bView');
+  await page.click('#bGraphs');
+  await page.click('[data-tab=zones]');
+  await page.waitForTimeout(1500);
+  await page.screenshot({ path: path.join(root, 'docs/zones.png') });
+  await page.click('#drawer [data-act=close]');
   await page.click('#bView');
 
   // phone layout
@@ -143,5 +150,5 @@ const page_url = 'file://' + path.join(root, 'index.html');
 
   await browser.close();
   if (errors.length) { console.error('Page errors:', errors); process.exit(1); }
-  console.log('Wrote docs/screenshot.png, new-dish.png, closeup.png, graphs.png, groups.png, species.png, tree.png, inherited.png, balance.png, happenings.png, genes.png, story.png, roles.png, phone.png');
+  console.log('Wrote docs/screenshot.png, new-dish.png, closeup.png, graphs.png, groups.png, species.png, tree.png, inherited.png, balance.png, happenings.png, genes.png, story.png, roles.png, zones.png, phone.png');
 })();

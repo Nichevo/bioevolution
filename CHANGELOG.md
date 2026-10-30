@@ -2,9 +2,23 @@
 
 Every release stays playable. Pick one from the menu next to the title in the app, or open the file directly. The newest is always `index.html`.
 
+## v14: Zones, parasites, cleaners & fruit (2026-10-30)
+
+`versions/v14.html` (also the current `index.html`). Follows v13.5, which stays in the menu.
+
+Plan: https://claude.ai/artifact/8KAME61ztLzVu26iUDxuht
+
+- **Zones tab** (next to Genes): the dish in quarters, each with its creatures by role, food bits, births and deaths per minute (deaths by cause), body sizes, vents and weed, top 3 species and a population chart; click one to go there. Two tables set life inside a vent against outside, and in the weeds against the open, for plants, grazers and hunters. **View: zones** draws the quarters in the dish.
+- **Parasites.** A new instinct for simple biters only (6 parts or fewer, no brain): it latches onto a bigger animal of another kind, rides along and drains about a fifth of its host's running cost, never its last reserves. At most 2 per host; they breed as they ride; a dart shakes one off and thick armour keeps them off.
+- **Cleaners.** A new instinct for small animals (8 parts or fewer): they eat parasites off other animals. Hosts with parasites let them close, and a cleaned hunter spares that kind of cleaner for a minute.
+- **Fruit.** A new instinct for plants: richer shed bits that cost the plant more, and a grazer that eats one drops the seed about 20 seconds later wherever it has got to, where a new plant sprouts.
+- **Complex bodies cost more.** From 16 parts: 1.5% more upkeep per part past 16, 20% longer to grow up, 30% longer between litters, and a plant's lifespan stops growing with its parts at 16.
+- **Cold blood rebalanced.** Upkeep is 80% of normal for cold blood and 120% for warm (was 70% and 130%), and cold-blooded animals are up to 10% slower to notice things and to get going on a chase or escape unless they are warming up by a vent.
+- **Test** (16 dishes, 15 minutes each, against 16 of v13.5): food chain held in 16 of 16. The dish holds more (453 creatures, was 351), and empty patches are rarer (0.08 areas at any moment, was 0.27), helped by 370 fruit seeds sown. Complex bodies 10% to 6%, and they now raise the fewest young in every role. Cold-blooded creatures 18% and warm 13% of those alive (was about two to one); young per life cold against warm: grazers 1.75 / 1.96, hunters 1.16 / 1.14, plants 1.48 / 1.27. Misses: parasites stay rare, about 2–3 alive per dish, reaching 3% of animals in only 2 of 16 dishes (13–14% there), and cleaners have little to do (7 parasites cleaned). A stronger parasite (easier to latch on, cheaper to ride) cut hunters to 6% and broke the food chain in 2 of 16 dishes, so it was left out. Hunters fell from 30% to 22% of those alive, mostly from the complex-body costs.
+
 ## v13.5: Filter fix, hive heirs, weeds & more hunters (2026-10-30)
 
-`versions/v13.5.html` (also the current `index.html`). Follows v13.4, which stays in the menu.
+`versions/v13.5.html`. Follows v13.4, which stays in the menu.
 
 Plan: https://claude.ai/artifact/AG1eRS9n7Xxn7K4gyKcque
 

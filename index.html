@@ -492,7 +492,7 @@ select { font: inherit; color: var(--ink); background: var(--panel-solid); borde
 'use strict';
 
 // Which release this file is. versions/list.js lists every release, newest first.
-const APP_VERSION = 'v14';
+const APP_VERSION = 'v14.1';
 
 // ---------- constants ----------
 const TYPE = { GREEN: 0, RED: 1, BLUE: 2, YELLOW: 3, CYAN: 4, PURPLE: 5, WHITE: 6 };
@@ -908,6 +908,7 @@ class Creature {
     this.filterOn = tr.filter > 0.5 && this.attack === 0 && this.pow[TYPE.GREEN] <= this.pow[TYPE.CYAN];
     // parasites stay simple: the habit only works on a brainless biter of 6 parts or fewer
     this.parasiteOn = tr.parasite > 0.5 && this.parts <= 6 && !this.organPow[ORGAN.BRAIN] && this.attack > 0;
+    this.disarmed = this.parasiteOn || (this.caste === 'worker' && this.job === 'collector' && this.attack > 0); // a parasite never bites: it only latches on
     this.cleanerOn = tr.cleaner > 0.5 && this.parts <= 8 && !this.parasiteOn && this.pow[TYPE.GREEN] < this.totalPow * 0.5;
     this.fruitOn = tr.fruit > 0.5 && this.attack === 0 && this.pow[TYPE.GREEN] > this.pow[TYPE.CYAN];
     // intelligence: 0 is pure instinct, 3 is the most a brain can do
@@ -1558,7 +1559,9 @@ class Creature {
 
     const s = this.scale, off = this.offHours;
     let upkeep = this.baseUpkeep * s * (this.caste === 'worker' ? (roleOf(this) === 0 ? 1 : 0.9) : 1) * this.warmCost * (1 + 0.4 * w * cold) * (1 - 0.5 * this.toughF * cold)
-      * (this.sick > 0 ? 1.4 : 1) * (this.torpid ? 0.2 : 1) * (1 - 0.3 * off) * (1 + 0.5 * this.overheat);
+      * (this.sick > 0 ? 1.4 : 1) * (this.torpid ? 0.2 : 1) * (1 - 0.3 * off) * (1 + 0.5 * this.overheat)
+      // a hungry hunter between hunts idles to save energy, so it can wait out lean times
+      * (this.attack > 0 && this.fullness < 0.3 && !(this.goal && this.goal.target) && roleOf(this) === 2 ? 0.6 : 1);
 
     // a hunter keeps tracking its chosen prey between looks
     const tg = this.goal && this.goal.target;
@@ -2727,7 +2730,7 @@ function takeSample() {
 // ---------- parasites, cleaners and fruit ----------
 // A parasite latches onto a bigger animal of another kind that isn't heavily armoured and carries fewer than 2 already.
 const hostOk = (p, o) => o !== p && !o.dead && !o.parasiteOn && !o.host && roleOf(o) > 0 && roleOf(o) < 3 && o.species !== p.species
-  && o.radius > p.radius * 1.5 && (o.paras || 0) < 2 && o.armor < 0.25 && o.caste !== 'queen';
+  && o.radius > p.radius * 1.2 && (o.paras || 0) < 2 && o.armor < 0.25 && o.caste !== 'queen';
 // whether a host lets this cleaner close: it carries parasites now, or was cleaned by its kind in the last minute
 const spares = (h, cl) => h.paras > 0 || (h.cleanedBy && h.cleanedBy.sp === cl.species && simTime < h.cleanedBy.until);
 function partnerStep(c, dt) {
@@ -2737,8 +2740,14 @@ function partnerStep(c, dt) {
     // a dart throws it off
     if (h.dead || (h.dartT > 0 && Math.random() < dt * 3)) { c.host = null; if (!h.dead) note(h, 'shook off a parasite'); return; }
     c.x = (h.x + c.ox + W) % W; c.y = (h.y + c.oy + H) % H; c.vx = h.vx; c.vy = h.vy;
-    // it takes about a fifth of what the host spends to stay alive, but never its last reserves
-    if (h.fullness > 0.15) { const take = h.baseUpkeep * h.scale * 0.2 * dt; h.energy -= take; c.energy += take * 0.8; c.ateMeat += take * 0.8; }
+    // it takes a cut of what its host eats, and the host gets more out of its food in return: 15% more on everything,
+    // less a quarter for the parasite (shared if it carries two). A hungry host (under 30% full) pays nothing.
+    const intake = h.ateSun + h.ateFood + h.ateMeat + h.ateCarrion, got = intake - (c.hostIntake ?? intake), share = 1 / Math.max(1, h.paras || 1);
+    c.hostIntake = intake;
+    if (got > 0) {
+      h.energy += got * 0.15 * share;
+      if (h.fullness >= 0.3) { const take = got * 0.25 * share; h.energy -= take; c.energy += take * 0.8; c.ateMeat += take * 0.8; }
+    }
     // it breeds as it rides: its young drop off to find hosts of their own
     if (c.age > matureAge(c) && c.cooldown <= 0 && c.fullness > 0.7 && creatures.length < MAX_POP) {
       const g = mutate(cloneGenome(c.g), c.g.absorbed, pushFor(c), fadeFor(c));
@@ -2751,7 +2760,7 @@ function partnerStep(c, dt) {
     const h = c.goal.target, dx = wrapD(c.x - h.x, W), dy = wrapD(c.y - h.y, H), d = Math.hypot(dx, dy);
     if (d < h.radius + c.radius && hostOk(c, h)) {
       const a = Math.atan2(dy, dx);
-      c.host = h; c.ox = Math.cos(a) * h.radius * 0.8; c.oy = Math.sin(a) * h.radius * 0.8; h.paras = (h.paras || 0) + 1;
+      c.host = h; c.hostIntake = undefined; c.ox = Math.cos(a) * h.radius * 0.8; c.oy = Math.sin(a) * h.radius * 0.8; h.paras = (h.paras || 0) + 1;
       stats.latched = (stats.latched || 0) + 1; note(c, `latched onto a ${h.species}`); note(h, `picked up a ${c.species} parasite`);
     }
   }
@@ -3672,10 +3681,10 @@ function drawZones() {
   const fs = 12 / cam.z;
   ctx.font = `600 ${fs}px sans-serif`;
   for (let z = 0; z < 4; z++) {
-    const x = (z % 2) * W / 2 + 10 / cam.z, y = (z >> 1) * H / 2 + 18 / cam.z, tot = n[z][0] + n[z][1] + n[z][2];
-    ctx.fillStyle = 'rgba(232,241,255,0.8)'; ctx.fillText(`${ZONE_NAMES[z]} · ${tot}`, x, y);
-    let bx = x;
+    const cx = (z % 2 + 0.5) * W / 2, y = (z >> 1) * H / 2 + 18 / cam.z, tot = n[z][0] + n[z][1] + n[z][2];
+    ctx.fillStyle = 'rgba(232,241,255,0.8)'; ctx.textAlign = 'center'; ctx.fillText(`${ZONE_NAMES[z]} · ${tot}`, cx, y); ctx.textAlign = 'left';
     const bw = 90 / cam.z;
+    let bx = cx - bw / 2;
     for (let k = 0; k < 3; k++) { const w = tot ? bw * n[z][k] / tot : 0; ctx.fillStyle = ROLE[k].color; ctx.fillRect(bx, y + 5 / cam.z, w, 4 / cam.z); bx += w; }
   }
 }

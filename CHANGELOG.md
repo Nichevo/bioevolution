@@ -2,9 +2,20 @@
 
 Every release stays playable. Pick one from the menu next to the title in the app, or open the file directly. The newest is always `index.html`.
 
+## v14.1: Gentler parasites & hunters that wait out lean times (2026-10-30)
+
+`versions/v14.1.html` (also the current `index.html`). Follows v14, which stays in the menu.
+
+Plan: https://claude.ai/artifact/KbS6cYxHGq29syG8r5Ur6Y
+
+- **Parasites drain, they don't kill.** A riding parasite no longer bites. It takes a quarter of whatever its host eats, but the host gets 15% more from every meal while carrying it, so the host loses about a tenth of its food. Nothing is taken while the host is under 30% full, and the cut is shared when two ride one host. Hosts need only be 1.2 times the parasite's size.
+- **Hunters wait out lean times.** A hunter that is under 30% full and not chasing anything idles and pays 60% of its running cost until it finds prey.
+- **Zone labels** sit in the middle of each quarter, clear of the side panel.
+- **Test** (8 dishes, 30 minutes each, against 8 of v14): food chain held in 8 of 8 (v14: 8 of 8). Hunters 28% of those alive (v14: 23%). Dishes where hunters, once established at 20 or more, crashed to 5 or fewer: 0 (v14: 2), and no dish dropped that low after the first ten minutes (v14: 3). Hunters raise 1.26 young per life (v14: 1.13) and starve less (33% of deaths, was 37%). Misses: grazers fall to 32% of the dish (v14: 58%) and the dish holds about 10% fewer creatures at the end (319, was 357); complex bodies rise to 17% (v14: 6%), mostly hunters; parasites are still rare (about 1 alive per dish). Tried and dropped: a breeding boost for hunters when rare (hunters fell to 12% with boom and bust) and letting hunters keep twice the fat (no crashes but the food chain held in only 6 of 8).
+
 ## v14: Zones, parasites, cleaners & fruit (2026-10-30)
 
-`versions/v14.html` (also the current `index.html`). Follows v13.5, which stays in the menu.
+`versions/v14.html`. Follows v13.5, which stays in the menu.
 
 Plan: https://claude.ai/artifact/8KAME61ztLzVu26iUDxuht
 

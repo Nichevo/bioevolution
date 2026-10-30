@@ -2,9 +2,24 @@
 
 Every release stays playable. Pick one from the menu next to the title in the app, or open the file directly. The newest is always `index.html`.
 
+## v13.5: Filter fix, hive heirs, weeds & more hunters (2026-10-30)
+
+`versions/v13.5.html` (also the current `index.html`). Follows v13.4, which stays in the menu.
+
+Plan: https://claude.ai/artifact/AG1eRS9n7Xxn7K4gyKcque
+
+- **Filter feeding fixed.** The filter gene used to work on any body: in v13.4 it was carried by 54% of hunters, 69% of omnivores and 33% of plants, giving them full-value food bits and a slow drift. It now only works on a body with no weapons that is more grazer than plant, and the Species filter, the Genes graph and the inspector only show it there.
+- **Hive workers** run on half the queen's brain and pay half its cost, and grow to 0.7 of full size (was 0.85), so the queen (1.35) stands out.
+- **A new queen.** When a queen dies and 3 or more workers are left, about 5 seconds later the best-fed collector near the nest becomes queen. Soldiers never take over.
+- **Nose** reaches 100–240px (was 70–200), finds things in the weeds from a bit further, aims at a smelt target twice as well, and a grazer that smells a hunter coming flees sooner.
+- **Weed beds** are more common (9 patches on Some, 16 on Lots, was 6 and 12) and bigger, shed the odd food bit, and shade out a fifth of the sun instead of half. (With half the sun shaded, the bigger beds cut the dish from 377 to 288 creatures.)
+- **Vents:** a new dish has 4 to 6 (was 3 to 5); the menu's top option is 8.
+- **Grazers** breed on a little less saved energy.
+- **Test** (16 dishes, 15 minutes each, against 16 of v13.4): food chain held in 16 of 16. Hunters alive at the end went from 16% to 30% (median dish), and omnivores fell from 9% to 3% of lives, now raising 1.12 young each (plants 1.52, grazers 1.87). Creatures are in the weeds 26% of the time (old beds: about 12%). 20 hives got a new queen after theirs died. Complex bodies 7% to 10%. Misses: the dish holds fewer creatures (351, was 377), and parts of it are empty a bit more often (0.27 areas at any moment, was 0.14). Hunters with a nose still raise fewer young than those without (0.96 against 1.19), but eyes and spit show the same gap (1.03 against 1.22), so it is the cost of a bigger body rather than the nose. Hunters with 7+ parts starve a little more per minute (0.42, was 0.35).
+
 ## v13.4: Omnivore young specialise & carrion disease (2026-10-29)
 
-`versions/v13.4.html` (also the current `index.html`). Follows v13.3, which stays in the menu.
+`versions/v13.4.html`. Follows v13.3, which stays in the menu.
 
 - **Omnivore young specialise.** When a parent feeds more than one way and no way makes up 70% of its feeding parts, there is a 15% chance that one part of its smallest feeding kind becomes its main kind in the young. Over a few generations mixed feeders drift back into plants, grazers or hunters. (A 40% chance cut omnivores further but made bodies much simpler and hunters rare.)
 - **Carrion carries disease.** Eating a corpse can make a creature ill, about a 15% chance for each second spent eating (scaled by the Disease slider and any inherited resistance). Scavengers are immune, hunters take half the risk, and plants and grazers take all of it.

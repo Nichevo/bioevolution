@@ -362,6 +362,7 @@ select { font: inherit; color: var(--ink); background: var(--panel-solid); borde
     <button class="ctl" id="bSave">Save dish</button>
     <button class="ctl" id="bLoad">Load dish</button>
     <input type="file" id="fLoad" accept=".json,application/json" hidden>
+    <label class="k" for="autoEvery" title="Each autosave pauses the dish for a moment, longer on a dish with a long history">Autosave <select id="autoEvery"><option value="0">off</option><option value="5">every 5 min</option><option value="10" selected>every 10 min</option><option value="30">every 30 min</option><option value="60">every hour</option></select></label>
   </div>
 
   <details class="fold" id="fSliders" open>
@@ -5641,10 +5642,18 @@ function restoreFull(d) {
   if (typeof st.speed === 'number') { speed = st.speed; $('bSpeed').textContent = `Speed ${speed === 0.25 ? '¼' : speed === 0.5 ? '½' : speed}×`; }
 }
 
-// Autosave: every ten minutes and when the page is closed or hidden, the whole dish goes into the
+// Autosave: every ten minutes by default and when the page is closed or hidden, the whole dish goes into the
 // browser's own storage (IndexedDB) on this computer. The last three are kept in case one is bad.
-const AUTO_EVERY = 600000, AUTO_KEEP = 3; // each save pauses the dish briefly, so not too often
-let autoOn = true, autoLast = 0, autoBusy = false;
+// How often is up to you (the Autosave menu, remembered on this computer); off also stops saving on close.
+const AUTO_KEEP = 3;
+let AUTO_EVERY = 600000, autoOn = true, autoLast = 0, autoBusy = false;
+function setAutoEvery(min) {
+  autoOn = min > 0; AUTO_EVERY = Math.max(1, min) * 60000;
+  $('autoEvery').value = String(min);
+  try { localStorage.setItem('bio-autosave', String(min)); } catch (_) { /* storage may be blocked */ }
+}
+try { const v = localStorage.getItem('bio-autosave'); if (v !== null && ['0', '5', '10', '30', '60'].includes(v)) setAutoEvery(+v); } catch (_) { /* ignore */ }
+$('autoEvery').onchange = e => { setAutoEvery(+e.target.value); autoLast = Date.now(); toast(autoOn ? `Autosave every ${e.target.selectedOptions[0].textContent.replace('every ', '')}` : 'Autosave off'); };
 function idb() {
   return new Promise((res, rej) => {
     if (!window.indexedDB) return rej(new Error('no storage'));

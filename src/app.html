@@ -163,6 +163,8 @@ input[type=range] { width: 100%; accent-color: var(--accent); }
   background: var(--panel); border: 1px solid var(--panel-line); border-radius: 8px;
   padding: 8px 10px; min-width: 190px; font-variant-numeric: tabular-nums; line-height: 1.55;
 }
+#inspect.pinned { pointer-events: auto; max-width: min(340px, calc(100vw - 16px)); }
+#inspect #inspBar { margin-top: 6px; gap: 6px; }
 #inspect .t { font-family: var(--font-display); font-weight: 800; font-size: 14px; display: flex; align-items: center; gap: 6px; }
 #inspect .dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
 #inspect .k { color: var(--ink-dim); }
@@ -325,6 +327,7 @@ select { font: inherit; color: var(--ink); background: var(--panel-solid); borde
     <span>Click to</span>
     <button class="ctl" id="tKill" aria-pressed="true">Kill</button>
     <button class="ctl" id="tFeed" aria-pressed="false">Feed</button>
+    <button class="ctl" id="tLook" aria-pressed="false" title="Tap a creature to keep its card open">Look</button>
   </div>
 
   <div class="row">
@@ -416,7 +419,7 @@ select { font: inherit; color: var(--ink); background: var(--panel-solid); borde
   <p class="hint">Every part costs upkeep, and each extra part costs a bit more than the last. Complex creatures live longer and can do more, but only if they feed themselves. Relatives breed when they meet. Eating can pass the prey's genes to the eater's children.</p>
   </details>
 
-  <p class="hint"><b>Shift-click</b> uses the other tool. Hover to inspect; press <b>F</b> to follow. <b>Scroll or pinch</b> to zoom, <b>drag</b> to look around. Click a species to see its history.</p>
+  <p class="hint"><b>Shift-click</b> swaps Kill and Feed. Hover to inspect, or pick <b>Look</b> and tap a creature to keep its card open; press <b>F</b> to follow. <b>Scroll or pinch</b> to zoom, <b>drag</b> to look around. Click a species to see its history.</p>
 </section>
 
 <section id="species" class="card" aria-label="Most common species">
@@ -428,7 +431,7 @@ select { font: inherit; color: var(--ink); background: var(--panel-solid); borde
   <div id="speciesList"></div>
 </section>
 
-<div id="inspect" hidden></div>
+<div id="inspect" hidden><div id="inspBody"></div><div id="inspBar" class="row" hidden><button class="ctl" id="inspFollow">Follow</button><button class="ctl" id="inspSpecies">Species</button><button class="ctl" id="inspClose">Close</button></div></div>
 <div id="toast" hidden></div>
 <div id="storyBar" class="card" hidden aria-live="polite"><p id="storyText"></p><div class="row"><button class="ctl" id="storyNext">Next story</button><button class="ctl" id="storyFollow">Follow this one</button><button class="ctl" id="storyStop">Stop</button></div></div>
 <div id="storyGraph" class="card" hidden><div class="sghead"><b id="sgTitle"></b><button class="link" id="sgPin">Pin</button><button class="link" id="sgClose" aria-label="Close chart">✕</button></div><div class="lg" id="sgLg"></div><canvas id="sgChart"></canvas></div>
@@ -568,6 +571,7 @@ let freshLife = true, freshNext = 60; // now and then very simple new life appea
 let migrants = false, migrantT = { grazer: 0, pred: 0 }; // optional safety net: newcomers drift in when a whole tier is gone
 let meanSpAlive = 10; // creatures per living species, for "hunt what's common"
 let tool = 'kill';
+let looked = null; // creature whose card the Look tool keeps open
 let stats = newStats();
 let globs = [];            // spitter shots in flight
 let samples = [];          // one snapshot of the whole dish per simulated second
@@ -3595,14 +3599,23 @@ function note(c, text) {
   d.push({ t: simTime, text, n: 1 });
   if (d.length > 30) d.shift();
 }
+// The card is built once and only its text is updated each frame: rebuilding the button every frame
+// swapped it out between press and release, so the click never landed.
+let lifeBuilt = false;
 function renderLife() {
   const c = cam.follow, el = $('lifeCard');
   if (!c) { el.hidden = true; return; }
+  if (!lifeBuilt) {
+    el.innerHTML = `<div class="lhead"><b id="lifeName"></b> <small id="lifeInfo"></small><button class="link" id="lifeStop">stop following</button></div><ol id="lifeDiary"></ol>`;
+    $('lifeStop').onclick = () => { cam.follow = null; renderLife(); toast('Stopped following'); };
+    lifeBuilt = true;
+  }
   el.hidden = false;
   const d = (c.diary || []).slice(-7);
-  el.innerHTML = `<div class="lhead"><b>${c.species}</b> <small>#${c.id} · ${roleNoun(c)} · age ${Math.floor(c.age)}s</small><button class="link" id="lifeStop">stop following</button></div>` +
-    `<ol>${d.map(e => `<li><span class="k">${fmtTime(e.t)}</span> ${e.text}${e.n > 1 ? ` <small>×${e.n}</small>` : ''}</li>`).join('')}</ol>`;
-  $('lifeStop').onclick = () => { cam.follow = null; renderLife(); };
+  const set = (id, html) => { const e = $(id); if (e.innerHTML !== html) e.innerHTML = html; };
+  set('lifeName', c.species);
+  set('lifeInfo', `#${c.id} · ${roleNoun(c)} · age ${Math.floor(c.age)}s`);
+  set('lifeDiary', d.map(e => `<li><span class="k">${fmtTime(e.t)}</span> ${e.text}${e.n > 1 ? ` <small>×${e.n}</small>` : ''}</li>`).join(''));
 }
 // when the creature you're following dies, carry on with one of its young if it has any
 function followerDied(c) {
@@ -4329,14 +4342,17 @@ function updatePanel() {
     r.c.textContent = s.count;
   });
 
-  const c = hovered();
+  if (looked && looked.dead) looked = null;
+  const pinned = !!looked, c = looked || hovered();
+  inspectEl.classList.toggle('pinned', pinned);
+  $('inspBar').hidden = !pinned;
   if (!c) { inspectEl.hidden = true; return; }
   const diet = c.ateSun + c.ateMeat + c.ateFood + c.ateCarrion || 1;
   const pct = v => Math.round(v / diet * 100);
   const times = v => Math.abs(v - 1) >= 0.05 ? ` ×${v.toFixed(1)}` : '';
   const parts = c.len.map((v, i) => v > 0 ? `<span style="color:${TYPE_COLOR[i]}">${TYPE_NAME[i]} ${Math.round(v)}${times(c.pow[i] / v)}</span>` : '').filter(Boolean).join(' · ');
   const organs = c.organs.map((n, o) => o && n ? `<span style="color:${ORGAN_COLOR[o]}">${n} ${ORGAN_NAME[o]}${times(c.organPow[o] / n)}</span>` : '').filter(Boolean).join(' · ');
-  inspectEl.innerHTML =
+  const html =
     `<div class="t"><span class="dot" style="background:hsl(${c.g.hue} 85% 60%)"></span>${c.species}</div>` +
     `<div><span class="k">#${c.id} · gen</span> ${c.gen} · <span class="k">age</span> ${Math.floor(c.age)}/${Math.floor(c.lifespan)}s${c.frailty > 0.3 ? (c.scale < 1 ? ' · young, easy prey' : ' · old, easy prey') : ''}</div>` +
     `<div><span class="k">energy</span> ${Math.round(c.energy + c.fat)}/${Math.round(c.maxEnergy * c.scale)}${c.fat >= 1 ? ` (+${Math.round(c.fat)} fat)` : ''} · <span class="k">upkeep</span> ${(c.baseUpkeep * c.scale).toFixed(1)}/s</div>` +
@@ -4350,13 +4366,18 @@ function updatePanel() {
     (() => { const rec = speciesDB.get(c.species); if (!rec) return ''; const g = groupInfo(groupOf(rec)); return `<div><span class="k">species</span> <span style="color:${g.color}">${g.key === 'top' ? '♛ ' : ''}${g.one.toLowerCase()}</span>, ${levelText(g.key)}${c.migrate ? ' · <span class="k">migrating</span>' : ''}</div>`; })() +
     `<div>${parts}</div>` +
     (organs ? `<div>${organs}</div>` : '') +
-    `<div class="k">${cam.follow === c ? 'following · drag to stop' : 'press F to follow'}</div>` +
+    (pinned ? '' : `<div class="k">${cam.follow === c ? 'following · drag to stop' : 'press F to follow'}</div>`) +
     (c.g.absorbed.length ? `<div><span class="k">carries prey genes</span> ${c.g.absorbed.map(s => `<span style="color:${TYPE_COLOR[s.type]}">●</span>`).join('')}</div>` : '');
+  const body = $('inspBody');
+  if (body.innerHTML !== html) body.innerHTML = html;
+  if (pinned) $('inspFollow').textContent = cam.follow === c ? 'Stop following' : 'Follow';
   inspectEl.hidden = false;
   const bw = inspectEl.offsetWidth, bh = inspectEl.offsetHeight;
-  let lx = mouse.x + 18, ly = mouse.y + 18;
-  if (lx + bw > W - 8) lx = mouse.x - bw - 18;
-  if (ly + bh > H - 8) ly = mouse.y - bh - 18;
+  // a pinned card sits beside the creature on screen; a hover card beside the pointer
+  const ax = pinned ? (wrapD(c.x - cam.x, W)) * cam.z + W / 2 : mouse.x, ay = pinned ? (wrapD(c.y - cam.y, H)) * cam.z + H / 2 : mouse.y;
+  let lx = ax + 18, ly = ay + 18;
+  if (lx + bw > W - 8) lx = ax - bw - 18;
+  if (ly + bh > H - 8) ly = ay - bh - 18;
   inspectEl.style.left = Math.max(8, lx) + 'px';
   inspectEl.style.top = Math.max(8, ly) + 'px';
 }
@@ -5191,13 +5212,16 @@ function setTool(t) {
   tool = t;
   $('tKill').setAttribute('aria-pressed', t === 'kill');
   $('tFeed').setAttribute('aria-pressed', t === 'feed');
+  $('tLook').setAttribute('aria-pressed', t === 'look');
+  if (t !== 'look') looked = null;
 }
 
 // A quick tap or click acts with the current tool; dragging pans; two fingers pinch-zoom.
 function act(sx, sy, shift) {
   const p = toWorld(sx, sy);
   const c = pick(p.x, p.y);
-  const action = shift ? (tool === 'kill' ? 'feed' : 'kill') : tool;
+  const action = shift ? (tool === 'kill' ? 'feed' : tool === 'feed' ? 'kill' : 'look') : tool;
+  if (action === 'look') { looked = c; if (!c) inspectEl.hidden = true; return; }
   if (!c) {
     // feeding empty water scatters food bits there
     if (action === 'feed') for (let i = 0; i < 8; i++) addFood(p.x + rand(-12, 12), p.y + rand(-12, 12));
@@ -5273,6 +5297,14 @@ window.addEventListener('keydown', e => {
 
 $('tKill').onclick = () => setTool('kill');
 $('tFeed').onclick = () => setTool('feed');
+$('tLook').onclick = () => setTool('look');
+$('inspClose').onclick = () => { looked = null; inspectEl.hidden = true; };
+$('inspFollow').onclick = () => {
+  const c = looked; if (!c) return;
+  if (cam.follow === c) { cam.follow = null; toast('Stopped following'); }
+  else { storyOff(); cam.follow = c; cam.z = Math.max(cam.z, 2.5); clampCam(); toast(`Following ${c.species} #${c.id}`); }
+};
+$('inspSpecies').onclick = () => { const c = looked; if (c) { openSpeciesDetail(c.species); } };
 $('bPause').onclick = () => { paused = !paused; $('bPause').setAttribute('aria-pressed', paused); $('bPause').textContent = paused ? 'Play' : 'Pause'; };
 const speeds = [1, 2, 4, 8, 0.25, 0.5]; // after 8× it drops to slow motion
 $('bSpeed').onclick = () => { speed = speeds[(speeds.indexOf(speed) + 1) % speeds.length]; $('bSpeed').textContent = `Speed ${speed === 0.25 ? '¼' : speed === 0.5 ? '½' : speed}×`; };

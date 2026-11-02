@@ -5648,9 +5648,9 @@ function restoreFull(d) {
   if (typeof st.speed === 'number') { speed = st.speed; $('bSpeed').textContent = `Speed ${speed === 0.25 ? '¼' : speed === 0.5 ? '½' : speed}×`; }
 }
 
-// Autosave: every two minutes and when the page is closed or hidden, the whole dish goes into the
+// Autosave: every ten minutes and when the page is closed or hidden, the whole dish goes into the
 // browser's own storage (IndexedDB) on this computer. The last three are kept in case one is bad.
-const AUTO_EVERY = 120000, AUTO_KEEP = 3;
+const AUTO_EVERY = 600000, AUTO_KEEP = 3; // each save pauses the dish briefly, so not too often
 let autoOn = true, autoLast = 0, autoBusy = false;
 function idb() {
   return new Promise((res, rej) => {

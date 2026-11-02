@@ -11,7 +11,7 @@ Plan: https://claude.ai/artifact/EAUoSTU9FMgjnN5jg2SEGA
 - **Run it on your PC.** The repo works as a website on GitHub Pages, or offline from a downloaded zip (double-click `index.html`). See *Run it* in the README.
 - **Keeps running when hidden.** Browsers stop drawing a minimised or covered window, which used to freeze the dish. Now it keeps stepping in the background (a worker's timer) and only the drawing waits.
 - **Screen stays awake in full screen**, like a screensaver. Leaving full screen lets it sleep again.
-- **Autosave and resume.** Every two minutes, and when the tab is hidden or closed, the whole dish is saved (gzipped) in the browser's storage on that computer, keeping the last three. Opening the page offers to resume. **Save dish** files now hold the whole running dish too: graphs, species histories and family trees, happenings, food, eggs, parasites on their hosts and zone rules. Older files still load (creatures only).
+- **Autosave and resume.** Every ten minutes, and when the tab is hidden or closed, the whole dish is saved (gzipped) in the browser's storage on that computer, keeping the last three. Opening the page offers to resume. **Save dish** files now hold the whole running dish too: graphs, species histories and family trees, happenings, food, eggs, parasites on their hosts and zone rules. Older files still load (creatures only).
 - **Stop following fixed.** The life-story card was rebuilt four times a second, so the "stop following" button was swapped out between press and release and the click was lost. It is now built once.
 - **Look tool** beside Kill and Feed: tap a creature to keep its card open beside it (good on touch screens), with Follow, Species and Close.
 - **Zone rules.** Each quarter of the dish can have its own sun (0-3x), food (0-3x; above 1x, bits also drift in where there's no vent), mutation (0-5x, by where the young are born) and warmth (colder or warmer than the season). Presets: Sunny top, Mutation hotspot, Rich and poor, Frozen corner. All start at normal.
@@ -23,7 +23,7 @@ Plan: https://claude.ai/artifact/EAUoSTU9FMgjnN5jg2SEGA
   - Mutation hotspot (4 dishes x 15 min): 37% of new species arose in the top-left quarter (normal: 23%).
   - Kept running while hidden: 10 s of dish per 10 s hidden.
   - Save and resume: counts, species, graphs and zone rules match after resuming; the dish runs on without errors.
-  - Long run (30 minutes of dish, run headless at top speed): browser memory 22 to 28 MB, steps and drawing stay fast. A full save takes 140-200 ms and is 7-8 MB before gzip (about 1 MB stored); it grows by about 0.6 MB per 10 minutes as species pile up, so expect a short pause every two minutes on a dish that has run for hours.
+  - Long run (30 minutes of dish, run headless at top speed): browser memory 22 to 28 MB, steps and drawing stay fast. A full save takes 140-200 ms and is 7-8 MB before gzip (about 1 MB stored); it grows by about 0.6 MB per 10 minutes as species pile up, which is why autosave runs every ten minutes rather than every two (each save is a short pause).
 
 ## v14.1: Gentler parasites & hunters that wait out lean times (2026-10-30)
 

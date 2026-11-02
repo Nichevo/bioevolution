@@ -78,7 +78,7 @@ button.ctl {
 button.ctl:hover { border-color: var(--accent); }
 button.ctl[aria-pressed="true"] { background: rgba(143, 227, 208, 0.18); border-color: var(--accent); color: var(--accent); }
 button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.tools { display: grid; grid-template-columns: auto 1fr 1fr; gap: 6px; align-items: center; }
+.tools { display: grid; grid-template-columns: auto 1fr 1fr 1fr; gap: 6px; align-items: center; }
 .tools span { color: var(--ink-dim); }
 label.slider { display: grid; grid-template-columns: 78px 1fr 34px; align-items: center; gap: 8px; color: var(--ink-dim); }
 label.slider output { color: var(--ink); text-align: right; font-variant-numeric: tabular-nums; }
@@ -163,6 +163,8 @@ input[type=range] { width: 100%; accent-color: var(--accent); }
   background: var(--panel); border: 1px solid var(--panel-line); border-radius: 8px;
   padding: 8px 10px; min-width: 190px; font-variant-numeric: tabular-nums; line-height: 1.55;
 }
+#inspect.pinned { pointer-events: auto; max-width: min(340px, calc(100vw - 16px)); }
+#inspect #inspBar { margin-top: 6px; gap: 6px; }
 #inspect .t { font-family: var(--font-display); font-weight: 800; font-size: 14px; display: flex; align-items: center; gap: 6px; }
 #inspect .dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
 #inspect .k { color: var(--ink-dim); }
@@ -174,6 +176,9 @@ input[type=range] { width: 100%; accent-color: var(--accent); }
 #zoom button.ctl { background: var(--panel); min-width: 34px; font-variant-numeric: tabular-nums; }
 #world.grabbing { cursor: grabbing; }
 @media (max-width: 760px) { #zoom { right: auto; left: max(16px, env(safe-area-inset-left, 0px)); bottom: auto; top: calc(160px + env(safe-area-inset-top, 0px)); } /* clear of the Top species card and the main controls */ }
+#resumeCard { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 6; width: min(420px, calc(100vw - 32px)); display: grid; gap: 10px; }
+#resumeCard p { margin: 0; line-height: 1.5; }
+#resumeList { display: grid; gap: 6px; }
 #toast {
   position: fixed; left: 50%; transform: translateX(-50%);
   bottom: calc(18px + env(safe-area-inset-bottom, 0px));
@@ -239,9 +244,16 @@ small { color: var(--ink-dim); font-weight: 400; }
 .lg { display: flex; flex-wrap: wrap; gap: 4px 12px; color: var(--ink-dim); font-variant-numeric: tabular-nums; }
 .lg i, #chartTip i { display: inline-block; width: 10px; height: 3px; border-radius: 2px; margin-right: 5px; vertical-align: middle; }
 .lg b { color: var(--ink); font-weight: 600; }
-.zones { display: grid; gap: 10px; }
+.zones { display: grid; gap: 14px; }
 .zone { cursor: pointer; }
-.zone canvas { height: 70px; }
+.zone canvas { height: 150px; }
+#zCmp { height: 180px; }
+.zrules { width: 100%; border-collapse: collapse; }
+.zrules td, .zrules th { padding: 3px 4px; text-align: left; vertical-align: middle; }
+.zrules input[type=range] { width: 100%; min-width: 60px; }
+.zrules output { display: inline-block; min-width: 38px; font-variant-numeric: tabular-nums; color: var(--ink-dim); font-size: 11px; }
+.zcmp td, .zcmp th { white-space: nowrap; }
+.zcmp th small { white-space: normal; }
 .tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
 .tile { display: grid; gap: 2px; padding: 8px 10px; border: 1px solid var(--panel-line); border-radius: 8px; min-width: 0; }
 .tile > span { color: var(--ink-dim); font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; }
@@ -325,6 +337,7 @@ select { font: inherit; color: var(--ink); background: var(--panel-solid); borde
     <span>Click to</span>
     <button class="ctl" id="tKill" aria-pressed="true">Kill</button>
     <button class="ctl" id="tFeed" aria-pressed="false">Feed</button>
+    <button class="ctl" id="tLook" aria-pressed="false" title="Tap a creature to keep its card open">Look</button>
   </div>
 
   <div class="row">
@@ -349,6 +362,7 @@ select { font: inherit; color: var(--ink); background: var(--panel-solid); borde
     <button class="ctl" id="bSave">Save dish</button>
     <button class="ctl" id="bLoad">Load dish</button>
     <input type="file" id="fLoad" accept=".json,application/json" hidden>
+    <label class="k" for="autoEvery" title="Each autosave pauses the dish for a moment, longer on a dish with a long history">Autosave <select id="autoEvery"><option value="0">off</option><option value="5">every 5 min</option><option value="10" selected>every 10 min</option><option value="30">every 30 min</option><option value="60">every hour</option></select></label>
   </div>
 
   <details class="fold" id="fSliders" open>
@@ -416,7 +430,7 @@ select { font: inherit; color: var(--ink); background: var(--panel-solid); borde
   <p class="hint">Every part costs upkeep, and each extra part costs a bit more than the last. Complex creatures live longer and can do more, but only if they feed themselves. Relatives breed when they meet. Eating can pass the prey's genes to the eater's children.</p>
   </details>
 
-  <p class="hint"><b>Shift-click</b> uses the other tool. Hover to inspect; press <b>F</b> to follow. <b>Scroll or pinch</b> to zoom, <b>drag</b> to look around. Click a species to see its history.</p>
+  <p class="hint"><b>Shift-click</b> swaps Kill and Feed. Hover to inspect, or pick <b>Look</b> and tap a creature to keep its card open; press <b>F</b> to follow. <b>Scroll or pinch</b> to zoom, <b>drag</b> to look around. Click a species to see its history.</p>
 </section>
 
 <section id="species" class="card" aria-label="Most common species">
@@ -428,8 +442,9 @@ select { font: inherit; color: var(--ink); background: var(--panel-solid); borde
   <div id="speciesList"></div>
 </section>
 
-<div id="inspect" hidden></div>
+<div id="inspect" hidden><div id="inspBody"></div><div id="inspBar" class="row" hidden><button class="ctl" id="inspFollow">Follow</button><button class="ctl" id="inspSpecies">Species</button><button class="ctl" id="inspClose">Close</button></div></div>
 <div id="toast" hidden></div>
+<div id="resumeCard" class="card" hidden aria-live="polite"></div>
 <div id="storyBar" class="card" hidden aria-live="polite"><p id="storyText"></p><div class="row"><button class="ctl" id="storyNext">Next story</button><button class="ctl" id="storyFollow">Follow this one</button><button class="ctl" id="storyStop">Stop</button></div></div>
 <div id="storyGraph" class="card" hidden><div class="sghead"><b id="sgTitle"></b><button class="link" id="sgPin">Pin</button><button class="link" id="sgClose" aria-label="Close chart">✕</button></div><div class="lg" id="sgLg"></div><canvas id="sgChart"></canvas></div>
 <div id="spotChip" hidden><span id="spotText"></span><button class="link" id="spotClear">clear</button></div>
@@ -485,7 +500,7 @@ select { font: inherit; color: var(--ink); background: var(--panel-solid); borde
 'use strict';
 
 // Which release this file is. versions/list.js lists every release, newest first.
-const APP_VERSION = 'v14.1';
+const APP_VERSION = 'v15';
 
 // ---------- constants ----------
 const TYPE = { GREEN: 0, RED: 1, BLUE: 2, YELLOW: 3, CYAN: 4, PURPLE: 5, WHITE: 6 };
@@ -539,6 +554,14 @@ let nextId = 1;
 let simTime = 0;
 let paused = false, speed = 1, trails = true;
 let light = 1, foodRate = 1, mutRate = 1;
+// Zone rules: each quarter of the dish can have its own sunlight, food and mutation (multipliers on the sliders)
+// and warmth (-1 colder to +1 warmer). All at 1 / 0, the dish plays as normal.
+const ZONE_DEFAULT = { sun: 1, food: 1, mut: 1, warm: 0 };
+let zoneRules = [0, 1, 2, 3].map(() => ({ ...ZONE_DEFAULT }));
+let zoneFoodAcc = [0, 0, 0, 0];
+let mutZ = 1; // the mutation rule where the young being made is born
+const zr = (x, y) => zoneRules[(x < W / 2 ? 0 : 1) + (y < H / 2 ? 0 : 2)];
+const zm = c => { mutZ = zr(c.x, c.y).mut; return c; }; // set mutZ from the parent's spot and pass the parent through
 // Balance sliders (all 1 = the standard dish). foodRate is the vents' output.
 const BAL_DEFAULTS = { shed: 1, bits: 1, meat: 1, fat: 1, crowd: 1, brainCost: 1, hive: 1, mix: 1, life: 1, disease: 1 };
 // ready-made balance settings; anything not named stays at the standard value
@@ -568,6 +591,7 @@ let freshLife = true, freshNext = 60; // now and then very simple new life appea
 let migrants = false, migrantT = { grazer: 0, pred: 0 }; // optional safety net: newcomers drift in when a whole tier is gone
 let meanSpAlive = 10; // creatures per living species, for "hunt what's common"
 let tool = 'kill';
+let looked = null; // creature whose card the Look tool keeps open
 let stats = newStats();
 let globs = [];            // spitter shots in flight
 let samples = [];          // one snapshot of the whole dish per simulated second
@@ -681,8 +705,10 @@ function specialise(g) {
   const segs = g.segs.filter(s => feedKind(s) === low), weapon = g.segs.find(s => feedKind(s) === 2);
   segs[randi(0, segs.length - 1)].type = main === 0 ? TYPE.GREEN : main === 1 ? TYPE.CYAN : weapon.type;
 }
-function mutate(g, parentAbsorbed, push = null, fade = false) {
-  const m = mutRate * (push ? push.k : 1) * reboundBoost();
+function mutate(g, parentAbsorbed, push = null, fade = false, zk = null) {
+  if (zk !== null) mutZ = zk;
+  const m = mutRate * mutZ * (push ? push.k : 1) * reboundBoost();
+  mutZ = 1;
   specialise(g);
   for (const s of g.segs) {
     if (Math.random() < 0.12 * m) s.len = clamp(s.len + gauss() * 2, 3, 16);
@@ -1474,7 +1500,7 @@ class Creature {
   }
 
   // How cold it is where this creature is: a vent's warmth keeps the cold off close by.
-  coldHere() { return env.cold * (1 - this.ventNear); }
+  coldHere() { const w = zr(this.x, this.y).warm; return (w ? clamp(env.cold - 0.6 * w, 0, 1) : env.cold) * (1 - this.ventNear); }
   // cold blood is sluggish: up to 10% slower to notice things and to get going, unless warmed by a vent
   get sluggish() { return 0.1 * clamp((0.65 - this.tr.warm) / 0.45, 0, 1) * (1 - this.ventNear); }
   // 0 away from any vent, up to 1 at a vent's centre; also notes which vent is nearest
@@ -1527,7 +1553,7 @@ class Creature {
     // weed beds shade out a fifth of the sun
     // close green neighbours shade each other, so a dense clump gets less sun each
     // a shrub grows slower than grass; a hibernating plant barely grows at all
-    let sun = this.digSun * this.pow[TYPE.GREEN] * this.scale * 0.1725 * light * env.sun * perf * sunShare * dt * (this.hidden ? 0.8 : 1) / (1 + this.shadeN * 0.1 * bal.crowd)
+    let sun = this.digSun * this.pow[TYPE.GREEN] * this.scale * 0.1725 * light * zr(this.x, this.y).sun * env.sun * perf * sunShare * dt * (this.hidden ? 0.8 : 1) / (1 + this.shadeN * 0.1 * bal.crowd)
       * (1 - 0.3 * this.toughF) * (this.torpid ? 0.4 : 1);
     // plants shed part of what they gather as food bits, which drift off for the grazers
     if (sun > 0 && bal.shed > 0) {
@@ -2708,9 +2734,10 @@ function takeSample() {
   spPartSum.clear(); spAte.clear();
   meanSpAlive = Math.max(1, creatures.length / Math.max(1, alive));
   const zones = [0, 1, 2, 3].map(() => [0, 0, 0]);
-  for (const c of creatures) if (!c.caste) zones[zoneOf(c.x, c.y)][Math.min(roleOf(c), 2)]++;
+  const zsp = [0, 1, 2, 3].map(() => new Set());
+  for (const c of creatures) if (!c.caste) { const z = zoneOf(c.x, c.y); zones[z][Math.min(roleOf(c), 2)]++; zsp[z].add(c.species); }
   samples.push({
-    t: simTime, pop: creatures.length, zones, roles, genes, parts: creatures.length ? parts / creatures.length : 0, social: creatures.length ? social / creatures.length : 0,
+    t: simTime, pop: creatures.length, zones, zoneSp: zsp.map(x => x.size), roles, genes, parts: creatures.length ? parts / creatures.length : 0, social: creatures.length ? social / creatures.length : 0,
     brain: creatures.length ? brain / creatures.length : 0, brainMax, traits, life, tactics: { ...stats.tactics },
     species: alive, food: food.length, corpses: corpses.length, deaths: { ...stats },
     tiers, tierEnergy, ages, agesT, cold: env.cold, genesBy, brainLv, inst, geneN, geneNBy, spGenes, simple, complex,
@@ -2743,7 +2770,7 @@ function partnerStep(c, dt) {
     }
     // it breeds as it rides: its young drop off to find hosts of their own
     if (c.age > matureAge(c) && c.cooldown <= 0 && c.fullness > 0.7 && creatures.length < MAX_POP) {
-      const g = mutate(cloneGenome(c.g), c.g.absorbed, pushFor(c), fadeFor(c));
+      const g = mutate(cloneGenome(zm(c).g), c.g.absorbed, pushFor(c), fadeFor(c));
       const child = new Creature(g, (c.x + rand(-8, 8) + W) % W, (c.y + rand(-8, 8) + H) % H, c.energy * 0.35, c.gen + 1);
       c.energy *= 0.6; c.cooldown = BREED_COOLDOWN * litterGap(c); c.kids++;
       child.parents = [c.id]; inheritResist(child, [c]); note(c, 'dropped a youngster off its host');
@@ -2771,7 +2798,7 @@ function partnerStep(c, dt) {
   if (c.seed && simTime - c.seed.t > 20) {
     const s = c.seed; c.seed = null;
     if (creatures.length < MAX_POP && !inRock(c.x, c.y)) {
-      const child = new Creature(mutate(cloneGenome(s.g), s.g.absorbed), c.x, c.y, 12, s.gen + 1);
+      const child = new Creature(mutate(cloneGenome(s.g), s.g.absorbed, null, false, zr(c.x, c.y).mut), c.x, c.y, 12, s.gen + 1);
       child.parents = []; stats.sown = (stats.sown || 0) + 1;
       birth(child, [s.sp]); note(child, `sprouted from a seed a ${c.species} carried`);
     }
@@ -2804,10 +2831,21 @@ function step(dt) {
 
   // Vents on the pond floor puff out a stream of food bits, more in the cold. More vents share the same total.
   for (const v of vents) {
-    v.acc += dt * foodRate * VENT_TOTAL / vents.length * (1 + 0.5 * env.cold);
+    v.acc += dt * foodRate * zr(v.x, v.y).food * VENT_TOTAL / vents.length * (1 + 0.5 * env.cold);
     while (v.acc >= 1) {
       v.acc -= 1;
       if (food.length < foodCap()) { const a = rand(Math.PI * 2), r = Math.sqrt(rand(1)) * VENT_R * 0.5; addFood(v.x + Math.cos(a) * r, v.y + Math.sin(a) * r, FOOD_ENERGY, rand(Math.PI * 2), rand(3, 10)); }
+    }
+  }
+  // a zone with more than 1x food also gets loose bits drifting in anywhere in it, vent or not
+  for (let z = 0; z < 4; z++) {
+    const extra = zoneRules[z].food - 1;
+    if (extra <= 0) { zoneFoodAcc[z] = 0; continue; }
+    zoneFoodAcc[z] += dt * foodRate * extra * VENT_TOTAL / 8;
+    while (zoneFoodAcc[z] >= 1) {
+      zoneFoodAcc[z] -= 1;
+      const x = (z % 2 + rand(1)) * W / 2, y = ((z >> 1) + rand(1)) * H / 2;
+      if (food.length < foodCap() * 1.5 && !inRock(x, y)) addFood(x, y, FOOD_ENERGY, rand(Math.PI * 2), rand(1, 3));
     }
   }
   // poison patches from events
@@ -2900,7 +2938,7 @@ function step(dt) {
       if (c.caste === 'queen') { if (!c.dead && c.age > MATURE_AGE && c.cooldown <= 0 && c.fullness > 0.5) layEgg(c); continue; }
       if (c.caste || crowdedOut(c)) continue; // workers can't breed
       if (!c.dead && c.age > matureAge(c) && c.cooldown <= 0 && c.scale >= 1 && c.energy > c.maxEnergy * 0.92) {
-        const g = mutate(cloneGenome(c.g), c.g.absorbed, pushFor(c), fadeFor(c)), cheap = youngCost(c);
+        const g = mutate(cloneGenome(zm(c).g), c.g.absorbed, pushFor(c), fadeFor(c)), cheap = youngCost(c);
         const child = new Creature(g, (c.x + rand(-8, 8) + W) % W, (c.y + rand(-8, 8) + H) % H, c.energy * 0.4 * cheap, c.gen + 1);
         c.energy *= 1 - 0.5 * cheap; c.cooldown = BREED_COOLDOWN * 1.5 * litterGap(c); c.kids++;
         child.parents = [c.id]; inheritResist(child, [c]); child.scavBorn = c.scavenger; note(c, 'budded off a youngster'); seedDrift(child);
@@ -3012,7 +3050,7 @@ function breed(a, b) {
   a.energy *= 1 - 0.3 * ca * (1 - 0.5 * niche); b.energy *= 1 - 0.3 * cb * (1 - 0.5 * niche);
   a.cooldown = BREED_COOLDOWN * litterGap(a) * (1 - 0.4 * niche); b.cooldown = BREED_COOLDOWN * litterGap(b) * (1 - 0.4 * niche);
   for (let i = 0; i < twins; i++) {
-    const g = mutate(crossover(a.g, b.g), Math.random() < 0.5 ? a.g.absorbed : b.g.absorbed, pushFor(a), fadeFor(a));
+    const g = mutate(crossover(zm(a).g, b.g), Math.random() < 0.5 ? a.g.absorbed : b.g.absorbed, pushFor(a), fadeFor(a));
     const child = new Creature(g, (a.x + rand(-5, 5) + W) % W, (a.y + rand(-5, 5) + H) % H, e, Math.max(a.gen, b.gen) + 1);
     child.parents = [a.id, b.id]; inheritResist(child, [a, b]); child.scavBorn = a.scavenger || b.scavenger; seedDrift(child);
     a.kids++; b.kids++;
@@ -3047,7 +3085,7 @@ function layDormant(parent, child, parents) {
 // (weapons switched off, forages and brings food home). The queen lays about 1 soldier in 6 when calm, up to 1 in 2 under attack;
 // soldiers cost her more, and how fast she lays doesn't change.
 function layEgg(q) {
-  const g = mutate(cloneGenome(q.g), q.g.absorbed, pushFor(q), fadeFor(q)), first = (q.laid || 0) < 4;
+  const g = mutate(cloneGenome(zm(q).g), q.g.absorbed, pushFor(q), fadeFor(q)), first = (q.laid || 0) < 4;
   const child = new Creature(g, (q.x + rand(-6, 6) + W) % W, (q.y + rand(-6, 6) + H) % H, q.energy * (first ? 0.12 : 0.18), q.gen + 1);
   child.parents = [q.id]; inheritResist(child, [q]);
   let soldier = false;
@@ -3595,14 +3633,23 @@ function note(c, text) {
   d.push({ t: simTime, text, n: 1 });
   if (d.length > 30) d.shift();
 }
+// The card is built once and only its text is updated each frame: rebuilding the button every frame
+// swapped it out between press and release, so the click never landed.
+let lifeBuilt = false;
 function renderLife() {
   const c = cam.follow, el = $('lifeCard');
   if (!c) { el.hidden = true; return; }
+  if (!lifeBuilt) {
+    el.innerHTML = `<div class="lhead"><b id="lifeName"></b> <small id="lifeInfo"></small><button class="link" id="lifeStop">stop following</button></div><ol id="lifeDiary"></ol>`;
+    $('lifeStop').onclick = () => { cam.follow = null; renderLife(); toast('Stopped following'); };
+    lifeBuilt = true;
+  }
   el.hidden = false;
   const d = (c.diary || []).slice(-7);
-  el.innerHTML = `<div class="lhead"><b>${c.species}</b> <small>#${c.id} · ${roleNoun(c)} · age ${Math.floor(c.age)}s</small><button class="link" id="lifeStop">stop following</button></div>` +
-    `<ol>${d.map(e => `<li><span class="k">${fmtTime(e.t)}</span> ${e.text}${e.n > 1 ? ` <small>×${e.n}</small>` : ''}</li>`).join('')}</ol>`;
-  $('lifeStop').onclick = () => { cam.follow = null; renderLife(); };
+  const set = (id, html) => { const e = $(id); if (e.innerHTML !== html) e.innerHTML = html; };
+  set('lifeName', c.species);
+  set('lifeInfo', `#${c.id} · ${roleNoun(c)} · age ${Math.floor(c.age)}s`);
+  set('lifeDiary', d.map(e => `<li><span class="k">${fmtTime(e.t)}</span> ${e.text}${e.n > 1 ? ` <small>×${e.n}</small>` : ''}</li>`).join(''));
 }
 // when the creature you're following dies, carry on with one of its young if it has any
 function followerDied(c) {
@@ -3675,7 +3722,10 @@ function drawZones() {
   ctx.font = `600 ${fs}px sans-serif`;
   for (let z = 0; z < 4; z++) {
     const cx = (z % 2 + 0.5) * W / 2, y = (z >> 1) * H / 2 + 18 / cam.z, tot = n[z][0] + n[z][1] + n[z][2];
-    ctx.fillStyle = 'rgba(232,241,255,0.8)'; ctx.textAlign = 'center'; ctx.fillText(`${ZONE_NAMES[z]} · ${tot}`, cx, y); ctx.textAlign = 'left';
+    ctx.fillStyle = 'rgba(232,241,255,0.8)'; ctx.textAlign = 'center'; ctx.fillText(`${ZONE_NAMES[z]} · ${tot}`, cx, y);
+    const rt = zoneRuleText(z);
+    if (rt) { ctx.font = `${fs * 0.9}px sans-serif`; ctx.fillStyle = 'rgba(232,241,255,0.6)'; ctx.fillText(rt, cx, y + 22 / cam.z); ctx.font = `600 ${fs}px sans-serif`; }
+    ctx.textAlign = 'left';
     const bw = 90 / cam.z;
     let bx = cx - bw / 2;
     for (let k = 0; k < 3; k++) { const w = tot ? bw * n[z][k] / tot : 0; ctx.fillStyle = ROLE[k].color; ctx.fillRect(bx, y + 5 / cam.z, w, 4 / cam.z); bx += w; }
@@ -4329,14 +4379,17 @@ function updatePanel() {
     r.c.textContent = s.count;
   });
 
-  const c = hovered();
+  if (looked && looked.dead) looked = null;
+  const pinned = !!looked, c = looked || hovered();
+  inspectEl.classList.toggle('pinned', pinned);
+  $('inspBar').hidden = !pinned;
   if (!c) { inspectEl.hidden = true; return; }
   const diet = c.ateSun + c.ateMeat + c.ateFood + c.ateCarrion || 1;
   const pct = v => Math.round(v / diet * 100);
   const times = v => Math.abs(v - 1) >= 0.05 ? ` ×${v.toFixed(1)}` : '';
   const parts = c.len.map((v, i) => v > 0 ? `<span style="color:${TYPE_COLOR[i]}">${TYPE_NAME[i]} ${Math.round(v)}${times(c.pow[i] / v)}</span>` : '').filter(Boolean).join(' · ');
   const organs = c.organs.map((n, o) => o && n ? `<span style="color:${ORGAN_COLOR[o]}">${n} ${ORGAN_NAME[o]}${times(c.organPow[o] / n)}</span>` : '').filter(Boolean).join(' · ');
-  inspectEl.innerHTML =
+  const html =
     `<div class="t"><span class="dot" style="background:hsl(${c.g.hue} 85% 60%)"></span>${c.species}</div>` +
     `<div><span class="k">#${c.id} · gen</span> ${c.gen} · <span class="k">age</span> ${Math.floor(c.age)}/${Math.floor(c.lifespan)}s${c.frailty > 0.3 ? (c.scale < 1 ? ' · young, easy prey' : ' · old, easy prey') : ''}</div>` +
     `<div><span class="k">energy</span> ${Math.round(c.energy + c.fat)}/${Math.round(c.maxEnergy * c.scale)}${c.fat >= 1 ? ` (+${Math.round(c.fat)} fat)` : ''} · <span class="k">upkeep</span> ${(c.baseUpkeep * c.scale).toFixed(1)}/s</div>` +
@@ -4350,13 +4403,18 @@ function updatePanel() {
     (() => { const rec = speciesDB.get(c.species); if (!rec) return ''; const g = groupInfo(groupOf(rec)); return `<div><span class="k">species</span> <span style="color:${g.color}">${g.key === 'top' ? '♛ ' : ''}${g.one.toLowerCase()}</span>, ${levelText(g.key)}${c.migrate ? ' · <span class="k">migrating</span>' : ''}</div>`; })() +
     `<div>${parts}</div>` +
     (organs ? `<div>${organs}</div>` : '') +
-    `<div class="k">${cam.follow === c ? 'following · drag to stop' : 'press F to follow'}</div>` +
+    (pinned ? '' : `<div class="k">${cam.follow === c ? 'following · drag to stop' : 'press F to follow'}</div>`) +
     (c.g.absorbed.length ? `<div><span class="k">carries prey genes</span> ${c.g.absorbed.map(s => `<span style="color:${TYPE_COLOR[s.type]}">●</span>`).join('')}</div>` : '');
+  const body = $('inspBody');
+  if (body.innerHTML !== html) body.innerHTML = html;
+  if (pinned) $('inspFollow').textContent = cam.follow === c ? 'Stop following' : 'Follow';
   inspectEl.hidden = false;
   const bw = inspectEl.offsetWidth, bh = inspectEl.offsetHeight;
-  let lx = mouse.x + 18, ly = mouse.y + 18;
-  if (lx + bw > W - 8) lx = mouse.x - bw - 18;
-  if (ly + bh > H - 8) ly = mouse.y - bh - 18;
+  // a pinned card sits beside the creature on screen; a hover card beside the pointer
+  const ax = pinned ? (wrapD(c.x - cam.x, W)) * cam.z + W / 2 : mouse.x, ay = pinned ? (wrapD(c.y - cam.y, H)) * cam.z + H / 2 : mouse.y;
+  let lx = ax + 18, ly = ay + 18;
+  if (lx + bw > W - 8) lx = ax - bw - 18;
+  if (ly + bh > H - 8) ly = ay - bh - 18;
   inspectEl.style.left = Math.max(8, lx) + 'px';
   inspectEl.style.top = Math.max(8, ly) + 'px';
 }
@@ -4537,11 +4595,53 @@ function renderDrawer(full) {
   else renderSpeciesList(full);
 }
 
+// Zone rules and the zone comparison
+const ZONE_COLORS = ['#6cb6ff', '#f5a65b', '#c49bff', '#f472b6'];
+const ZRULE_KEYS = [
+  { key: 'sun', label: 'Sun', min: 0, max: 3, step: 0.05, fmt: v => v.toFixed(2) + '×' },
+  { key: 'food', label: 'Food', min: 0, max: 3, step: 0.05, fmt: v => v.toFixed(2) + '×' },
+  { key: 'mut', label: 'Mutation', min: 0, max: 5, step: 0.1, fmt: v => v.toFixed(1) + '×' },
+  { key: 'warm', label: 'Warmth', min: -1, max: 1, step: 0.05, fmt: v => v === 0 ? 'normal' : (v > 0 ? '+' : '') + v.toFixed(2) },
+];
+const ZONE_PRESETS = [
+  { label: 'Sunny top', tip: 'Top half gets 1.5× sun', rules: [{ sun: 1.5 }, { sun: 1.5 }, {}, {}] },
+  { label: 'Mutation hotspot', tip: 'Top left mutates 3× as fast', rules: [{ mut: 3 }, {}, {}, {}] },
+  { label: 'Rich and poor', tip: 'Left half 1.5× food, right half 0.5×', rules: [{ food: 1.5 }, { food: 0.5 }, { food: 1.5 }, { food: 0.5 }] },
+  { label: 'Frozen corner', tip: 'Bottom right is much colder', rules: [{}, {}, {}, { warm: -1 }] },
+];
+let zcmpMode = 'pop';
+const ZCMP = [
+  { key: 'pop', label: 'Alive', get: (s, z) => s.zones ? s.zones[z][0] + s.zones[z][1] + s.zones[z][2] : 0 },
+  { key: 'plants', label: 'Plants', get: (s, z) => s.zones ? s.zones[z][0] : 0 },
+  { key: 'grazers', label: 'Grazers', get: (s, z) => s.zones ? s.zones[z][1] : 0 },
+  { key: 'hunters', label: 'Hunters', get: (s, z) => s.zones ? s.zones[z][2] : 0 },
+  { key: 'species', label: 'Species', get: (s, z) => s.zoneSp ? s.zoneSp[z] : 0 },
+];
+function zoneRuleText(z) {
+  const r = zoneRules[z], out = [];
+  if (r.sun !== 1) out.push(`sun ${+r.sun.toFixed(2)}×`);
+  if (r.food !== 1) out.push(`food ${+r.food.toFixed(2)}×`);
+  if (r.mut !== 1) out.push(`mutation ${+r.mut.toFixed(1)}×`);
+  if (r.warm) out.push(r.warm > 0 ? `warmer +${+r.warm.toFixed(2)}` : `colder ${+r.warm.toFixed(2)}`);
+  return out.join(', ');
+}
+function setZonePreset(i) {
+  zoneRules = [0, 1, 2, 3].map(z => ({ ...ZONE_DEFAULT, ...(i === 'reset' ? {} : ZONE_PRESETS[i].rules[z]) }));
+  toast(i === 'reset' ? 'Zone rules back to normal' : `Zone rules: ${ZONE_PRESETS[i].label}`);
+}
+
 // The Zones tab: each quarter of the dish, then inside a vent or the weeds against outside, over the last minute.
 const ZONE_ROLES = ['plants', 'grazers', 'hunters'];
 function renderZones(full) {
   if (full) {
     drawerBody.innerHTML = `<p class="note">The dish in quarters. Births and deaths are for the last minute; hive workers are left out. Turn on <b>View: zones</b> to see the quarters in the dish. Click a zone to go there.</p>
+      <section><h3>Compare zones</h3>
+        <div class="row">${ZCMP.map(m => `<button class="ctl" data-zcmp="${m.key}" aria-pressed="${zcmpMode === m.key}">${m.label}</button>`).join('')}</div>
+        <div class="lg" id="zCmpLg"></div><canvas id="zCmp"></canvas>
+        <div id="zCmpTable"></div></section>
+      <section><h3>Zone rules</h3><p class="note">Give each quarter its own sunlight, food, mutation and warmth, on top of the sliders. Food above 1× also drifts in where there's no vent. Young mutate at the rate of where they're born.</p>
+        <div class="row">${ZONE_PRESETS.map((pr, i) => `<button class="ctl" data-zpreset="${i}" title="${pr.tip}">${pr.label}</button>`).join('')}<button class="ctl" data-zpreset="reset">Reset</button></div>
+        <table class="zrules"><thead><tr><th></th>${ZRULE_KEYS.map(r => `<th>${r.label}</th>`).join('')}</tr></thead><tbody>${ZONE_NAMES.map((n, z) => `<tr><th>${n}</th>${ZRULE_KEYS.map(r => `<td><input type="range" data-zrule="${z}:${r.key}" min="${r.min}" max="${r.max}" step="${r.step}" value="${zoneRules[z][r.key]}" aria-label="${n} ${r.label}"><output id="zr${z}${r.key}">${r.fmt(zoneRules[z][r.key])}</output></td>`).join('')}</tr>`).join('')}</tbody></table></section>
       <div class="zones">${ZONE_NAMES.map((n, z) => `<section class="zone" data-zone="${z}"><h3>${n}</h3><div id="zInfo${z}"></div><div class="lg" id="zPop${z}Lg"></div><canvas id="zPop${z}"></canvas></section>`).join('')}</div>
       <section><h3>In a vent or not</h3><p class="note">Inside a vent's warm patch against everywhere else.</p><div id="zVent"></div></section>
       <section><h3>In the weeds or not</h3><p class="note">Hidden in a weed bed against out in the open.</p><div id="zWeed"></div></section>`;
@@ -4549,6 +4649,17 @@ function renderZones(full) {
   const win = Math.min(60, Math.max(1, simTime));
   const perMin = n => (n * 60 / win).toFixed(1);
   const live = creatures.filter(c => c.caste !== 'worker');
+  // the comparison: one line per zone for the chosen measure, and a row per zone
+  const m = ZCMP.find(x => x.key === zcmpMode) || ZCMP[0];
+  drawChart('zCmp', samples.map(s => s.t), ZONE_NAMES.map((n, z) => ({ label: n, color: ZONE_COLORS[z], values: samples.map(s => m.get(s, z)) })));
+  const spZones = new Map();
+  for (const c of live) { const z = zoneOf(c.x, c.y); if (!spZones.has(c.species)) spZones.set(c.species, new Set()); spZones.get(c.species).add(z); }
+  $('zCmpTable').innerHTML = `<div class="gtable"><table class="zcmp"><thead><tr><th>Zone</th><th>Alive</th><th>${ZONE_ROLES.map((r, k) => `<span style="color:${ROLE[k].color}">${r[0].toUpperCase()}</span>`).join(' / ')}</th><th>Born / died a min</th><th>Species</th></tr></thead><tbody>${ZONE_NAMES.map((n, z) => {
+    const here = live.filter(c => zoneOf(c.x, c.y) === z), log = zoneLog.filter(e => e.z === z), r = [0, 0, 0];
+    for (const c of here) r[Math.min(roleOf(c), 2)]++;
+    const sps = new Set(here.map(c => c.species)), only = [...sps].filter(x => spZones.get(x).size === 1).length;
+    return `<tr><th><span style="color:${ZONE_COLORS[z]}">●</span> ${n}<br><small class="k" style="font-weight:400">${zoneRuleText(z) || 'normal rules'}</small></th><td>${here.length}</td><td>${r.join(' / ')}</td><td>${perMin(log.filter(e => !e.cause).length)} / ${perMin(log.filter(e => e.cause).length)}</td><td>${sps.size}${only ? ` <small>(${only} only here)</small>` : ''}</td></tr>`;
+  }).join('')}</tbody></table></div><p class="note">P / G / H: plants, grazers, hunters. "Only here": species with no living members in any other zone.</p>`;
   for (let z = 0; z < 4; z++) {
     const here = live.filter(c => zoneOf(c.x, c.y) === z), log = zoneLog.filter(e => e.z === z);
     const roles = [0, 0, 0, 0]; let parts = 0, simple = 0, complex = 0, hives = 0;
@@ -4562,7 +4673,7 @@ function renderZones(full) {
     const top = [...sp].sort((a, b) => b[1] - a[1]).slice(0, 3);
     const n = here.length || 1;
     $('zInfo' + z).innerHTML = `<div class="tiles">${tile('Alive', here.length) + tile('Food bits', nFood) + tile('Births / min', perMin(births)) + tile('Deaths / min', perMin(deaths.length))}</div>
-      <p class="note">${ROLE.slice(0, 3).map((r, k) => `<span style="color:${r.color}">${roles[k]} ${ZONE_ROLES[k]}</span>`).join(' · ')}${roles[3] ? ` · ${roles[3]} other` : ''}${hives ? ` · ${hives} queens` : ''}<br>
+      <p class="note">${zoneRuleText(z) ? `<b>Rules:</b> ${zoneRuleText(z)}<br>` : ''}${ROLE.slice(0, 3).map((r, k) => `<span style="color:${r.color}">${roles[k]} ${ZONE_ROLES[k]}</span>`).join(' · ')}${roles[3] ? ` · ${roles[3]} other` : ''}${hives ? ` · ${hives} queens` : ''}<br>
       ${byCause.length ? 'Deaths: ' + byCause.map(([l, k]) => `${perMin(k)} ${l}`).join(', ') + ' a minute<br>' : ''}
       Average ${(parts / n).toFixed(1)} parts · ${Math.round(100 * simple / n)}% simple · ${Math.round(100 * complex / n)}% complex<br>
       ${nVents} vent${nVents === 1 ? '' : 's'} · ${Math.round(weed * 100)}% of the weed<br>
@@ -5103,8 +5214,15 @@ function drawTree(cv, sel) {
   }
 }
 
+drawer.addEventListener('input', e => {
+  const t = e.target.closest('[data-zrule]');
+  if (!t) return;
+  const [z, key] = t.dataset.zrule.split(':'), v = +t.value;
+  zoneRules[+z][key] = v;
+  $('zr' + z + key).textContent = ZRULE_KEYS.find(r => r.key === key).fmt(v);
+});
 drawer.addEventListener('click', e => {
-  const t = e.target.closest('[data-sp],[data-act],[data-tree],[data-pyr],[data-agemode],[data-ev],[data-hap],[data-hfilter],[data-filter],[data-tab],[data-group],[data-confirm],[data-trait],[data-gview],[data-gmode],[data-gsp],[data-show],[data-gene],[data-gsort],[data-inh],[data-zone]');
+  const t = e.target.closest('[data-sp],[data-act],[data-tree],[data-pyr],[data-agemode],[data-ev],[data-hap],[data-hfilter],[data-filter],[data-tab],[data-group],[data-confirm],[data-trait],[data-gview],[data-gmode],[data-gsp],[data-show],[data-gene],[data-gsort],[data-inh],[data-zone],[data-zpreset],[data-zcmp]');
   if (!t) return;
   if (t.dataset.pyr) { pyrMode = t.dataset.pyr; renderDrawer(false); return; }
   if (t.dataset.agemode) { ageMode = t.dataset.agemode; renderDrawer(false); return; }
@@ -5141,6 +5259,8 @@ drawer.addEventListener('click', e => {
   else if (t.dataset.group) { spGroup = t.dataset.group; renderDrawer(true); }
   else if (t.dataset.act === 'add') { revive(openSpecies); renderDrawer(false); }
   else if (t.dataset.tab) openDrawer(t.dataset.tab);
+  else if (t.dataset.zpreset) { setZonePreset(t.dataset.zpreset === 'reset' ? 'reset' : +t.dataset.zpreset); renderDrawer(true); }
+  else if (t.dataset.zcmp) { zcmpMode = t.dataset.zcmp; renderDrawer(true); }
   else if (t.dataset.zone) { const z = +t.dataset.zone; showMe(ZONE_NAMES[z], [], null, { x: (z % 2 + 0.5) * W / 2, y: ((z >> 1) + 0.5) * H / 2, r: W / 4 }); }
   else if (t.dataset.filter) { spFilter = t.dataset.filter; renderDrawer(true); }
   else if (t.dataset.act === 'back') { openSpecies = null; renderDrawer(true); }
@@ -5179,6 +5299,7 @@ function setFull(on) {
   const p = $('panel');
   // fold both cards down to their headers (they can still be opened) and close the drawer
   if (on) { for (const [b, c] of [['collapse', 'panel'], ['collapse2', 'species']]) { $(c).classList.add('min'); $(b).textContent = 'show'; $(b).setAttribute('aria-expanded', false); } if (!drawer.hidden) closeDrawer(); }
+  keepAwake(on);
   const el = document.documentElement;
   try {
     if (on && !document.fullscreenElement && el.requestFullscreen) el.requestFullscreen().catch(() => {});
@@ -5186,18 +5307,29 @@ function setFull(on) {
   } catch (_) { /* not allowed here: the panels still fold away */ }
 }
 document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement && fullOn) setFull(false); });
+// In full screen the page asks the computer not to dim or sleep the screen, like a screensaver would. Leaving full screen lets it sleep again.
+let wakeLock = null;
+async function keepAwake(on) {
+  try {
+    if (on && !wakeLock && navigator.wakeLock) { wakeLock = await navigator.wakeLock.request('screen'); wakeLock.addEventListener('release', () => { wakeLock = null; }); }
+    else if (!on && wakeLock) { const w = wakeLock; wakeLock = null; await w.release(); }
+  } catch (_) { /* not allowed here */ }
+}
 
 function setTool(t) {
   tool = t;
   $('tKill').setAttribute('aria-pressed', t === 'kill');
   $('tFeed').setAttribute('aria-pressed', t === 'feed');
+  $('tLook').setAttribute('aria-pressed', t === 'look');
+  if (t !== 'look') looked = null;
 }
 
 // A quick tap or click acts with the current tool; dragging pans; two fingers pinch-zoom.
 function act(sx, sy, shift) {
   const p = toWorld(sx, sy);
   const c = pick(p.x, p.y);
-  const action = shift ? (tool === 'kill' ? 'feed' : 'kill') : tool;
+  const action = shift ? (tool === 'kill' ? 'feed' : tool === 'feed' ? 'kill' : 'look') : tool;
+  if (action === 'look') { looked = c; if (!c) inspectEl.hidden = true; return; }
   if (!c) {
     // feeding empty water scatters food bits there
     if (action === 'feed') for (let i = 0; i < 8; i++) addFood(p.x + rand(-12, 12), p.y + rand(-12, 12));
@@ -5273,6 +5405,14 @@ window.addEventListener('keydown', e => {
 
 $('tKill').onclick = () => setTool('kill');
 $('tFeed').onclick = () => setTool('feed');
+$('tLook').onclick = () => setTool('look');
+$('inspClose').onclick = () => { looked = null; inspectEl.hidden = true; };
+$('inspFollow').onclick = () => {
+  const c = looked; if (!c) return;
+  if (cam.follow === c) { cam.follow = null; toast('Stopped following'); }
+  else { storyOff(); cam.follow = c; cam.z = Math.max(cam.z, 2.5); clampCam(); toast(`Following ${c.species} #${c.id}`); }
+};
+$('inspSpecies').onclick = () => { const c = looked; if (c) { openSpeciesDetail(c.species); } };
 $('bPause').onclick = () => { paused = !paused; $('bPause').setAttribute('aria-pressed', paused); $('bPause').textContent = paused ? 'Play' : 'Pause'; };
 const speeds = [1, 2, 4, 8, 0.25, 0.5]; // after 8× it drops to slow motion
 $('bSpeed').onclick = () => { speed = speeds[(speeds.indexOf(speed) + 1) % speeds.length]; $('bSpeed').textContent = `Speed ${speed === 0.25 ? '¼' : speed === 0.5 ? '½' : speed}×`; };
@@ -5350,12 +5490,19 @@ $('panel').addEventListener('click', e => { const t = e.target.closest('[data-sp
 // ---------- save and load ----------
 // A saved dish is a JSON file: the world, the settings and every creature's genes and state. Species histories start afresh.
 const r1 = v => Math.round(v * 10) / 10;
-$('bSave').onclick = async () => {
+function dishData(full = true) {
   const data = {
     kind: 'bioevolution-dish', app: APP_VERSION, W, H, simTime: r1(simTime), seasonMode, dayNight, eventsMode, bal: { ...bal }, light, foodRate, mutRate,
     rockLevel, walled, coverLevel, rocks: rocks.map(c => [r1(c.x), r1(c.y), r1(c.r)]), cover: cover.map(c => [r1(c.x), r1(c.y), r1(c.r)]), vents: vents.map(v => [r1(v.x), r1(v.y)]),
     creatures: creatures.map(c => ({ g: { ...c.g, absorbed: c.g.absorbed }, x: r1(c.x), y: r1(c.y), e: r1(c.energy), fat: r1(c.fat), age: r1(c.age), life: r1(c.lifespan), s: Math.round(c.scale * 100) / 100, gen: c.gen, caste: c.caste, job: c.job || undefined, id: c.id, sv: c.survivor || undefined, rs: c.resist ? Math.round(c.resist * 100) / 100 : undefined })),
   };
+  // v15: the whole running state too (graphs, species history, happenings, food, eggs, parasites, zone rules).
+  // Older versions ignore it and load the creatures above.
+  if (full) data.full = packState();
+  return data;
+}
+$('bSave').onclick = async () => {
+  const data = dishData();
   const filename = `bioevolution-dish-${Math.floor(simTime / 60)}m.json`, json = JSON.stringify(data);
   // inside claude.ai the viewer is asked to confirm the save; opened as a plain file, the browser downloads it
   const dl = window.claude && window.claude.use ? await window.claude.use('downloads') : null;
@@ -5379,8 +5526,214 @@ $('fLoad').onchange = async e => {
   try { loadDish(JSON.parse(await f.text())); toast(`Loaded a dish with ${creatures.length} creatures`); renderDrawer(true); }
   catch (err) { toast('That file is not a saved dish'); }
 };
+// ---------- whole-dish saves ----------
+// The running state is a web of objects pointing at each other (a parasite at its host, a species at its
+// arms race, an egg at its unborn young). pack() writes it as JSON: an object reached more than once gets
+// an id ($i) and later mentions point back to it ($r); creatures are tagged ($C) so they come back as creatures.
+// A creature's segments in dish coordinates (ws) are left out and rebuilt from its body on load.
+// Plain data with no shared objects (the graph samples) is wrapped in RawSave and left to JSON.stringify, which is much faster.
+class RawSave { constructor(v) { this.v = v; } }
+function pack(root) {
+  const count = new Map();
+  const isObj = v => v !== null && typeof v === 'object';
+  const skip = v => (typeof Node !== 'undefined' && v instanceof Node) || (typeof HTMLCanvasElement !== 'undefined' && v instanceof HTMLCanvasElement) || (typeof CanvasRenderingContext2D !== 'undefined' && v instanceof CanvasRenderingContext2D) || (typeof ImageBitmap !== 'undefined' && v instanceof ImageBitmap) || (typeof Path2D !== 'undefined' && v instanceof Path2D);
+  const kids = v => v instanceof RawSave ? [] : v instanceof Map ? [...v].flat() : v instanceof Set ? [...v] : Array.isArray(v) ? v : ArrayBuffer.isView(v) ? [] : Object.keys(v).map(k => v[k]);
+  const stack = [root];
+  while (stack.length) {
+    const v = stack.pop();
+    if (!isObj(v) || skip(v)) continue;
+    const n = count.get(v) || 0;
+    count.set(v, n + 1);
+    if (n === 0) for (const k of kids(v)) if (isObj(k)) stack.push(k);
+  }
+  const ids = new Map();
+  let next = 0;
+  const num = x => Number.isFinite(x) ? (Number.isInteger(x) ? x : +x.toPrecision(5)) : { $n: String(x) };
+  const enc = v => {
+    if (typeof v === 'number') return num(v);
+    if (typeof v === 'function' || v === undefined) return undefined;
+    if (!isObj(v)) return v;
+    if (skip(v)) return null;
+    if (v instanceof RawSave) return { $raw: v.v };
+    if (ids.has(v)) return { $r: ids.get(v) };
+    let out;
+    const shared = count.get(v) > 1;
+    const id = shared ? next++ : -1;
+    if (shared) ids.set(v, id);
+    if (v instanceof Map) out = { $m: [...v].map(([k, x]) => [enc(k), enc(x)]) };
+    else if (v instanceof Set) out = { $s: [...v].map(enc) };
+    else if (ArrayBuffer.isView(v)) out = { $t: v.constructor.name, a: Array.from(v, num) };
+    else if (Array.isArray(v)) { const a = v.map(enc); out = shared ? { $a: a } : a; }
+    else {
+      const o = {};
+      const cr = v instanceof Creature;
+      for (const k of Object.keys(v)) { if (cr && k === 'ws') continue; const x = enc(v[k]); if (x !== undefined) o[k] = x; }
+      out = v instanceof Creature ? { $C: o } : o;
+    }
+    if (shared) { if (Array.isArray(out)) out = { $a: out }; out.$i = id; }
+    return out;
+  };
+  return enc(root);
+}
+function unpack(data) {
+  const byId = [];
+  const dec = v => {
+    if (v === null || typeof v !== 'object') return v;
+    if (Array.isArray(v)) return v.map(dec);
+    if ('$r' in v) return byId[v.$r];
+    if ('$raw' in v) return v.$raw;
+    if ('$n' in v) return Number(v.$n);
+    let out;
+    const keep = x => { if ('$i' in v) byId[v.$i] = x; return x; };
+    if ('$m' in v) { out = keep(new Map()); for (const [k, x] of v.$m) out.set(dec(k), dec(x)); return out; }
+    if ('$s' in v) { out = keep(new Set()); for (const x of v.$s) out.add(dec(x)); return out; }
+    if ('$t' in v) return keep(new (window[v.$t] || Float64Array)(v.a.map(dec)));
+    if ('$a' in v) { out = keep([]); for (const x of v.$a) out.push(dec(x)); return out; }
+    const src = '$C' in v ? v.$C : v;
+    out = keep('$C' in v ? Object.create(Creature.prototype) : {});
+    for (const k of Object.keys(src)) if (k !== '$i') out[k] = dec(src[k]);
+    if ('$C' in v && Array.isArray(out.local)) { out.ws = out.local.map(() => ({ x1: 0, y1: 0, x2: 0, y2: 0, type: 0, organ: 0 })); if (typeof out.x === 'number') out.computeWorld(); }
+    return out;
+  };
+  return dec(data);
+}
+function packState() {
+  return pack({
+    creatures, corpses, food, eggs, globs, samples: new RawSave(samples),
+    // species records only point at their arms race, so they go as plain data with that link as an index
+    // and a species that has died out keeps a thinner history (at most 100 points), which is plenty for its charts
+    speciesDB: new RawSave([...speciesDB].map(([k, r]) => {
+      let hist = r.hist;
+      if (r.extinctAt !== null) while (hist.length > 100) hist = decimate(hist);
+      return [k, r.armsHap || hist !== r.hist ? { ...r, hist, armsHap: r.armsHap ? { $hap: happenings.indexOf(r.armsHap) } : r.armsHap } : r];
+    })), happenings, hapId, stats, events, hazards, nextEventT, env: { ...env }, rebound, areas, zoneLog, deadSince, deadTries, alarms,
+    grazerShare, hiveShare, sweepT, nextId, freshLife, freshNext, migrants, migrantT, meanSpAlive, histTimer, reseedTimer, zoneRules, zoneFoodAcc, vents, ventLevel, VENT_R,
+    rocks, cover, simTime, speed,
+  });
+}
+function restoreFull(d) {
+  const st = unpack(d.full);
+  if (!Array.isArray(st.creatures)) throw new Error('bad full save');
+  if (Array.isArray(st.speciesDB)) st.speciesDB = new Map(st.speciesDB.map(([k, r]) => { if (r.armsHap && '$hap' in r.armsHap) r.armsHap = st.happenings[r.armsHap.$hap] || null; return [k, r]; }));
+  if (!(st.speciesDB instanceof Map)) throw new Error('bad full save');
+  seasonMode = d.seasonMode ?? 1; dayNight = d.dayNight ?? true; eventsMode = d.eventsMode ?? 0;
+  Object.assign(bal, BAL_DEFAULTS, d.bal || {}); showBal(); saveBal();
+  light = d.light ?? 1; foodRate = d.foodRate ?? 1; mutRate = d.mutRate ?? 1;
+  for (const [id, o, v] of [['rLight', 'oLight', light], ['rFood', 'oFood', foodRate], ['rMut', 'oMut', mutRate]]) { $(id).value = v; $(o).textContent = v.toFixed(2); }
+  rockLevel = d.rockLevel; walled = d.walled; coverLevel = d.coverLevel;
+  storyOff(); cam.follow = null; looked = null; clearSpot(); openSpecies = null;
+  ({ creatures, corpses, food, eggs, globs, samples, speciesDB, happenings, hapId, stats, events, hazards, nextEventT, rebound, areas, zoneLog, deadSince, deadTries, alarms,
+    grazerShare, hiveShare, sweepT, nextId, freshLife, freshNext, migrants, migrantT, meanSpAlive, histTimer, reseedTimer, vents, ventLevel, rocks, cover, simTime } = st);
+  Object.assign(env, st.env);
+  zoneRules = (st.zoneRules || []).length === 4 ? st.zoneRules.map(r => ({ ...ZONE_DEFAULT, ...r })) : [0, 1, 2, 3].map(() => ({ ...ZONE_DEFAULT }));
+  zoneFoodAcc = st.zoneFoodAcc || [0, 0, 0, 0];
+  VENT_R = st.VENT_R || VENT_R;
+  particles = [];
+  // a different window size: stretch everything that has a place in the dish
+  const sx = W / d.W, sy = H / d.H;
+  if (Math.abs(sx - 1) > 0.001 || Math.abs(sy - 1) > 0.001) {
+    const seen = new Set();
+    const move = o => { if (!o || typeof o !== 'object' || seen.has(o)) return; seen.add(o); if (typeof o.x === 'number' && typeof o.y === 'number') { o.x = ((o.x * sx) + W) % W; o.y = ((o.y * sy) + H) % H; } };
+    for (const list of [creatures, corpses, food, eggs, hazards, vents, rocks, cover, globs]) for (const o of list) { move(o); for (const k of ['home', 'nest', 'cache', 'goal', 'child']) move(o[k]); }
+    for (const r of [...rocks, ...cover]) r.r *= Math.sqrt(sx * sy);
+  }
+  buildRocks(); buildCover();
+  for (const c of creatures) c.computeWorld();
+  if (typeof st.speed === 'number') { speed = st.speed; $('bSpeed').textContent = `Speed ${speed === 0.25 ? '¼' : speed === 0.5 ? '½' : speed}×`; }
+}
+
+// Autosave: every ten minutes by default and when the page is closed or hidden, the whole dish goes into the
+// browser's own storage (IndexedDB) on this computer. The last three are kept in case one is bad.
+// How often is up to you (the Autosave menu, remembered on this computer); off also stops saving on close.
+const AUTO_KEEP = 3;
+let AUTO_EVERY = 600000, autoOn = true, autoLast = 0, autoBusy = false;
+function setAutoEvery(min) {
+  autoOn = min > 0; AUTO_EVERY = Math.max(1, min) * 60000;
+  $('autoEvery').value = String(min);
+  try { localStorage.setItem('bio-autosave', String(min)); } catch (_) { /* storage may be blocked */ }
+}
+try { const v = localStorage.getItem('bio-autosave'); if (v !== null && ['0', '5', '10', '30', '60'].includes(v)) setAutoEvery(+v); } catch (_) { /* ignore */ }
+$('autoEvery').onchange = e => { setAutoEvery(+e.target.value); autoLast = Date.now(); toast(autoOn ? `Autosave every ${e.target.selectedOptions[0].textContent.replace('every ', '')}` : 'Autosave off'); };
+function idb() {
+  return new Promise((res, rej) => {
+    if (!window.indexedDB) return rej(new Error('no storage'));
+    const r = indexedDB.open('bioevolution', 1);
+    r.onupgradeneeded = () => r.result.createObjectStore('saves');
+    r.onsuccess = () => res(r.result);
+    r.onerror = () => rej(r.error);
+  });
+}
+async function idbDo(mode, fn) {
+  const db = await idb();
+  return new Promise((res, rej) => {
+    const tx = db.transaction('saves', mode), store = tx.objectStore('saves');
+    let out;
+    Promise.resolve(fn(store)).then(r => { out = r; });
+    tx.oncomplete = () => { db.close(); res(out); };
+    tx.onerror = () => { db.close(); rej(tx.error); };
+  });
+}
+const reqP = r => new Promise((res, rej) => { r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); });
+async function autoSave(why) {
+  if (!autoOn || autoBusy || !creatures.length || simTime < 30) return;
+  autoBusy = true;
+  try {
+    const t0 = performance.now();
+    const json = JSON.stringify(dishData());
+    const ms = performance.now() - t0;
+    const blob = await gz(json);
+    await idbDo('readwrite', async store => {
+      const slots = (await reqP(store.get('index'))) || [];
+      const slot = slots.length < AUTO_KEEP ? slots.length : slots.reduce((a, b) => b.at < a.at ? b : a).slot;
+      const meta = { slot, at: Date.now(), simTime, alive: creatures.length, species: [...speciesDB.values()].filter(x => x.extinctAt === null).length, app: APP_VERSION, bytes: blob.size, ms: Math.round(ms) };
+      store.put(blob, 'slot' + slot);
+      store.put([...slots.filter(x => x.slot !== slot), meta], 'index');
+    });
+    autoLast = Date.now();
+    window.__lastAuto = { why, ms, bytes: json.length, stored: blob.size };
+  } catch (err) { /* storage blocked or full: the Save button still works */ }
+  autoBusy = false;
+}
+async function autoList() { try { return ((await idbDo('readonly', store => reqP(store.get('index')))) || []).sort((a, b) => b.at - a.at); } catch (_) { return []; } }
+async function autoLoad(slot) { return JSON.parse(await gunz(await idbDo('readonly', store => reqP(store.get('slot' + slot))))); }
+// autosaves are gzipped where the browser can (most can), which makes them about a tenth of the size
+async function gz(text) {
+  if (typeof CompressionStream === 'undefined') return text;
+  return new Response(new Blob([text]).stream().pipeThrough(new CompressionStream('gzip'))).blob();
+}
+async function gunz(v) {
+  if (typeof v === 'string') return v;
+  return new Response(v.stream().pipeThrough(new DecompressionStream('gzip'))).text();
+}
+setInterval(() => { if (Date.now() - autoLast >= AUTO_EVERY) autoSave('timer'); }, 10000);
+document.addEventListener('visibilitychange', () => { if (document.hidden) autoSave('hidden'); });
+window.addEventListener('pagehide', () => autoSave('close'));
+const agoText = ms => { const m = Math.round(ms / 60000); return m < 1 ? 'just now' : m < 60 ? `${m} min ago` : m < 48 * 60 ? `${Math.round(m / 60)} h ago` : `${Math.round(m / 1440)} days ago`; };
+// On opening, offer to pick the dish back up. The fresh dish runs underneath until you choose.
+async function offerResume() {
+  const list = await autoList();
+  if (!list.length) return;
+  const m = list[0], el = $('resumeCard');
+  el.innerHTML = `<p>Resume your dish from <b>${fmtTime(m.simTime)}</b>? ${m.alive} alive, ${m.species} species, saved ${agoText(Date.now() - m.at)}.</p>` +
+    `<div class="row"><button class="ctl" id="resumeYes">Resume</button><button class="ctl" id="resumeNo">Start fresh</button>${list.length > 1 ? `<button class="link" id="resumeOlder">older saves</button>` : ''}</div><div id="resumeList" hidden></div>`;
+  el.hidden = false;
+  const go = async slot => {
+    try { const d = await autoLoad(slot); loadDish(d); toast(`Resumed a dish with ${creatures.length} creatures`); renderDrawer(true); }
+    catch (_) { toast('That save could not be read'); }
+    el.hidden = true;
+  };
+  $('resumeYes').onclick = () => go(m.slot);
+  $('resumeNo').onclick = () => { el.hidden = true; };
+  if ($('resumeOlder')) $('resumeOlder').onclick = () => {
+    const box = $('resumeList'); box.hidden = false;
+    box.innerHTML = list.slice(1).map(x => `<button class="ctl" data-slot="${x.slot}">${fmtTime(x.simTime)} · ${x.alive} alive · ${agoText(Date.now() - x.at)}</button>`).join('');
+    for (const b of box.querySelectorAll('[data-slot]')) b.onclick = () => go(+b.dataset.slot);
+  };
+}
+
 function loadDish(d) {
   if (d.kind !== 'bioevolution-dish' || !Array.isArray(d.creatures)) throw new Error('not a dish');
+  if (d.full) { try { restoreFull(d); return; } catch (err) { console.warn('full restore failed, loading creatures only', err); } }
   // stretch the saved dish to fit this window
   const sx = W / d.W, sy = H / d.H, sr = Math.sqrt(sx * sy);
   seasonMode = d.seasonMode ?? 1; dayNight = d.dayNight ?? true; eventsMode = d.eventsMode ?? 0;
@@ -5464,6 +5817,33 @@ function frame(now) {
   if (drawerTimer > 1) { drawerTimer = 0; renderDrawer(false); }
   requestAnimationFrame(frame);
 }
+// Browsers stop animation frames while the window is minimised or hidden, which froze the dish.
+// While hidden, a worker's timer (which browsers barely throttle) keeps the sim stepping without drawing.
+// If workers aren't allowed here, a plain timer does the same, just more slowly once the browser throttles it.
+let hiddenLast = 0;
+function hiddenTick() {
+  if (!document.hidden) { hiddenLast = 0; return; }
+  const now = performance.now();
+  if (!hiddenLast) { hiddenLast = now; return; }
+  const elapsed = Math.min(2, (now - hiddenLast) / 1000);
+  hiddenLast = now;
+  if (paused) return;
+  acc += elapsed * speed;
+  let steps = 0;
+  while (acc >= DT && steps < 400) { step(DT); acc -= DT; steps++; }
+  if (steps === 400) acc = 0;
+}
+(() => {
+  let ok = false;
+  try {
+    const src = 'setInterval(() => postMessage(0), 50);';
+    const w = new Worker(URL.createObjectURL(new Blob([src], { type: 'text/javascript' })));
+    w.onmessage = hiddenTick;
+    ok = true;
+  } catch (_) { /* workers blocked: fall back below */ }
+  if (!ok) setInterval(hiddenTick, 50);
+})();
+document.addEventListener('visibilitychange', () => { hiddenLast = 0; last = performance.now(); if (!document.hidden && fullOn) keepAwake(true); });
 
 if (window.matchMedia('(max-width: 760px)').matches) {
   for (const [b, c] of [['collapse', 'panel'], ['collapse2', 'species']]) { $(c).classList.add('min'); $(b).textContent = 'show'; }
@@ -5477,5 +5857,6 @@ reset();
 for (let i = 0; i < 30; i++) step(DT);
 updatePanel();
 requestAnimationFrame(frame);
+offerResume();
 })();
 </script>

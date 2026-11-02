@@ -499,7 +499,7 @@ select { font: inherit; color: var(--ink); background: var(--panel-solid); borde
 'use strict';
 
 // Which release this file is. versions/list.js lists every release, newest first.
-const APP_VERSION = 'v14.1';
+const APP_VERSION = 'v15';
 
 // ---------- constants ----------
 const TYPE = { GREEN: 0, RED: 1, BLUE: 2, YELLOW: 3, CYAN: 4, PURPLE: 5, WHITE: 6 };
@@ -5598,14 +5598,23 @@ function unpack(data) {
 }
 function packState() {
   return pack({
-    creatures, corpses, food, eggs, globs, samples: new RawSave(samples), speciesDB, happenings, hapId, stats, events, hazards, nextEventT, env: { ...env }, rebound, areas, zoneLog, deadSince, deadTries, alarms,
+    creatures, corpses, food, eggs, globs, samples: new RawSave(samples),
+    // species records only point at their arms race, so they go as plain data with that link as an index
+    // and a species that has died out keeps a thinner history (at most 100 points), which is plenty for its charts
+    speciesDB: new RawSave([...speciesDB].map(([k, r]) => {
+      let hist = r.hist;
+      if (r.extinctAt !== null) while (hist.length > 100) hist = decimate(hist);
+      return [k, r.armsHap || hist !== r.hist ? { ...r, hist, armsHap: r.armsHap ? { $hap: happenings.indexOf(r.armsHap) } : r.armsHap } : r];
+    })), happenings, hapId, stats, events, hazards, nextEventT, env: { ...env }, rebound, areas, zoneLog, deadSince, deadTries, alarms,
     grazerShare, hiveShare, sweepT, nextId, freshLife, freshNext, migrants, migrantT, meanSpAlive, histTimer, reseedTimer, zoneRules, zoneFoodAcc, vents, ventLevel, VENT_R,
     rocks, cover, simTime, speed,
   });
 }
 function restoreFull(d) {
   const st = unpack(d.full);
-  if (!Array.isArray(st.creatures) || !(st.speciesDB instanceof Map)) throw new Error('bad full save');
+  if (!Array.isArray(st.creatures)) throw new Error('bad full save');
+  if (Array.isArray(st.speciesDB)) st.speciesDB = new Map(st.speciesDB.map(([k, r]) => { if (r.armsHap && '$hap' in r.armsHap) r.armsHap = st.happenings[r.armsHap.$hap] || null; return [k, r]; }));
+  if (!(st.speciesDB instanceof Map)) throw new Error('bad full save');
   seasonMode = d.seasonMode ?? 1; dayNight = d.dayNight ?? true; eventsMode = d.eventsMode ?? 0;
   Object.assign(bal, BAL_DEFAULTS, d.bal || {}); showBal(); saveBal();
   light = d.light ?? 1; foodRate = d.foodRate ?? 1; mutRate = d.mutRate ?? 1;

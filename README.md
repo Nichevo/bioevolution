@@ -26,7 +26,7 @@ A modern take on the 1990s *Primordial Life* screensaver. It's an artificial-lif
 
 | Zones |
 |---|
-| ![The Zones tab and zones view: the dish in quarters, each with its numbers, births and deaths, body sizes, top species and a population chart, plus life inside vents and weeds against outside](docs/zones.png) |
+| ![The Zones tab and zones view: a chart comparing the four quarters, a table of each zone's rules and numbers, zone rule sliders and presets, then each quarter with its numbers, births and deaths, body sizes, top species and a population chart, plus life inside vents and weeds against outside](docs/zones.png) |
 
 | Balance controls | Close-up |
 |---|---|

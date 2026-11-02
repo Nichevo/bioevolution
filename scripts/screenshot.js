@@ -104,8 +104,9 @@ const page_url = 'file://' + path.join(root, 'index.html');
   const tb = await (await page.$('section.tree')).boundingBox();
   await page.screenshot({ path: path.join(root, 'docs/tree.png'), clip: { x: tb.x - 8, y: Math.max(0, tb.y - 8), width: tb.width + 16, height: Math.min(tb.height + 16, 850 - Math.max(0, tb.y - 8)) } });
   // what it inherited, down its line of descent: open one of its offspring so there is a line to show
-  const kid = await page.$('#dLineage div:last-child [data-sp]');
-  if (kid) { await kid.click(); await page.waitForTimeout(1200); }
+  // clicked in the page: the drawer re-renders now and then, which can detach an element handle
+  await page.evaluate(() => { const k = document.querySelector('#dLineage div:last-child [data-sp]'); if (k) k.click(); });
+  await page.waitForTimeout(1200);
   await page.evaluate(() => {
     const t = document.getElementById('dInherit').parentElement;
     t.scrollIntoView();

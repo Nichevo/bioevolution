@@ -1,6 +1,7 @@
 // Every release of the simulation, newest first. The newest is index.html; older ones are versions/<id>.html.
 // Add an entry here (and run scripts/snapshot.sh <id>) whenever a new version is released.
 window.BIO_VERSIONS = [
+  { id: 'v15', date: '2026-11-02', title: 'Runs on your PC, zone rules, Look tool & autosave' },
   { id: 'v14.1', date: '2026-10-30', title: 'Gentler parasites & hunters that wait out lean times' },
   { id: 'v14', date: '2026-10-30', title: 'Zones, parasites, cleaners & fruit' },
   { id: 'v13.5', date: '2026-10-30', title: 'Filter fix, hive heirs, weeds & more hunters' },

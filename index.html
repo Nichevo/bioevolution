@@ -85,7 +85,7 @@ button.ctl {
 button.ctl:hover { border-color: var(--accent); }
 button.ctl[aria-pressed="true"] { background: rgba(143, 227, 208, 0.18); border-color: var(--accent); color: var(--accent); }
 button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.tools { display: grid; grid-template-columns: auto 1fr 1fr; gap: 6px; align-items: center; }
+.tools { display: grid; grid-template-columns: auto 1fr 1fr 1fr; gap: 6px; align-items: center; }
 .tools span { color: var(--ink-dim); }
 label.slider { display: grid; grid-template-columns: 78px 1fr 34px; align-items: center; gap: 8px; color: var(--ink-dim); }
 label.slider output { color: var(--ink); text-align: right; font-variant-numeric: tabular-nums; }
@@ -248,9 +248,16 @@ small { color: var(--ink-dim); font-weight: 400; }
 .lg { display: flex; flex-wrap: wrap; gap: 4px 12px; color: var(--ink-dim); font-variant-numeric: tabular-nums; }
 .lg i, #chartTip i { display: inline-block; width: 10px; height: 3px; border-radius: 2px; margin-right: 5px; vertical-align: middle; }
 .lg b { color: var(--ink); font-weight: 600; }
-.zones { display: grid; gap: 10px; }
+.zones { display: grid; gap: 14px; }
 .zone { cursor: pointer; }
-.zone canvas { height: 70px; }
+.zone canvas { height: 150px; }
+#zCmp { height: 180px; }
+.zrules { width: 100%; border-collapse: collapse; }
+.zrules td, .zrules th { padding: 3px 4px; text-align: left; vertical-align: middle; }
+.zrules input[type=range] { width: 100%; min-width: 60px; }
+.zrules output { display: inline-block; min-width: 38px; font-variant-numeric: tabular-nums; color: var(--ink-dim); font-size: 11px; }
+.zcmp td, .zcmp th { white-space: nowrap; }
+.zcmp th small { white-space: normal; }
 .tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
 .tile { display: grid; gap: 2px; padding: 8px 10px; border: 1px solid var(--panel-line); border-radius: 8px; min-width: 0; }
 .tile > span { color: var(--ink-dim); font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; }
@@ -549,6 +556,14 @@ let nextId = 1;
 let simTime = 0;
 let paused = false, speed = 1, trails = true;
 let light = 1, foodRate = 1, mutRate = 1;
+// Zone rules: each quarter of the dish can have its own sunlight, food and mutation (multipliers on the sliders)
+// and warmth (-1 colder to +1 warmer). All at 1 / 0, the dish plays as normal.
+const ZONE_DEFAULT = { sun: 1, food: 1, mut: 1, warm: 0 };
+let zoneRules = [0, 1, 2, 3].map(() => ({ ...ZONE_DEFAULT }));
+let zoneFoodAcc = [0, 0, 0, 0];
+let mutZ = 1; // the mutation rule where the young being made is born
+const zr = (x, y) => zoneRules[(x < W / 2 ? 0 : 1) + (y < H / 2 ? 0 : 2)];
+const zm = c => { mutZ = zr(c.x, c.y).mut; return c; }; // set mutZ from the parent's spot and pass the parent through
 // Balance sliders (all 1 = the standard dish). foodRate is the vents' output.
 const BAL_DEFAULTS = { shed: 1, bits: 1, meat: 1, fat: 1, crowd: 1, brainCost: 1, hive: 1, mix: 1, life: 1, disease: 1 };
 // ready-made balance settings; anything not named stays at the standard value
@@ -692,8 +707,10 @@ function specialise(g) {
   const segs = g.segs.filter(s => feedKind(s) === low), weapon = g.segs.find(s => feedKind(s) === 2);
   segs[randi(0, segs.length - 1)].type = main === 0 ? TYPE.GREEN : main === 1 ? TYPE.CYAN : weapon.type;
 }
-function mutate(g, parentAbsorbed, push = null, fade = false) {
-  const m = mutRate * (push ? push.k : 1) * reboundBoost();
+function mutate(g, parentAbsorbed, push = null, fade = false, zk = null) {
+  if (zk !== null) mutZ = zk;
+  const m = mutRate * mutZ * (push ? push.k : 1) * reboundBoost();
+  mutZ = 1;
   specialise(g);
   for (const s of g.segs) {
     if (Math.random() < 0.12 * m) s.len = clamp(s.len + gauss() * 2, 3, 16);
@@ -1485,7 +1502,7 @@ class Creature {
   }
 
   // How cold it is where this creature is: a vent's warmth keeps the cold off close by.
-  coldHere() { return env.cold * (1 - this.ventNear); }
+  coldHere() { const w = zr(this.x, this.y).warm; return (w ? clamp(env.cold - 0.6 * w, 0, 1) : env.cold) * (1 - this.ventNear); }
   // cold blood is sluggish: up to 10% slower to notice things and to get going, unless warmed by a vent
   get sluggish() { return 0.1 * clamp((0.65 - this.tr.warm) / 0.45, 0, 1) * (1 - this.ventNear); }
   // 0 away from any vent, up to 1 at a vent's centre; also notes which vent is nearest
@@ -1538,7 +1555,7 @@ class Creature {
     // weed beds shade out a fifth of the sun
     // close green neighbours shade each other, so a dense clump gets less sun each
     // a shrub grows slower than grass; a hibernating plant barely grows at all
-    let sun = this.digSun * this.pow[TYPE.GREEN] * this.scale * 0.1725 * light * env.sun * perf * sunShare * dt * (this.hidden ? 0.8 : 1) / (1 + this.shadeN * 0.1 * bal.crowd)
+    let sun = this.digSun * this.pow[TYPE.GREEN] * this.scale * 0.1725 * light * zr(this.x, this.y).sun * env.sun * perf * sunShare * dt * (this.hidden ? 0.8 : 1) / (1 + this.shadeN * 0.1 * bal.crowd)
       * (1 - 0.3 * this.toughF) * (this.torpid ? 0.4 : 1);
     // plants shed part of what they gather as food bits, which drift off for the grazers
     if (sun > 0 && bal.shed > 0) {
@@ -2719,9 +2736,10 @@ function takeSample() {
   spPartSum.clear(); spAte.clear();
   meanSpAlive = Math.max(1, creatures.length / Math.max(1, alive));
   const zones = [0, 1, 2, 3].map(() => [0, 0, 0]);
-  for (const c of creatures) if (!c.caste) zones[zoneOf(c.x, c.y)][Math.min(roleOf(c), 2)]++;
+  const zsp = [0, 1, 2, 3].map(() => new Set());
+  for (const c of creatures) if (!c.caste) { const z = zoneOf(c.x, c.y); zones[z][Math.min(roleOf(c), 2)]++; zsp[z].add(c.species); }
   samples.push({
-    t: simTime, pop: creatures.length, zones, roles, genes, parts: creatures.length ? parts / creatures.length : 0, social: creatures.length ? social / creatures.length : 0,
+    t: simTime, pop: creatures.length, zones, zoneSp: zsp.map(x => x.size), roles, genes, parts: creatures.length ? parts / creatures.length : 0, social: creatures.length ? social / creatures.length : 0,
     brain: creatures.length ? brain / creatures.length : 0, brainMax, traits, life, tactics: { ...stats.tactics },
     species: alive, food: food.length, corpses: corpses.length, deaths: { ...stats },
     tiers, tierEnergy, ages, agesT, cold: env.cold, genesBy, brainLv, inst, geneN, geneNBy, spGenes, simple, complex,
@@ -2754,7 +2772,7 @@ function partnerStep(c, dt) {
     }
     // it breeds as it rides: its young drop off to find hosts of their own
     if (c.age > matureAge(c) && c.cooldown <= 0 && c.fullness > 0.7 && creatures.length < MAX_POP) {
-      const g = mutate(cloneGenome(c.g), c.g.absorbed, pushFor(c), fadeFor(c));
+      const g = mutate(cloneGenome(zm(c).g), c.g.absorbed, pushFor(c), fadeFor(c));
       const child = new Creature(g, (c.x + rand(-8, 8) + W) % W, (c.y + rand(-8, 8) + H) % H, c.energy * 0.35, c.gen + 1);
       c.energy *= 0.6; c.cooldown = BREED_COOLDOWN * litterGap(c); c.kids++;
       child.parents = [c.id]; inheritResist(child, [c]); note(c, 'dropped a youngster off its host');
@@ -2782,7 +2800,7 @@ function partnerStep(c, dt) {
   if (c.seed && simTime - c.seed.t > 20) {
     const s = c.seed; c.seed = null;
     if (creatures.length < MAX_POP && !inRock(c.x, c.y)) {
-      const child = new Creature(mutate(cloneGenome(s.g), s.g.absorbed), c.x, c.y, 12, s.gen + 1);
+      const child = new Creature(mutate(cloneGenome(s.g), s.g.absorbed, null, false, zr(c.x, c.y).mut), c.x, c.y, 12, s.gen + 1);
       child.parents = []; stats.sown = (stats.sown || 0) + 1;
       birth(child, [s.sp]); note(child, `sprouted from a seed a ${c.species} carried`);
     }
@@ -2815,10 +2833,21 @@ function step(dt) {
 
   // Vents on the pond floor puff out a stream of food bits, more in the cold. More vents share the same total.
   for (const v of vents) {
-    v.acc += dt * foodRate * VENT_TOTAL / vents.length * (1 + 0.5 * env.cold);
+    v.acc += dt * foodRate * zr(v.x, v.y).food * VENT_TOTAL / vents.length * (1 + 0.5 * env.cold);
     while (v.acc >= 1) {
       v.acc -= 1;
       if (food.length < foodCap()) { const a = rand(Math.PI * 2), r = Math.sqrt(rand(1)) * VENT_R * 0.5; addFood(v.x + Math.cos(a) * r, v.y + Math.sin(a) * r, FOOD_ENERGY, rand(Math.PI * 2), rand(3, 10)); }
+    }
+  }
+  // a zone with more than 1x food also gets loose bits drifting in anywhere in it, vent or not
+  for (let z = 0; z < 4; z++) {
+    const extra = zoneRules[z].food - 1;
+    if (extra <= 0) { zoneFoodAcc[z] = 0; continue; }
+    zoneFoodAcc[z] += dt * foodRate * extra * VENT_TOTAL / 8;
+    while (zoneFoodAcc[z] >= 1) {
+      zoneFoodAcc[z] -= 1;
+      const x = (z % 2 + rand(1)) * W / 2, y = ((z >> 1) + rand(1)) * H / 2;
+      if (food.length < foodCap() * 1.5 && !inRock(x, y)) addFood(x, y, FOOD_ENERGY, rand(Math.PI * 2), rand(1, 3));
     }
   }
   // poison patches from events
@@ -2911,7 +2940,7 @@ function step(dt) {
       if (c.caste === 'queen') { if (!c.dead && c.age > MATURE_AGE && c.cooldown <= 0 && c.fullness > 0.5) layEgg(c); continue; }
       if (c.caste || crowdedOut(c)) continue; // workers can't breed
       if (!c.dead && c.age > matureAge(c) && c.cooldown <= 0 && c.scale >= 1 && c.energy > c.maxEnergy * 0.92) {
-        const g = mutate(cloneGenome(c.g), c.g.absorbed, pushFor(c), fadeFor(c)), cheap = youngCost(c);
+        const g = mutate(cloneGenome(zm(c).g), c.g.absorbed, pushFor(c), fadeFor(c)), cheap = youngCost(c);
         const child = new Creature(g, (c.x + rand(-8, 8) + W) % W, (c.y + rand(-8, 8) + H) % H, c.energy * 0.4 * cheap, c.gen + 1);
         c.energy *= 1 - 0.5 * cheap; c.cooldown = BREED_COOLDOWN * 1.5 * litterGap(c); c.kids++;
         child.parents = [c.id]; inheritResist(child, [c]); child.scavBorn = c.scavenger; note(c, 'budded off a youngster'); seedDrift(child);
@@ -3023,7 +3052,7 @@ function breed(a, b) {
   a.energy *= 1 - 0.3 * ca * (1 - 0.5 * niche); b.energy *= 1 - 0.3 * cb * (1 - 0.5 * niche);
   a.cooldown = BREED_COOLDOWN * litterGap(a) * (1 - 0.4 * niche); b.cooldown = BREED_COOLDOWN * litterGap(b) * (1 - 0.4 * niche);
   for (let i = 0; i < twins; i++) {
-    const g = mutate(crossover(a.g, b.g), Math.random() < 0.5 ? a.g.absorbed : b.g.absorbed, pushFor(a), fadeFor(a));
+    const g = mutate(crossover(zm(a).g, b.g), Math.random() < 0.5 ? a.g.absorbed : b.g.absorbed, pushFor(a), fadeFor(a));
     const child = new Creature(g, (a.x + rand(-5, 5) + W) % W, (a.y + rand(-5, 5) + H) % H, e, Math.max(a.gen, b.gen) + 1);
     child.parents = [a.id, b.id]; inheritResist(child, [a, b]); child.scavBorn = a.scavenger || b.scavenger; seedDrift(child);
     a.kids++; b.kids++;
@@ -3058,7 +3087,7 @@ function layDormant(parent, child, parents) {
 // (weapons switched off, forages and brings food home). The queen lays about 1 soldier in 6 when calm, up to 1 in 2 under attack;
 // soldiers cost her more, and how fast she lays doesn't change.
 function layEgg(q) {
-  const g = mutate(cloneGenome(q.g), q.g.absorbed, pushFor(q), fadeFor(q)), first = (q.laid || 0) < 4;
+  const g = mutate(cloneGenome(zm(q).g), q.g.absorbed, pushFor(q), fadeFor(q)), first = (q.laid || 0) < 4;
   const child = new Creature(g, (q.x + rand(-6, 6) + W) % W, (q.y + rand(-6, 6) + H) % H, q.energy * (first ? 0.12 : 0.18), q.gen + 1);
   child.parents = [q.id]; inheritResist(child, [q]);
   let soldier = false;
@@ -3695,7 +3724,10 @@ function drawZones() {
   ctx.font = `600 ${fs}px sans-serif`;
   for (let z = 0; z < 4; z++) {
     const cx = (z % 2 + 0.5) * W / 2, y = (z >> 1) * H / 2 + 18 / cam.z, tot = n[z][0] + n[z][1] + n[z][2];
-    ctx.fillStyle = 'rgba(232,241,255,0.8)'; ctx.textAlign = 'center'; ctx.fillText(`${ZONE_NAMES[z]} · ${tot}`, cx, y); ctx.textAlign = 'left';
+    ctx.fillStyle = 'rgba(232,241,255,0.8)'; ctx.textAlign = 'center'; ctx.fillText(`${ZONE_NAMES[z]} · ${tot}`, cx, y);
+    const rt = zoneRuleText(z);
+    if (rt) { ctx.font = `${fs * 0.9}px sans-serif`; ctx.fillStyle = 'rgba(232,241,255,0.6)'; ctx.fillText(rt, cx, y + 22 / cam.z); ctx.font = `600 ${fs}px sans-serif`; }
+    ctx.textAlign = 'left';
     const bw = 90 / cam.z;
     let bx = cx - bw / 2;
     for (let k = 0; k < 3; k++) { const w = tot ? bw * n[z][k] / tot : 0; ctx.fillStyle = ROLE[k].color; ctx.fillRect(bx, y + 5 / cam.z, w, 4 / cam.z); bx += w; }
@@ -4565,11 +4597,53 @@ function renderDrawer(full) {
   else renderSpeciesList(full);
 }
 
+// Zone rules and the zone comparison
+const ZONE_COLORS = ['#6cb6ff', '#f5a65b', '#c49bff', '#f472b6'];
+const ZRULE_KEYS = [
+  { key: 'sun', label: 'Sun', min: 0, max: 3, step: 0.05, fmt: v => v.toFixed(2) + '×' },
+  { key: 'food', label: 'Food', min: 0, max: 3, step: 0.05, fmt: v => v.toFixed(2) + '×' },
+  { key: 'mut', label: 'Mutation', min: 0, max: 5, step: 0.1, fmt: v => v.toFixed(1) + '×' },
+  { key: 'warm', label: 'Warmth', min: -1, max: 1, step: 0.05, fmt: v => v === 0 ? 'normal' : (v > 0 ? '+' : '') + v.toFixed(2) },
+];
+const ZONE_PRESETS = [
+  { label: 'Sunny top', tip: 'Top half gets 1.5× sun', rules: [{ sun: 1.5 }, { sun: 1.5 }, {}, {}] },
+  { label: 'Mutation hotspot', tip: 'Top left mutates 3× as fast', rules: [{ mut: 3 }, {}, {}, {}] },
+  { label: 'Rich and poor', tip: 'Left half 1.5× food, right half 0.5×', rules: [{ food: 1.5 }, { food: 0.5 }, { food: 1.5 }, { food: 0.5 }] },
+  { label: 'Frozen corner', tip: 'Bottom right is much colder', rules: [{}, {}, {}, { warm: -1 }] },
+];
+let zcmpMode = 'pop';
+const ZCMP = [
+  { key: 'pop', label: 'Alive', get: (s, z) => s.zones ? s.zones[z][0] + s.zones[z][1] + s.zones[z][2] : 0 },
+  { key: 'plants', label: 'Plants', get: (s, z) => s.zones ? s.zones[z][0] : 0 },
+  { key: 'grazers', label: 'Grazers', get: (s, z) => s.zones ? s.zones[z][1] : 0 },
+  { key: 'hunters', label: 'Hunters', get: (s, z) => s.zones ? s.zones[z][2] : 0 },
+  { key: 'species', label: 'Species', get: (s, z) => s.zoneSp ? s.zoneSp[z] : 0 },
+];
+function zoneRuleText(z) {
+  const r = zoneRules[z], out = [];
+  if (r.sun !== 1) out.push(`sun ${+r.sun.toFixed(2)}×`);
+  if (r.food !== 1) out.push(`food ${+r.food.toFixed(2)}×`);
+  if (r.mut !== 1) out.push(`mutation ${+r.mut.toFixed(1)}×`);
+  if (r.warm) out.push(r.warm > 0 ? `warmer +${+r.warm.toFixed(2)}` : `colder ${+r.warm.toFixed(2)}`);
+  return out.join(', ');
+}
+function setZonePreset(i) {
+  zoneRules = [0, 1, 2, 3].map(z => ({ ...ZONE_DEFAULT, ...(i === 'reset' ? {} : ZONE_PRESETS[i].rules[z]) }));
+  toast(i === 'reset' ? 'Zone rules back to normal' : `Zone rules: ${ZONE_PRESETS[i].label}`);
+}
+
 // The Zones tab: each quarter of the dish, then inside a vent or the weeds against outside, over the last minute.
 const ZONE_ROLES = ['plants', 'grazers', 'hunters'];
 function renderZones(full) {
   if (full) {
     drawerBody.innerHTML = `<p class="note">The dish in quarters. Births and deaths are for the last minute; hive workers are left out. Turn on <b>View: zones</b> to see the quarters in the dish. Click a zone to go there.</p>
+      <section><h3>Compare zones</h3>
+        <div class="row">${ZCMP.map(m => `<button class="ctl" data-zcmp="${m.key}" aria-pressed="${zcmpMode === m.key}">${m.label}</button>`).join('')}</div>
+        <div class="lg" id="zCmpLg"></div><canvas id="zCmp"></canvas>
+        <div id="zCmpTable"></div></section>
+      <section><h3>Zone rules</h3><p class="note">Give each quarter its own sunlight, food, mutation and warmth, on top of the sliders. Food above 1× also drifts in where there's no vent. Young mutate at the rate of where they're born.</p>
+        <div class="row">${ZONE_PRESETS.map((pr, i) => `<button class="ctl" data-zpreset="${i}" title="${pr.tip}">${pr.label}</button>`).join('')}<button class="ctl" data-zpreset="reset">Reset</button></div>
+        <table class="zrules"><thead><tr><th></th>${ZRULE_KEYS.map(r => `<th>${r.label}</th>`).join('')}</tr></thead><tbody>${ZONE_NAMES.map((n, z) => `<tr><th>${n}</th>${ZRULE_KEYS.map(r => `<td><input type="range" data-zrule="${z}:${r.key}" min="${r.min}" max="${r.max}" step="${r.step}" value="${zoneRules[z][r.key]}" aria-label="${n} ${r.label}"><output id="zr${z}${r.key}">${r.fmt(zoneRules[z][r.key])}</output></td>`).join('')}</tr>`).join('')}</tbody></table></section>
       <div class="zones">${ZONE_NAMES.map((n, z) => `<section class="zone" data-zone="${z}"><h3>${n}</h3><div id="zInfo${z}"></div><div class="lg" id="zPop${z}Lg"></div><canvas id="zPop${z}"></canvas></section>`).join('')}</div>
       <section><h3>In a vent or not</h3><p class="note">Inside a vent's warm patch against everywhere else.</p><div id="zVent"></div></section>
       <section><h3>In the weeds or not</h3><p class="note">Hidden in a weed bed against out in the open.</p><div id="zWeed"></div></section>`;
@@ -4577,6 +4651,17 @@ function renderZones(full) {
   const win = Math.min(60, Math.max(1, simTime));
   const perMin = n => (n * 60 / win).toFixed(1);
   const live = creatures.filter(c => c.caste !== 'worker');
+  // the comparison: one line per zone for the chosen measure, and a row per zone
+  const m = ZCMP.find(x => x.key === zcmpMode) || ZCMP[0];
+  drawChart('zCmp', samples.map(s => s.t), ZONE_NAMES.map((n, z) => ({ label: n, color: ZONE_COLORS[z], values: samples.map(s => m.get(s, z)) })));
+  const spZones = new Map();
+  for (const c of live) { const z = zoneOf(c.x, c.y); if (!spZones.has(c.species)) spZones.set(c.species, new Set()); spZones.get(c.species).add(z); }
+  $('zCmpTable').innerHTML = `<div class="gtable"><table class="zcmp"><thead><tr><th>Zone</th><th>Alive</th><th>${ZONE_ROLES.map((r, k) => `<span style="color:${ROLE[k].color}">${r[0].toUpperCase()}</span>`).join(' / ')}</th><th>Born / died a min</th><th>Species</th></tr></thead><tbody>${ZONE_NAMES.map((n, z) => {
+    const here = live.filter(c => zoneOf(c.x, c.y) === z), log = zoneLog.filter(e => e.z === z), r = [0, 0, 0];
+    for (const c of here) r[Math.min(roleOf(c), 2)]++;
+    const sps = new Set(here.map(c => c.species)), only = [...sps].filter(x => spZones.get(x).size === 1).length;
+    return `<tr><th><span style="color:${ZONE_COLORS[z]}">●</span> ${n}<br><small class="k" style="font-weight:400">${zoneRuleText(z) || 'normal rules'}</small></th><td>${here.length}</td><td>${r.join(' / ')}</td><td>${perMin(log.filter(e => !e.cause).length)} / ${perMin(log.filter(e => e.cause).length)}</td><td>${sps.size}${only ? ` <small>(${only} only here)</small>` : ''}</td></tr>`;
+  }).join('')}</tbody></table></div><p class="note">P / G / H: plants, grazers, hunters. "Only here": species with no living members in any other zone.</p>`;
   for (let z = 0; z < 4; z++) {
     const here = live.filter(c => zoneOf(c.x, c.y) === z), log = zoneLog.filter(e => e.z === z);
     const roles = [0, 0, 0, 0]; let parts = 0, simple = 0, complex = 0, hives = 0;
@@ -4590,7 +4675,7 @@ function renderZones(full) {
     const top = [...sp].sort((a, b) => b[1] - a[1]).slice(0, 3);
     const n = here.length || 1;
     $('zInfo' + z).innerHTML = `<div class="tiles">${tile('Alive', here.length) + tile('Food bits', nFood) + tile('Births / min', perMin(births)) + tile('Deaths / min', perMin(deaths.length))}</div>
-      <p class="note">${ROLE.slice(0, 3).map((r, k) => `<span style="color:${r.color}">${roles[k]} ${ZONE_ROLES[k]}</span>`).join(' · ')}${roles[3] ? ` · ${roles[3]} other` : ''}${hives ? ` · ${hives} queens` : ''}<br>
+      <p class="note">${zoneRuleText(z) ? `<b>Rules:</b> ${zoneRuleText(z)}<br>` : ''}${ROLE.slice(0, 3).map((r, k) => `<span style="color:${r.color}">${roles[k]} ${ZONE_ROLES[k]}</span>`).join(' · ')}${roles[3] ? ` · ${roles[3]} other` : ''}${hives ? ` · ${hives} queens` : ''}<br>
       ${byCause.length ? 'Deaths: ' + byCause.map(([l, k]) => `${perMin(k)} ${l}`).join(', ') + ' a minute<br>' : ''}
       Average ${(parts / n).toFixed(1)} parts · ${Math.round(100 * simple / n)}% simple · ${Math.round(100 * complex / n)}% complex<br>
       ${nVents} vent${nVents === 1 ? '' : 's'} · ${Math.round(weed * 100)}% of the weed<br>
@@ -5131,8 +5216,15 @@ function drawTree(cv, sel) {
   }
 }
 
+drawer.addEventListener('input', e => {
+  const t = e.target.closest('[data-zrule]');
+  if (!t) return;
+  const [z, key] = t.dataset.zrule.split(':'), v = +t.value;
+  zoneRules[+z][key] = v;
+  $('zr' + z + key).textContent = ZRULE_KEYS.find(r => r.key === key).fmt(v);
+});
 drawer.addEventListener('click', e => {
-  const t = e.target.closest('[data-sp],[data-act],[data-tree],[data-pyr],[data-agemode],[data-ev],[data-hap],[data-hfilter],[data-filter],[data-tab],[data-group],[data-confirm],[data-trait],[data-gview],[data-gmode],[data-gsp],[data-show],[data-gene],[data-gsort],[data-inh],[data-zone]');
+  const t = e.target.closest('[data-sp],[data-act],[data-tree],[data-pyr],[data-agemode],[data-ev],[data-hap],[data-hfilter],[data-filter],[data-tab],[data-group],[data-confirm],[data-trait],[data-gview],[data-gmode],[data-gsp],[data-show],[data-gene],[data-gsort],[data-inh],[data-zone],[data-zpreset],[data-zcmp]');
   if (!t) return;
   if (t.dataset.pyr) { pyrMode = t.dataset.pyr; renderDrawer(false); return; }
   if (t.dataset.agemode) { ageMode = t.dataset.agemode; renderDrawer(false); return; }
@@ -5169,6 +5261,8 @@ drawer.addEventListener('click', e => {
   else if (t.dataset.group) { spGroup = t.dataset.group; renderDrawer(true); }
   else if (t.dataset.act === 'add') { revive(openSpecies); renderDrawer(false); }
   else if (t.dataset.tab) openDrawer(t.dataset.tab);
+  else if (t.dataset.zpreset) { setZonePreset(t.dataset.zpreset === 'reset' ? 'reset' : +t.dataset.zpreset); renderDrawer(true); }
+  else if (t.dataset.zcmp) { zcmpMode = t.dataset.zcmp; renderDrawer(true); }
   else if (t.dataset.zone) { const z = +t.dataset.zone; showMe(ZONE_NAMES[z], [], null, { x: (z % 2 + 0.5) * W / 2, y: ((z >> 1) + 0.5) * H / 2, r: W / 4 }); }
   else if (t.dataset.filter) { spFilter = t.dataset.filter; renderDrawer(true); }
   else if (t.dataset.act === 'back') { openSpecies = null; renderDrawer(true); }

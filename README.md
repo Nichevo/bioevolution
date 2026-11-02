@@ -45,7 +45,7 @@ There is no build step and nothing to install. Tips for leaving it running:
 
 - The dish keeps going when the window is minimised or covered (it just isn't drawn until you come back).
 - **Full screen** also keeps the screen from dimming or going to sleep, like a screensaver. Leave full screen to let it sleep again.
-- The dish **saves itself** every ten minutes and when you close or hide the tab, in your browser's storage on that computer. When you open the page again it offers to **resume** where you left off (graphs, species histories, happenings and all), or to start fresh. The last three autosaves are kept.
+- The dish **saves itself** every ten minutes (change it, or turn it off, with the **Autosave** menu next to Save dish) and when you close or hide the tab, in your browser's storage on that computer. When you open the page again it offers to **resume** where you left off (graphs, species histories, happenings and all), or to start fresh. The last three autosaves are kept.
 
 ### Turning on GitHub Pages (once)
 

@@ -176,6 +176,9 @@ input[type=range] { width: 100%; accent-color: var(--accent); }
 #zoom button.ctl { background: var(--panel); min-width: 34px; font-variant-numeric: tabular-nums; }
 #world.grabbing { cursor: grabbing; }
 @media (max-width: 760px) { #zoom { right: auto; left: max(16px, env(safe-area-inset-left, 0px)); bottom: auto; top: calc(160px + env(safe-area-inset-top, 0px)); } /* clear of the Top species card and the main controls */ }
+#resumeCard { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 6; width: min(420px, calc(100vw - 32px)); display: grid; gap: 10px; }
+#resumeCard p { margin: 0; line-height: 1.5; }
+#resumeList { display: grid; gap: 6px; }
 #toast {
   position: fixed; left: 50%; transform: translateX(-50%);
   bottom: calc(18px + env(safe-area-inset-bottom, 0px));
@@ -440,6 +443,7 @@ select { font: inherit; color: var(--ink); background: var(--panel-solid); borde
 
 <div id="inspect" hidden><div id="inspBody"></div><div id="inspBar" class="row" hidden><button class="ctl" id="inspFollow">Follow</button><button class="ctl" id="inspSpecies">Species</button><button class="ctl" id="inspClose">Close</button></div></div>
 <div id="toast" hidden></div>
+<div id="resumeCard" class="card" hidden aria-live="polite"></div>
 <div id="storyBar" class="card" hidden aria-live="polite"><p id="storyText"></p><div class="row"><button class="ctl" id="storyNext">Next story</button><button class="ctl" id="storyFollow">Follow this one</button><button class="ctl" id="storyStop">Stop</button></div></div>
 <div id="storyGraph" class="card" hidden><div class="sghead"><b id="sgTitle"></b><button class="link" id="sgPin">Pin</button><button class="link" id="sgClose" aria-label="Close chart">✕</button></div><div class="lg" id="sgLg"></div><canvas id="sgChart"></canvas></div>
 <div id="spotChip" hidden><span id="spotText"></span><button class="link" id="spotClear">clear</button></div>
@@ -5485,12 +5489,19 @@ $('panel').addEventListener('click', e => { const t = e.target.closest('[data-sp
 // ---------- save and load ----------
 // A saved dish is a JSON file: the world, the settings and every creature's genes and state. Species histories start afresh.
 const r1 = v => Math.round(v * 10) / 10;
-$('bSave').onclick = async () => {
+function dishData(full = true) {
   const data = {
     kind: 'bioevolution-dish', app: APP_VERSION, W, H, simTime: r1(simTime), seasonMode, dayNight, eventsMode, bal: { ...bal }, light, foodRate, mutRate,
     rockLevel, walled, coverLevel, rocks: rocks.map(c => [r1(c.x), r1(c.y), r1(c.r)]), cover: cover.map(c => [r1(c.x), r1(c.y), r1(c.r)]), vents: vents.map(v => [r1(v.x), r1(v.y)]),
     creatures: creatures.map(c => ({ g: { ...c.g, absorbed: c.g.absorbed }, x: r1(c.x), y: r1(c.y), e: r1(c.energy), fat: r1(c.fat), age: r1(c.age), life: r1(c.lifespan), s: Math.round(c.scale * 100) / 100, gen: c.gen, caste: c.caste, job: c.job || undefined, id: c.id, sv: c.survivor || undefined, rs: c.resist ? Math.round(c.resist * 100) / 100 : undefined })),
   };
+  // v15: the whole running state too (graphs, species history, happenings, food, eggs, parasites, zone rules).
+  // Older versions ignore it and load the creatures above.
+  if (full) data.full = packState();
+  return data;
+}
+$('bSave').onclick = async () => {
+  const data = dishData();
   const filename = `bioevolution-dish-${Math.floor(simTime / 60)}m.json`, json = JSON.stringify(data);
   // inside claude.ai the viewer is asked to confirm the save; opened as a plain file, the browser downloads it
   const dl = window.claude && window.claude.use ? await window.claude.use('downloads') : null;
@@ -5514,8 +5525,197 @@ $('fLoad').onchange = async e => {
   try { loadDish(JSON.parse(await f.text())); toast(`Loaded a dish with ${creatures.length} creatures`); renderDrawer(true); }
   catch (err) { toast('That file is not a saved dish'); }
 };
+// ---------- whole-dish saves ----------
+// The running state is a web of objects pointing at each other (a parasite at its host, a species at its
+// arms race, an egg at its unborn young). pack() writes it as JSON: an object reached more than once gets
+// an id ($i) and later mentions point back to it ($r); creatures are tagged ($C) so they come back as creatures.
+// A creature's segments in dish coordinates (ws) are left out and rebuilt from its body on load.
+// Plain data with no shared objects (the graph samples) is wrapped in RawSave and left to JSON.stringify, which is much faster.
+class RawSave { constructor(v) { this.v = v; } }
+function pack(root) {
+  const count = new Map();
+  const isObj = v => v !== null && typeof v === 'object';
+  const skip = v => (typeof Node !== 'undefined' && v instanceof Node) || (typeof HTMLCanvasElement !== 'undefined' && v instanceof HTMLCanvasElement) || (typeof CanvasRenderingContext2D !== 'undefined' && v instanceof CanvasRenderingContext2D) || (typeof ImageBitmap !== 'undefined' && v instanceof ImageBitmap) || (typeof Path2D !== 'undefined' && v instanceof Path2D);
+  const kids = v => v instanceof RawSave ? [] : v instanceof Map ? [...v].flat() : v instanceof Set ? [...v] : Array.isArray(v) ? v : ArrayBuffer.isView(v) ? [] : Object.keys(v).map(k => v[k]);
+  const stack = [root];
+  while (stack.length) {
+    const v = stack.pop();
+    if (!isObj(v) || skip(v)) continue;
+    const n = count.get(v) || 0;
+    count.set(v, n + 1);
+    if (n === 0) for (const k of kids(v)) if (isObj(k)) stack.push(k);
+  }
+  const ids = new Map();
+  let next = 0;
+  const num = x => Number.isFinite(x) ? (Number.isInteger(x) ? x : +x.toPrecision(5)) : { $n: String(x) };
+  const enc = v => {
+    if (typeof v === 'number') return num(v);
+    if (typeof v === 'function' || v === undefined) return undefined;
+    if (!isObj(v)) return v;
+    if (skip(v)) return null;
+    if (v instanceof RawSave) return { $raw: v.v };
+    if (ids.has(v)) return { $r: ids.get(v) };
+    let out;
+    const shared = count.get(v) > 1;
+    const id = shared ? next++ : -1;
+    if (shared) ids.set(v, id);
+    if (v instanceof Map) out = { $m: [...v].map(([k, x]) => [enc(k), enc(x)]) };
+    else if (v instanceof Set) out = { $s: [...v].map(enc) };
+    else if (ArrayBuffer.isView(v)) out = { $t: v.constructor.name, a: Array.from(v, num) };
+    else if (Array.isArray(v)) { const a = v.map(enc); out = shared ? { $a: a } : a; }
+    else {
+      const o = {};
+      const cr = v instanceof Creature;
+      for (const k of Object.keys(v)) { if (cr && k === 'ws') continue; const x = enc(v[k]); if (x !== undefined) o[k] = x; }
+      out = v instanceof Creature ? { $C: o } : o;
+    }
+    if (shared) { if (Array.isArray(out)) out = { $a: out }; out.$i = id; }
+    return out;
+  };
+  return enc(root);
+}
+function unpack(data) {
+  const byId = [];
+  const dec = v => {
+    if (v === null || typeof v !== 'object') return v;
+    if (Array.isArray(v)) return v.map(dec);
+    if ('$r' in v) return byId[v.$r];
+    if ('$raw' in v) return v.$raw;
+    if ('$n' in v) return Number(v.$n);
+    let out;
+    const keep = x => { if ('$i' in v) byId[v.$i] = x; return x; };
+    if ('$m' in v) { out = keep(new Map()); for (const [k, x] of v.$m) out.set(dec(k), dec(x)); return out; }
+    if ('$s' in v) { out = keep(new Set()); for (const x of v.$s) out.add(dec(x)); return out; }
+    if ('$t' in v) return keep(new (window[v.$t] || Float64Array)(v.a.map(dec)));
+    if ('$a' in v) { out = keep([]); for (const x of v.$a) out.push(dec(x)); return out; }
+    const src = '$C' in v ? v.$C : v;
+    out = keep('$C' in v ? Object.create(Creature.prototype) : {});
+    for (const k of Object.keys(src)) if (k !== '$i') out[k] = dec(src[k]);
+    if ('$C' in v && Array.isArray(out.local)) { out.ws = out.local.map(() => ({ x1: 0, y1: 0, x2: 0, y2: 0, type: 0, organ: 0 })); if (typeof out.x === 'number') out.computeWorld(); }
+    return out;
+  };
+  return dec(data);
+}
+function packState() {
+  return pack({
+    creatures, corpses, food, eggs, globs, samples: new RawSave(samples), speciesDB, happenings, hapId, stats, events, hazards, nextEventT, env: { ...env }, rebound, areas, zoneLog, deadSince, deadTries, alarms,
+    grazerShare, hiveShare, sweepT, nextId, freshLife, freshNext, migrants, migrantT, meanSpAlive, histTimer, reseedTimer, zoneRules, zoneFoodAcc, vents, ventLevel, VENT_R,
+    rocks, cover, simTime, speed,
+  });
+}
+function restoreFull(d) {
+  const st = unpack(d.full);
+  if (!Array.isArray(st.creatures) || !(st.speciesDB instanceof Map)) throw new Error('bad full save');
+  seasonMode = d.seasonMode ?? 1; dayNight = d.dayNight ?? true; eventsMode = d.eventsMode ?? 0;
+  Object.assign(bal, BAL_DEFAULTS, d.bal || {}); showBal(); saveBal();
+  light = d.light ?? 1; foodRate = d.foodRate ?? 1; mutRate = d.mutRate ?? 1;
+  for (const [id, o, v] of [['rLight', 'oLight', light], ['rFood', 'oFood', foodRate], ['rMut', 'oMut', mutRate]]) { $(id).value = v; $(o).textContent = v.toFixed(2); }
+  rockLevel = d.rockLevel; walled = d.walled; coverLevel = d.coverLevel;
+  storyOff(); cam.follow = null; looked = null; clearSpot(); openSpecies = null;
+  ({ creatures, corpses, food, eggs, globs, samples, speciesDB, happenings, hapId, stats, events, hazards, nextEventT, rebound, areas, zoneLog, deadSince, deadTries, alarms,
+    grazerShare, hiveShare, sweepT, nextId, freshLife, freshNext, migrants, migrantT, meanSpAlive, histTimer, reseedTimer, vents, ventLevel, rocks, cover, simTime } = st);
+  Object.assign(env, st.env);
+  zoneRules = (st.zoneRules || []).length === 4 ? st.zoneRules.map(r => ({ ...ZONE_DEFAULT, ...r })) : [0, 1, 2, 3].map(() => ({ ...ZONE_DEFAULT }));
+  zoneFoodAcc = st.zoneFoodAcc || [0, 0, 0, 0];
+  VENT_R = st.VENT_R || VENT_R;
+  particles = [];
+  // a different window size: stretch everything that has a place in the dish
+  const sx = W / d.W, sy = H / d.H;
+  if (Math.abs(sx - 1) > 0.001 || Math.abs(sy - 1) > 0.001) {
+    const seen = new Set();
+    const move = o => { if (!o || typeof o !== 'object' || seen.has(o)) return; seen.add(o); if (typeof o.x === 'number' && typeof o.y === 'number') { o.x = ((o.x * sx) + W) % W; o.y = ((o.y * sy) + H) % H; } };
+    for (const list of [creatures, corpses, food, eggs, hazards, vents, rocks, cover, globs]) for (const o of list) { move(o); for (const k of ['home', 'nest', 'cache', 'goal', 'child']) move(o[k]); }
+    for (const r of [...rocks, ...cover]) r.r *= Math.sqrt(sx * sy);
+  }
+  buildRocks(); buildCover();
+  for (const c of creatures) c.computeWorld();
+  if (typeof st.speed === 'number') { speed = st.speed; $('bSpeed').textContent = `Speed ${speed === 0.25 ? '¼' : speed === 0.5 ? '½' : speed}×`; }
+}
+
+// Autosave: every two minutes and when the page is closed or hidden, the whole dish goes into the
+// browser's own storage (IndexedDB) on this computer. The last three are kept in case one is bad.
+const AUTO_EVERY = 120000, AUTO_KEEP = 3;
+let autoOn = true, autoLast = 0, autoBusy = false;
+function idb() {
+  return new Promise((res, rej) => {
+    if (!window.indexedDB) return rej(new Error('no storage'));
+    const r = indexedDB.open('bioevolution', 1);
+    r.onupgradeneeded = () => r.result.createObjectStore('saves');
+    r.onsuccess = () => res(r.result);
+    r.onerror = () => rej(r.error);
+  });
+}
+async function idbDo(mode, fn) {
+  const db = await idb();
+  return new Promise((res, rej) => {
+    const tx = db.transaction('saves', mode), store = tx.objectStore('saves');
+    let out;
+    Promise.resolve(fn(store)).then(r => { out = r; });
+    tx.oncomplete = () => { db.close(); res(out); };
+    tx.onerror = () => { db.close(); rej(tx.error); };
+  });
+}
+const reqP = r => new Promise((res, rej) => { r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); });
+async function autoSave(why) {
+  if (!autoOn || autoBusy || !creatures.length || simTime < 30) return;
+  autoBusy = true;
+  try {
+    const t0 = performance.now();
+    const json = JSON.stringify(dishData());
+    const ms = performance.now() - t0;
+    const blob = await gz(json);
+    await idbDo('readwrite', async store => {
+      const slots = (await reqP(store.get('index'))) || [];
+      const slot = slots.length < AUTO_KEEP ? slots.length : slots.reduce((a, b) => b.at < a.at ? b : a).slot;
+      const meta = { slot, at: Date.now(), simTime, alive: creatures.length, species: [...speciesDB.values()].filter(x => x.extinctAt === null).length, app: APP_VERSION, bytes: blob.size, ms: Math.round(ms) };
+      store.put(blob, 'slot' + slot);
+      store.put([...slots.filter(x => x.slot !== slot), meta], 'index');
+    });
+    autoLast = Date.now();
+    window.__lastAuto = { why, ms, bytes: json.length, stored: blob.size };
+  } catch (err) { /* storage blocked or full: the Save button still works */ }
+  autoBusy = false;
+}
+async function autoList() { try { return ((await idbDo('readonly', store => reqP(store.get('index')))) || []).sort((a, b) => b.at - a.at); } catch (_) { return []; } }
+async function autoLoad(slot) { return JSON.parse(await gunz(await idbDo('readonly', store => reqP(store.get('slot' + slot))))); }
+// autosaves are gzipped where the browser can (most can), which makes them about a tenth of the size
+async function gz(text) {
+  if (typeof CompressionStream === 'undefined') return text;
+  return new Response(new Blob([text]).stream().pipeThrough(new CompressionStream('gzip'))).blob();
+}
+async function gunz(v) {
+  if (typeof v === 'string') return v;
+  return new Response(v.stream().pipeThrough(new DecompressionStream('gzip'))).text();
+}
+setInterval(() => { if (Date.now() - autoLast >= AUTO_EVERY) autoSave('timer'); }, 10000);
+document.addEventListener('visibilitychange', () => { if (document.hidden) autoSave('hidden'); });
+window.addEventListener('pagehide', () => autoSave('close'));
+const agoText = ms => { const m = Math.round(ms / 60000); return m < 1 ? 'just now' : m < 60 ? `${m} min ago` : m < 48 * 60 ? `${Math.round(m / 60)} h ago` : `${Math.round(m / 1440)} days ago`; };
+// On opening, offer to pick the dish back up. The fresh dish runs underneath until you choose.
+async function offerResume() {
+  const list = await autoList();
+  if (!list.length) return;
+  const m = list[0], el = $('resumeCard');
+  el.innerHTML = `<p>Resume your dish from <b>${fmtTime(m.simTime)}</b>? ${m.alive} alive, ${m.species} species, saved ${agoText(Date.now() - m.at)}.</p>` +
+    `<div class="row"><button class="ctl" id="resumeYes">Resume</button><button class="ctl" id="resumeNo">Start fresh</button>${list.length > 1 ? `<button class="link" id="resumeOlder">older saves</button>` : ''}</div><div id="resumeList" hidden></div>`;
+  el.hidden = false;
+  const go = async slot => {
+    try { const d = await autoLoad(slot); loadDish(d); toast(`Resumed a dish with ${creatures.length} creatures`); renderDrawer(true); }
+    catch (_) { toast('That save could not be read'); }
+    el.hidden = true;
+  };
+  $('resumeYes').onclick = () => go(m.slot);
+  $('resumeNo').onclick = () => { el.hidden = true; };
+  if ($('resumeOlder')) $('resumeOlder').onclick = () => {
+    const box = $('resumeList'); box.hidden = false;
+    box.innerHTML = list.slice(1).map(x => `<button class="ctl" data-slot="${x.slot}">${fmtTime(x.simTime)} · ${x.alive} alive · ${agoText(Date.now() - x.at)}</button>`).join('');
+    for (const b of box.querySelectorAll('[data-slot]')) b.onclick = () => go(+b.dataset.slot);
+  };
+}
+
 function loadDish(d) {
   if (d.kind !== 'bioevolution-dish' || !Array.isArray(d.creatures)) throw new Error('not a dish');
+  if (d.full) { try { restoreFull(d); return; } catch (err) { console.warn('full restore failed, loading creatures only', err); } }
   // stretch the saved dish to fit this window
   const sx = W / d.W, sy = H / d.H, sr = Math.sqrt(sx * sy);
   seasonMode = d.seasonMode ?? 1; dayNight = d.dayNight ?? true; eventsMode = d.eventsMode ?? 0;
@@ -5639,5 +5839,6 @@ reset();
 for (let i = 0; i < 30; i++) step(DT);
 updatePanel();
 requestAnimationFrame(frame);
+offerResume();
 })();
 </script>

@@ -2,6 +2,12 @@
 
 Every release stays playable. Pick one from the menu next to the title in the app, or open the file directly. The newest is always `index.html`.
 
+## Fix after v15: safe dish loading (2026-11-13)
+
+`index.html` only; `versions/v15.html` and older snapshots are left as they were.
+
+- **Loaded dishes can't run code.** A dish file or autosave is now cleaned before it is used: every string loses `<` `>` `"` and backticks (the game's own names never use them), loading rebuilds only plain data and typed arrays (no way to smuggle in a function or reach an object's prototype), and the resume card only shows numbers. Species names, happenings and diary lines are also escaped where they go into the page. Tested with crafted files: on v15 a doctored name ran script 12 times and a doctored creature ran a function on load; now neither does, and an ordinary save loads the same as before.
+
 ## v15: Runs on your PC, zone rules, Look tool & autosave (2026-11-02)
 
 `versions/v15.html` (also the current `index.html`). Follows v14.1, which stays in the menu.

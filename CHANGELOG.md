@@ -4,7 +4,7 @@ Every release stays playable. Pick one from the menu next to the title in the ap
 
 ## Fix after v15: safe dish loading (2026-11-13)
 
-`index.html` only; `versions/v15.html` and older snapshots are left as they were.
+`index.html` and `versions/v15.html` (re-snapshotted with the fix). In the older snapshots that had Load dish (v11 to v14.1), loading is switched off by a small script added at the end of each file, at the owner's request; they otherwise play as before. v1 and v8 never had loading.
 
 - **Loaded dishes can't run code.** A dish file or autosave is now cleaned before it is used: every string loses `<` `>` `"` and backticks (the game's own names never use them), loading rebuilds only plain data and typed arrays (no way to smuggle in a function or reach an object's prototype), and the resume card only shows numbers. Species names, happenings and diary lines are also escaped where they go into the page. Tested with crafted files: on v15 a doctored name ran script 12 times and a doctored creature ran a function on load; now neither does, and an ordinary save loads the same as before.
 

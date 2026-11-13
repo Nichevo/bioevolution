@@ -4357,5 +4357,10 @@ requestAnimationFrame(frame);
 })();
 </script>
 
+<script>
+// Added 2026-11-13: this old version's Load dish did not check files, so loading is switched off here.
+// The current version loads dishes safely.
+(function () { var b = document.getElementById('bLoad'), f = document.getElementById('fLoad'); if (b) { b.onclick = null; b.hidden = true; b.style.display = 'none'; } if (f) { f.onchange = null; f.disabled = true; } })();
+</script>
 </body>
 </html>
